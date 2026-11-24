@@ -109,6 +109,8 @@ async function loadAll() {
   await loadCalendar();
   S.members = mem.data; S.pantry = pan.data; S.recipes = rec.data; S.plan = pl.data; S.list = li.data; S.books = bk.data; S.spending = sp.data;
   if (!S.libLoaded) await loadLibrary();
+  if (!Object.keys(ING.items).length) await loadIngredientMap();
+  scheduleLinks();
 }
 async function loadCalendar() {
   const hid = S.household.id;
@@ -223,16 +225,92 @@ async function importLibrary(btn) {
 }
 
 // ---------- planning logic ----------
-function pantryFor(name) { return S.pantry.find(p => same(p.name, name)); }
+// ---------- pantry links: every ingredient points at specific pantry items ----------
+let ING = { items: {}, map: {}, rules: [] };
+const linkCache = new Map();
+async function loadIngredientMap() {
+  try { const j = await fetch('ingredients.json').then(r => r.json()); ING = { items: j.items || {}, lower: Object.fromEntries(Object.keys(j.items || {}).map(k => [k.toLowerCase(), k])), map: j.map || {}, rules: (j.rules || []).map(([p, r]) => [new RegExp(p), r]) }; linkCache.clear(); } catch (_) { }
+}
+const BASICS = /^(Table salt|Kosher salt|Sea salt|Black pepper)$/;
+const OPTIONAL = /\b(optional|to serve|for serving|to garnish|for garnish|garnish|for dipping|for topping)\b/i;
+/** {items:[pantry item names], sub:[recipe titles], skip:bool} or null when not linked yet */
+function linkOf(i) {
+  if (i && typeof i === 'object' && (Array.isArray(i.items) || Array.isArray(i.sub) || i.skip)) return { items: i.items || [], sub: i.sub || [], skip: !!i.skip };
+  const n = String((i && typeof i === 'object') ? i.name : i || '').trim().toLowerCase(); if (!n) return null;
+  if (linkCache.has(n)) return linkCache.get(n);
+  let out = ING.map[n] || null;
+  if (!out) { const hit = ING.lower?.[n]; if (hit) out = { items: [hit], sub: [] }; }
+  if (!out) for (const [rx, res] of ING.rules) if (rx.test(n)) {
+    if (res === 'skip') { out = { items: [], sub: [], skip: true }; break; }
+    const parts = res.split('+').map(x => x.trim()); out = { items: parts.filter(x => !x.startsWith('sub:')), sub: parts.filter(x => x.startsWith('sub:')).map(x => x.slice(4)) }; break;
+  }
+  if (!out && isSubRecipe(n)) out = { items: [], sub: [n.replace(/^\d*\s*recipe\s+/, '').replace(/,.*$/, '')] };
+  linkCache.set(n, out); return out;
+}
+/** The pantry row for a canonical item name (exact name, or a pantry row whose own name links to it). */
+function itemNamed(name) {
+  const k = String(name || '').toLowerCase(); if (!k) return null;
+  return S.pantry.find(p => p.name.toLowerCase() === k) || S.pantry.find(p => (linkOf(p.name)?.items || [])[0]?.toLowerCase() === k) || null;
+}
+const subRecipe = title => S.recipes.find(r => r.title.toLowerCase() === String(title).toLowerCase()) || S.recipes.find(r => same(r.title, title));
+const itemMeta = n => ING.items[n] || null;
+function pantryFor(x) {
+  const l = linkOf(x);
+  if (l) return l.items.length ? itemNamed(l.items[0]) : null;
+  const n = typeof x === 'object' ? x?.name : x; return S.pantry.find(p => same(p.name, n)) || null;
+}
+/** Does ingredient i use pantry row p? */
+const usesItem = (i, p) => { const l = linkOf(i); return l ? l.items.some(n => itemNamed(n)?.id === p.id) : same(i.name, p.name); };
+/** Shopping rows for whatever this recipe is missing, by pantry item name. */
+function missingBuys(r, f = 1) {
+  const out = [];
+  for (const { i, its } of recipeMatch(r).missingRows) {
+    if (!its) { out.push({ name: buyName(i.name), qty: i.qty ? i.qty * f : null, unit: normUnit(i.unit || ''), category: 'Other' }); continue; }
+    for (const n of its) { const p = itemNamed(n); if (p && Number(p.qty) > 0) continue; const single = its.length === 1;
+      out.push({ name: n, qty: single && i.qty ? i.qty * f : null, unit: single ? normUnit(i.unit || '') : '', category: p?.category || itemMeta(n)?.[1] || 'Other' }); }
+  }
+  return out;
+}
+let linking = false, linkT;
+const scheduleLinks = () => { clearTimeout(linkT); linkT = setTimeout(() => ensureLinks().catch(console.error), 700); };
+/** Make sure every item any recipe links to exists in the pantry (at 0 if you don't have it), and save links onto recipes. */
+async function ensureLinks() {
+  if (linking || !S.household || !Object.keys(ING.items).length) return; linking = true;
+  try {
+  const need = new Set();
+  for (const r of S.recipes) for (const i of r.ingredients || []) for (const n of linkOf(i)?.items || []) need.add(n);
+  const add = [...need].filter(n => !itemNamed(n)).map(n => { const m = itemMeta(n) || ['pantry', 'Other', '']; return { household_id: S.household.id, name: n, qty: 0, par: 0, unit: m[2] || '', location: m[0], category: m[1], updated_at: new Date().toISOString() }; });
+  quietUntil = Date.now() + 8000;
+  for (let k = 0; k < add.length; k += 100) { const r = await sb.from('pantry_items').insert(add.slice(k, k + 100)); if (r.error) { console.error(r.error); break; } }
+  for (const r of S.recipes) {
+    const ings = r.ingredients || []; if (!ings.some(i => !Array.isArray(i.items) && !i.skip && linkOf(i))) continue;
+    const next = ings.map(i => { if (Array.isArray(i.items) || i.skip) return i; const l = linkOf(i); return l ? { ...i, items: l.items, sub: l.sub, ...(l.skip ? { skip: true } : {}) } : i; });
+    r.ingredients = next; quietUntil = Date.now() + 3000; await sb.from('recipes').update({ ingredients: next }).eq('id', r.id);
+  }
+  if (add.length) { const pr = await sb.from('pantry_items').select('*').eq('household_id', S.household.id).order('name'); if (!pr.error) S.pantry = pr.data; if (!$('.sheet')) render(); }
+  } finally { linking = false; }
+}
+/** Re-link edited ingredient lines, keeping links you set by hand on lines that didn't change. */
+function relink(newIngs, oldIngs = []) {
+  return newIngs.map(i => { const o = oldIngs.find(x => x.name.trim().toLowerCase() === i.name.trim().toLowerCase() && (Array.isArray(x.items) || x.skip));
+    if (o) return { ...i, items: o.items || [], sub: o.sub || [], ...(o.skip ? { skip: true } : {}) };
+    const l = linkOf(i.name); return l ? { ...i, items: l.items, sub: l.sub, ...(l.skip ? { skip: true } : {}) } : i; });
+}
 function recipeMatch(r) {
-  const ings = (r.ingredients || []).filter(i => !isSubRecipe(i.name) && !/^(salt|pepper|black pepper|water|salt and pepper|kosher salt|ice|salt and black pepper)$/i.test(norm(i.name)));
-  if (!ings.length) return { pct: 0, have: 0, total: 0, missing: [] };
-  const missing = ings.filter(i => { const p = pantryFor(i.name); return !p || Number(p.qty) <= 0; });
-  return { pct: Math.round((ings.length - missing.length) / ings.length * 100), have: ings.length - missing.length, total: ings.length, missing };
+  const rows = [];
+  for (const i of r.ingredients || []) {
+    const l = linkOf(i);
+    if (l) { if (l.skip || !l.items.length || l.items.every(n => BASICS.test(n)) || OPTIONAL.test(i.name)) continue; rows.push({ i, its: l.items }); }
+    else { if (isSubRecipe(i.name) || /^(salt|pepper|black pepper|water|ice)$/i.test(norm(i.name)) || OPTIONAL.test(i.name)) continue; rows.push({ i, its: null }); }
+  }
+  if (!rows.length) return { pct: 0, have: 0, total: 0, missing: [], missingRows: [] };
+  const lacks = ({ i, its }) => its ? its.some(n => { const p = itemNamed(n); return !p || Number(p.qty) <= 0; }) : (() => { const p = S.pantry.find(p => same(p.name, i.name)); return !p || Number(p.qty) <= 0; })();
+  const missingRows = rows.filter(lacks);
+  return { pct: Math.round((rows.length - missingRows.length) / rows.length * 100), have: rows.length - missingRows.length, total: rows.length, missing: missingRows.map(x => x.i), missingRows };
 }
 function ideas(limit = 3) {
   const soon = S.pantry.filter(p => p.expires_on && parseYmd(p.expires_on) <= addDays(new Date(), 3) && Number(p.qty) > 0);
-  return S.recipes.filter(isMeal).map(r => { const m = recipeMatch(r); const uses = soon.filter(p => (r.ingredients || []).some(i => same(i.name, p.name))).length; return { r, m, score: m.pct + uses * 15 + (r.favorite ? 5 : 0) + (r.rating || 0) * 2 }; })
+  return S.recipes.filter(isMeal).map(r => { const m = recipeMatch(r); const uses = soon.filter(p => (r.ingredients || []).some(i => usesItem(i, p))).length; return { r, m, score: m.pct + uses * 15 + (r.favorite ? 5 : 0) + (r.rating || 0) * 2 }; })
     .filter(x => x.m.total >= 3 && x.m.pct >= 50).sort((a, b) => b.score - a.score).slice(0, limit);
 }
 const busyOn = d => d ? S.busy.filter(b => b.day === d && memberById(b.user_id)) : [];
@@ -254,7 +332,10 @@ async function buildList() {
     if (p.kind !== 'cook' || p.cooked || p.day < today || p.day > end) continue;
     for (const r of dishesOf(p)) {
       const f = factorFor(p, r);
-      for (const i of r.ingredients || []) add(i.name, i.qty ? i.qty * f : null, i.unit, pantryFor(i.name)?.category || 'Other');
+      for (const i of r.ingredients || []) { const l = linkOf(i);
+        if (!l) { add(i.name, i.qty ? i.qty * f : null, i.unit, 'Other'); continue; }
+        if (l.skip) continue;
+        for (const n of l.items) { if (BASICS.test(n)) continue; const single = l.items.length === 1; add(n, single && i.qty ? i.qty * f : null, single ? i.unit : '', itemNamed(n)?.category || itemMeta(n)?.[1] || 'Other'); } }
     }
   }
   const rows = [];
@@ -281,7 +362,8 @@ async function markCooked(p) {
   for (const r of ds) {
     const f = factorFor(p, r);
     for (const i of r.ingredients || []) {
-      const it = pantryFor(i.name); if (!it || i.qty == null) continue;
+      const lk = linkOf(i); if (lk && lk.items.length !== 1) continue;
+      const it = pantryFor(i); if (!it || i.qty == null) continue;
       if (normUnit(it.unit) !== normUnit(i.unit) && it.unit && i.unit) continue;
       const q = Math.max(0, Math.round((Number(it.qty) - i.qty * f) * 100) / 100);
       const u = await sb.from('pantry_items').update({ qty: q, updated_at: new Date().toISOString() }).eq('id', it.id); if (u.error) throw u.error;
@@ -449,16 +531,26 @@ const I = {
   link: '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
   pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>', search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   cart: '<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>',
+  sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>', moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
   home: '<path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v10.5h13V9"/><path d="M10 19.5v-5h4v5"/>',
   cal: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/>', fire: '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-7 1.5 1 2 2 2 3 0-2 0-4 1-6z"/>'
 };
 const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${I[k]}</svg>`;
 const TABS = [['home', 'Home'], ['week', 'Week'], ['pantry', 'Pantry'], ['recipes', 'Recipes'], ['list', 'List'], ['family', 'Family']];
 
+const getTheme = () => { try { return localStorage.getItem('wc_theme') || 'system'; } catch (_) { return 'system'; } };
+const isDark = () => { const t = getTheme(); return t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches); };
+function setTheme(t) {
+  try { t === 'system' ? localStorage.removeItem('wc_theme') : localStorage.setItem('wc_theme', t); } catch (_) { }
+  document.documentElement.style.colorScheme = t === 'system' ? '' : t;
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', isDark() ? '#14120E' : '#1F4D38');
+  render();
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (getTheme() === 'system' && S.session) render(); });
 function shell(inner) {
   const lowN = S.pantry.filter(p => Number(p.par) > 0 && Number(p.qty) < Number(p.par)).length;
   const listN = S.list.filter(l => !l.checked).length;
-  return `<header class="top"><img src="logo.svg" alt=""><div class="brand"><b>We're Cooked</b><span>${esc(S.household.name)}</span></div>${av(S.me)}</header>
+  return `<header class="top"><img src="logo.svg" alt=""><div class="brand"><b>We're Cooked</b><span>${esc(S.household.name)}</span></div><button class="themebtn" data-act="theme" aria-label="Switch to ${isDark() ? 'light' : 'dark'} mode" title="Switch to ${isDark() ? 'light' : 'dark'} mode">${svg(isDark() ? 'sun' : 'moon')}</button>${av(S.me)}</header>
   <main id="main">${inner}</main>
   <nav class="tabs" aria-label="Sections">${TABS.map(([k, l]) => `<button data-tab="${k}" aria-current="${S.tab === k ? 'page' : 'false'}"><span class="pill">${svg(k === 'recipes' ? 'recipes' : k)}</span><span>${l}</span>${k === 'list' && listN ? `<b class="cnt">${listN}</b>` : ''}${k === 'pantry' && lowN ? `<b class="cnt">${lowN}</b>` : ''}</button>`).join('')}</nav>`;
 }
@@ -532,18 +624,21 @@ function ptile(p) {
   <div class="pbody"><span class="iname">${esc(p.name)}</span><span class="imeta">${Number(p.par) > 0 ? `keep ${fmtQty(p.par)}` : 'no par'}${p.expires_on && p.expires_on <= ymd(addDays(new Date(), 3)) ? ' · <b style="color:var(--flamed)">use soon</b>' : ''}</span>
   <span class="stepper sm"><button data-dq="${p.id}" data-d="-1" aria-label="Less">−</button><span>${fmtQty(p.qty)}${p.unit ? ' ' + esc(p.unit) : ''}</span><button data-dq="${p.id}" data-d="1" aria-label="More">+</button></span></div></div>`;
 }
-function zoneCounts() { const c = {}; for (const k of LOC_ORDER) c[k] = { n: 0, low: 0 }; for (const p of S.pantry) { const k = locOf(p); c[k].n++; if (isLow(p)) c[k].low++; } return c; }
+function zoneCounts() { const c = {}; for (const k of LOC_ORDER) c[k] = { n: 0, low: 0 }; for (const p of S.pantry) { const k = locOf(p); if (Number(p.qty) > 0 || Number(p.par) > 0) c[k].n++; if (isLow(p)) c[k].low++; } return c; }
 function pantryView() {
   const q = S.pantryQ.toLowerCase();
   const low = S.pantry.filter(isLow).length, soon = ymd(addDays(new Date(), 3)), exp = S.pantry.filter(p => p.expires_on && p.expires_on <= soon && Number(p.qty) > 0).length;
-  const head = `<h2>Pantry</h2><p class="lede">${S.pantry.length} items${low ? ` · ${low} below par (on your list)` : ''}${exp ? ` · ${exp} to use soon` : ''}</p>
+  const onHand = S.pantry.filter(p => Number(p.qty) > 0 || Number(p.par) > 0).length;
+  const head = `<h2>Pantry</h2><p class="lede">${onHand} on hand · ${S.pantry.length - onHand} tracked for recipes${low ? ` · ${low} below par (on your list)` : ''}${exp ? ` · ${exp} to use soon` : ''}</p>
   <div class="switch" role="group" aria-label="Show"><button data-pview="kitchen" aria-pressed="${S.pview !== 'staples'}">🏠 Kitchen</button><button data-pview="staples" aria-pressed="${S.pview === 'staples'}">📋 Staples & pars</button></div>`;
   if (S.pview === 'staples') return head + staplesView();
   if (S.zone) {
     const items = S.pantry.filter(p => locOf(p) === S.zone).sort((a, b) => isLow(b) - isLow(a) || a.name.localeCompare(b.name));
     const L = LOCS[S.zone];
     return head + `<div class="row" style="margin-bottom:12px"><button class="btn sm ghost" data-zone-go="">‹ Kitchen</button><h2 class="sp" style="margin:0;font-size:22px">${L[1]} ${L[0]}</h2><button class="btn sm" data-act="addpantry" aria-label="Add item">${svg('plus')}</button></div>
-    ${items.length ? `<div class="pgrid">${items.map(ptile).join('')}</div>` : `<div class="empty"><span class="e">${L[1]}</span>Nothing in the ${L[0].toLowerCase()} yet. Tap + to add something, or set up your staples.</div>`}`;
+    ${(() => { const on = items.filter(p => Number(p.qty) > 0 || Number(p.par) > 0), off = items.filter(p => !(Number(p.qty) > 0 || Number(p.par) > 0));
+      return (on.length ? `<div class="pgrid">${on.map(ptile).join('')}</div>` : `<div class="empty"><span class="e">${L[1]}</span>Nothing in the ${L[0].toLowerCase()} right now. Tap + to add something, or set up your staples.</div>`)
+        + (off.length ? `<details class="offstock"><summary>Not in stock · ${off.length} used by your recipes</summary><p class="imeta">Every recipe ingredient is linked to one of these. Tap one to set how much you have.</p><div class="pgrid">${off.map(ptile).join('')}</div></details>` : ''); })()}`;
   }
   const hits = q ? S.pantry.filter(p => p.name.toLowerCase().includes(q)) : [];
   return head + `<div class="kwrap">${window.kitchenSVG(zoneCounts())}</div><p class="imeta" style="text-align:center;margin:-2px 0 12px">Tap any spot in the kitchen to see what's there</p>
@@ -554,7 +649,7 @@ function pantryView() {
   </div>
   <div class="row" style="margin-bottom:14px;flex-wrap:nowrap"><div class="search sp" style="margin:0">${svg('search')}<input type="search" id="psearch" placeholder="Find something in the kitchen" value="${esc(S.pantryQ)}" aria-label="Search the pantry"></div><button class="btn" data-act="addpantry" aria-label="Add item">${svg('plus')}</button></div>
   ${q ? (hits.length ? `<div class="pgrid">${hits.map(ptile).join('')}</div>` : '<p class="empty">Nothing matches.</p>') : ''}
-  ${!S.pantry.length ? `<div class="banner"><span class="em">📋</span><span class="sp"><b>Stock the kitchen in one tap</b><p>Add ${STAPLE_COUNT} standard household staples with pars, sorted into the fridge, freezer, pantry, spice rack and more.</p></span><button class="btn sm" data-act="staples">Add</button></div>` : ''}`;
+  ${!S.pantry.some(p => Number(p.par) > 0) ? `<div class="banner"><span class="em">📋</span><span class="sp"><b>Stock the kitchen in one tap</b><p>Add ${STAPLE_COUNT} standard household staples with pars, sorted into the fridge, freezer, pantry, spice rack and more.</p></span><button class="btn sm" data-act="staples">Add</button></div>` : ''}`;
 }
 const STAPLE_COUNT = 139;
 function staplesView() {
@@ -631,6 +726,7 @@ function familyView() {
   return `<h2>${esc(S.household.name)}</h2><p class="lede">${S.members.length} ${S.members.length === 1 ? 'member' : 'members'}</p>
   <div class="card"><div class="imeta">Invite code — family members sign in, then enter this code to join</div><div class="row" style="margin-top:8px"><span class="code">${esc(S.household.invite_code)}</span><span class="sp"></span><button class="btn sm ghost" data-act="copycode">Copy invite</button></div></div>
   <h3>Members</h3><div class="card">${S.members.map(m => `<div class="item"><span class="row" style="flex-wrap:nowrap">${av(m)}<span><span class="iname">${esc(m.display_name)}${m.user_id === S.session.user.id ? ' (you)' : ''}</span><span class="imeta" style="display:block">${m.role === 'owner' ? 'Owner' : 'Member'}${m.dislikes ? ' · Avoids: ' + esc(m.dislikes) : ''}</span></span></span></div>`).join('')}</div>
+  <h3>Appearance</h3><div class="card"><div class="seg" role="group" aria-label="Appearance">${[['system', 'Match phone'], ['light', '☀️ Light'], ['dark', '🌙 Dark']].map(([k, l]) => `<button type="button" data-act="themeset" data-theme-set="${k}" aria-pressed="${getTheme() === k}">${l}</button>`).join('')}</div></div>
   ${calendarSection()}
   <h3>Home area</h3><div class="card"><div class="imeta">Used to find nearby restaurants when phone location is off</div>
   <div class="row" style="margin-top:6px"><span class="iname sp">${esc(S.household.home_label || 'Not set')}</span><button class="btn sm ghost" data-act="sethome">${S.household.home_label ? 'Change' : 'Set home area'}</button></div></div>
@@ -915,6 +1011,45 @@ function pantryEditor(id, preset = {}) {
 }
 
 // ---------- recipe page ----------
+function linkChips(i, n) {
+  const l = linkOf(i);
+  if (!l) return `<button class="lchip warn" data-relink="${n}">⚠ Link to pantry</button>`;
+  if (l.skip) return `<button class="lchip none" data-relink="${n}">Not a pantry item</button>`;
+  return [...l.items.map(nm => { const p = itemNamed(nm); const have = p && Number(p.qty) > 0;
+      return `<button class="lchip ${have ? 'have' : 'out'}" data-pitem="${p ? p.id : ''}" data-pname="${esc(nm)}" data-ln="${n}">${have ? '✓' : '○'} ${esc(nm)}${p ? ` · ${have ? esc(fmtQty(Number(p.qty)) + (p.unit ? ' ' + p.unit : '')) : 'out'}` : ''}</button>`; }),
+    ...l.sub.map(t => { const sr = subRecipe(t); return `<button class="lchip sub" ${sr ? `data-subr="${sr.id}"` : 'disabled'}>📖 ${esc(t)}</button>`; }),
+    `<button class="lchip edit" data-relink="${n}" aria-label="Change pantry link">✎</button>`].join('');
+}
+/** Pick which pantry item(s) an ingredient line uses. */
+function linkPicker(r, n, done) {
+  const ing = r.ingredients[n], l = linkOf(ing) || { items: [], sub: [] };
+  const names = [...new Set([...S.pantry.map(p => p.name), ...Object.keys(ING.items)])].sort((a, b) => a.localeCompare(b));
+  let picked = [...l.items], skip = !!l.skip;
+  const draw = () => `<h2>Link to the pantry</h2><p class="lede">${esc(ing.name)}</p>
+    <div class="chips">${picked.map((x, k) => `<button type="button" class="chip" aria-pressed="true" data-unpick="${k}">${esc(x)} ✕</button>`).join('') || `<span class="imeta">${skip ? 'Marked as not a pantry item (like water).' : 'No pantry item linked yet.'}</span>`}</div>
+    <label for="lkq">Add a pantry item</label><input type="text" id="lkq" list="lknames" placeholder="Start typing: kosher salt, cheddar…" autocomplete="off"><datalist id="lknames">${names.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
+    <div class="row" style="margin-top:8px"><button type="button" class="btn sm ghost" id="lkadd">Add</button><span class="sp"></span><button type="button" class="btn sm line" id="lkskip">${skip ? 'It is a pantry item' : 'Not a pantry item'}</button></div>
+    ${l.sub.length ? `<p class="imeta">Also uses the recipe: ${esc(l.sub.join(', '))}</p>` : ''}
+    <div class="row" style="margin-top:18px"><button class="btn" id="lksave">Save link</button><button class="btn ghost" data-close>Cancel</button></div>`;
+  sheet(draw(), (el, close) => {
+    const box = el.querySelector('[role=dialog]'); const redraw = () => { box.innerHTML = draw(); };
+    const addOne = () => { const v = el.querySelector('#lkq').value.trim(); if (!v) return; const hit = names.find(x => x.toLowerCase() === v.toLowerCase()) || v.replace(/^./, c => c.toUpperCase()); if (!picked.includes(hit)) picked.push(hit); skip = false; redraw(); el.querySelector('#lkq')?.focus(); };
+    el.addEventListener('keydown', e => { if (e.target.id === 'lkq' && e.key === 'Enter') { e.preventDefault(); addOne(); } });
+    el.addEventListener('change', e => { if (e.target.id === 'lkq' && names.some(x => x.toLowerCase() === e.target.value.trim().toLowerCase())) addOne(); });
+    el.addEventListener('click', async e => {
+      const u = e.target.closest('[data-unpick]'); if (u) { picked.splice(+u.dataset.unpick, 1); return redraw(); }
+      if (e.target.closest('#lkadd')) return addOne();
+      if (e.target.closest('#lkskip')) { skip = !skip; if (skip) picked = []; return redraw(); }
+      if (e.target.closest('#lksave')) {
+        const next = r.ingredients.map((x, k) => k === n ? { ...x, items: picked, sub: l.sub || [], ...(skip ? { skip: true } : { skip: undefined }) } : x).map(x => { if (x.skip === undefined) delete x.skip; return x; });
+        const fresh = picked.filter(nm => !itemNamed(nm)).map(nm => { const m = itemMeta(nm) || ['pantry', 'Other', '']; return { household_id: S.household.id, name: nm, qty: 0, par: 0, unit: m[2] || '', location: m[0], category: m[1] }; });
+        if (fresh.length) { const ins = await sb.from('pantry_items').insert(fresh); if (ins.error) return fail(ins.error); }
+        const up = await sb.from('recipes').update({ ingredients: next }).eq('id', r.id); if (up.error) return fail(up.error);
+        r.ingredients = next; await loadAll(); close(); toast('Pantry link saved'); done?.();
+      }
+    });
+  });
+}
 let wakeLock = null;
 function recipeView(id, opts = {}) {
   const r = S.recipes.find(x => x.id === id); if (!r) return;
@@ -933,7 +1068,7 @@ function recipeView(id, opts = {}) {
     ${S.books.length ? `<h3>In these books</h3><div class="bchips">${S.books.map(b => `<button class="bchip" style="--c:${esc(b.color)}" data-tbook="${b.id}" aria-pressed="${(r.books || []).includes(b.id)}">${esc(b.emoji)} ${esc(b.name)}</button>`).join('')}</div>` : ''}
     ${isTodo(r) ? `<div class="banner flame" style="margin-top:16px"><span class="em">✍️</span><span class="sp"><b>No recipe written down yet</b><p>Tap edit to add the ingredients and steps.</p></span></div>` : ''}
     ${(r.ingredients || []).length ? `<div class="row" style="margin-top:22px;margin-bottom:6px"><h3 class="sp" style="margin:0">Ingredients</h3><span class="stepper"><button id="rm" aria-label="Fewer servings">−</button><span>Serves ${serves}</span><button id="rp" aria-label="More servings">+</button></span></div>
-    <ul class="ings">${r.ingredients.map((i, n) => { const p = pantryFor(i.name); const have = p && Number(p.qty) > 0; const q = fmtQty(i.qty ? i.qty * f : null); return `<li data-ing="${n}" class="${got.has(n) ? 'got' : ''}"><span class="box">${got.has(n) ? '✓' : ''}</span><span class="txt">${q || i.unit ? `<b>${esc([q, i.unit].filter(Boolean).join(' '))}</b> ` : ''}${esc(i.name)}</span>${have ? '<span class="home">AT HOME</span>' : '<span></span>'}</li>`; }).join('')}</ul>` : ''}
+    <ul class="ings">${r.ingredients.map((i, n) => { const q = fmtQty(i.qty ? i.qty * f : null); return `<li data-ing="${n}" class="${got.has(n) ? 'got' : ''}"><span class="box">${got.has(n) ? '✓' : ''}</span><span class="txt">${q || i.unit ? `<b>${esc([q, i.unit].filter(Boolean).join(' '))}</b> ` : ''}${esc(i.name)}<span class="links">${linkChips(i, n)}</span></span></li>`; }).join('')}</ul>` : ''}
     ${(r.steps || []).length ? `<h3>Steps</h3><ol class="steps">${r.steps.map((s, n) => `<li data-stp="${n}" class="${done.has(n) ? 'done' : ''}"><span>${esc(s)}</span></li>`).join('')}</ol>` : ''}
     ${r.notes ? `<h3>Notes</h3><div class="note">${esc(r.notes)}</div>` : ''}
     ${r.source_url ? `<p><span role="link" tabindex="0" data-ext="${esc(r.source_url)}" style="color:var(--greend);font-weight:700;text-decoration:underline">Open the original ↗</span></p>` : ''}
@@ -948,6 +1083,9 @@ function recipeView(id, opts = {}) {
       const t = e.target;
       if (t.closest('#rm')) { serves = Math.max(1, serves - 1); return redraw(); }
       if (t.closest('#rp')) { serves = Math.min(60, serves + 1); return redraw(); }
+      const pi = t.closest('[data-pitem]'); if (pi) { if (pi.dataset.pitem) pantryEditor(pi.dataset.pitem); else linkPicker(r, +pi.dataset.ln, redraw); return; }
+      const sr = t.closest('[data-subr]'); if (sr) return recipeView(sr.dataset.subr);
+      const rl = t.closest('[data-relink]'); if (rl) return linkPicker(r, +rl.dataset.relink, redraw);
       const ing = t.closest('[data-ing]'); if (ing) { const n = Number(ing.dataset.ing); got.has(n) ? got.delete(n) : got.add(n); return redraw(); }
       const stp = t.closest('[data-stp]'); if (stp) { const n = Number(stp.dataset.stp); done.has(n) ? done.delete(n) : done.add(n); return redraw(); }
       if (t.closest('#rcook')) { cook = !cook; try { if (cook && navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); else { wakeLock?.release(); wakeLock = null; } } catch (_) { } toast(cook ? 'Cook mode: bigger text, screen stays on' : 'Cook mode off'); return redraw(); }
@@ -958,9 +1096,9 @@ function recipeView(id, opts = {}) {
       if (t.closest('#rphoto') || t.closest('[data-ownphoto]')) return setOwnPhoto('recipes', r, redraw);
       if (t.closest('#rplan')) return planRecipe(r);
       if (t.closest('#rmiss')) {
-        const f = serves / (r.servings || 4); const miss = recipeMatch(r).missing.filter(i => !S.list.some(l => !l.checked && same(l.name, i.name)));
+        const f = serves / (r.servings || 4); const miss = missingBuys(r, f).filter(b => !S.list.some(l => !l.checked && (l.name.toLowerCase() === b.name.toLowerCase() || same(l.name, b.name))));
         if (!miss.length) return toast('Nothing missing — you have it all');
-        const u = await sb.from('shopping_items').insert(miss.map(i => ({ household_id: S.household.id, name: buyName(i.name), qty: i.qty ? roundBuy(i.qty * f, i.unit) : null, unit: i.unit || '', category: pantryFor(i.name)?.category || 'Other', source: 'manual', added_by: S.session.user.id }))); if (u.error) return fail(u.error);
+        const u = await sb.from('shopping_items').insert(miss.map(i => ({ household_id: S.household.id, name: i.name, qty: i.qty ? roundBuy(i.qty, i.unit) : null, unit: i.unit || '', category: i.category || 'Other', source: 'manual', added_by: S.session.user.id }))); if (u.error) return fail(u.error);
         await loadAll(); toast(`Added ${miss.length} to the shopping list`);
       }
     });
@@ -1004,7 +1142,7 @@ function recipeEditor(id, draft) {
     el.querySelector('#rform').onsubmit = async e => {
       e.preventDefault(); const g = s => el.querySelector(s).value;
       const row = { household_id: S.household.id, title: g('#rt').trim(), servings: Math.min(60, Math.max(1, Number(g('#rsv')) || 4)), time_min: g('#rtm') ? Number(g('#rtm')) : null, tags: g('#rtg').split(',').map(s => s.trim()).filter(Boolean),
-        ingredients: g('#rig').split('\n').map(parseIng).filter(Boolean), steps: g('#rst').split('\n').map(s => s.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean), notes: g('#rno').trim() || null,
+        ingredients: relink(g('#rig').split('\n').map(parseIng).filter(Boolean), r.ingredients || []), steps: g('#rst').split('\n').map(s => s.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean), notes: g('#rno').trim() || null,
         source_url: /^https?:\/\//i.test(g('#rsu').trim()) ? g('#rsu').trim() : null, kind: st.kind, category: g('#rc'), books: st.books };
       if (!id) { row.created_by = S.session.user.id; if (draft?.found_in) row.found_in = draft.found_in; }
       const q = id ? await sb.from('recipes').update(row).eq('id', id).select().single() : await sb.from('recipes').insert(row).select().single(); if (q.error) return fail(q.error);
@@ -1209,6 +1347,8 @@ document.addEventListener('click', async e => {
     if (a === 'putaway') return checkedToPantry();
     if (a === 'importlib') return importLibrary(t);
     if (a === 'sethome') return homeEditor();
+    if (a === 'theme') return setTheme(isDark() ? 'light' : 'dark');
+    if (t.dataset.themeSet) return setTheme(t.dataset.themeSet);
     if (a === 'calconnect') return connectCalendar();
     if (a === 'calsync') { t.disabled = true; t.textContent = 'Syncing…'; const s = await calFn({ action: 'sync', force: true }); await loadCalendar(); render(); const e = (s.results || []).find(x => x.error); toast(e ? e.error : 'Schedule synced'); return; }
     if (a === 'caldisconnect') { t.disabled = true; await calFn({ action: 'disconnect' }); await loadCalendar(); render(); toast('Calendar disconnected'); return; }
@@ -1297,9 +1437,9 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
   function weekMissing() {
     const t = todayStr(), end = ymd(addDays(new Date(), 6)), out = new Map();
     for (const p of S.plan.filter(p => p.kind === 'cook' && !p.cooked && p.day >= t && p.day <= end))
-      for (const r of dishesOf(p)) for (const i of recipeMatch(r).missing) {
-        if (S.list.some(l => !l.checked && same(l.name, i.name))) continue;
-        const n = buyName(i.name); if (!out.has(n.toLowerCase())) out.set(n.toLowerCase(), n);
+      for (const r of dishesOf(p)) for (const b of missingBuys(r)) {
+        if (S.list.some(l => !l.checked && (l.name.toLowerCase() === b.name.toLowerCase() || same(l.name, b.name)))) continue;
+        if (!out.has(b.name.toLowerCase())) out.set(b.name.toLowerCase(), b.name);
       }
     return [...out.values()];
   }
@@ -1398,7 +1538,7 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
     const soon = S.pantry.filter(p => p.expires_on && p.expires_on <= soonLimit && Number(p.qty) > 0).sort((a, b) => a.expires_on.localeCompare(b.expires_on)).slice(0, 4);
     const low = S.pantry.filter(isLow);
     const miss = weekMissing();
-    const soonCard = `<div class="kc"><p class="kc-l">Use soon</p>${soon.length ? soon.map(p => { const n = daysUntil(p.expires_on); const r = S.recipes.find(r => isMeal(r) && (r.ingredients || []).some(i => same(i.name, p.name)));
+    const soonCard = `<div class="kc"><p class="kc-l">Use soon</p>${soon.length ? soon.map(p => { const n = daysUntil(p.expires_on); const r = S.recipes.find(r => isMeal(r) && (r.ingredients || []).some(i => usesItem(i, p)));
       return `<div class="kc-row"><span class="kc-t"><b>${esc(p.name)}</b><i class="${n <= 0 ? 'hot' : ''}">${n < 0 ? 'Past date' : n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `${n} days`}</i></span>${r ? `<button class="kc-r" data-recipe="${r.id}">Use in ${esc(r.title)} →</button>` : ''}</div>`; }).join('') : '<p class="kc-e">Nothing about to expire.</p>'}</div>`;
     const lowCard = `<button class="kc kc-btn" data-tab="list"><p class="kc-l">Running low</p><p class="kc-big">${low.length}</p><p class="kc-s">${low.length ? esc(low.slice(0, 3).map(p => p.name).join(', ')) + (low.length > 3 ? ` +${low.length - 3}` : '') + ' · on your list' : 'Staples are stocked'}</p></button>`;
     const missCard = `<div class="kc"><p class="kc-l">Missing for this week</p><p class="kc-big">${miss.length}</p><p class="kc-s">${miss.length ? esc(miss.slice(0, 3).join(', ')) + (miss.length > 3 ? ` +${miss.length - 3}` : '') : 'You have everything planned'}</p>${miss.length ? '<button class="btn sm" data-act="buildlist">Add to list</button>' : ''}</div>`;

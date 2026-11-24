@@ -636,7 +636,7 @@ function familyView() {
   <label for="pd">Foods you avoid or dislike</label><input type="text" id="pd" value="${esc(S.me.dislikes || '')}" placeholder="e.g. mushrooms, shellfish allergy">
   <label>Your color</label><div class="chips">${['#2E6B4E', '#D24F14', '#2F6F9F', '#8B5BD6', '#C9961B', '#8A2A2A', '#5E9E3A', '#3D3A36'].map(c => `<button type="button" class="chip" data-color="${c}" aria-pressed="${S.me.color === c}" style="background:${c};border-color:${c};width:36px;height:36px;padding:0" aria-label="Color ${c}"></button>`).join('')}</div>
   <button class="btn" style="margin-top:14px" type="submit">Save profile</button></form>
-  <p class="imeta">Signed in as ${esc(S.session.user.email)}</p>
+  <p class="imeta">Signed in as ${esc(S.session.user.email)} · <a href="privacy.html" target="_blank">Privacy</a> · <a href="terms.html" target="_blank">Terms</a></p>
   <button class="btn line" data-act="signout">Sign out</button>`;
 }
 

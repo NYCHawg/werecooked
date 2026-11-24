@@ -59,7 +59,7 @@ const EMOJI = [[/waffle/, '🧇'], [/pancake/, '🥞'], [/french toast/, '🍞']
   [/seasoning|rub|blend/, '🧂'], [/sauce|gravy|dressing|preserve|chow|vinegar|jelly/, '🫙']];
 
 // ---------- state ----------
-const S = { session: null, me: null, household: null, members: [], pantry: [], recipes: [], books: [], plan: [], list: [], spending: [], tab: 'week', weekStart: ymd(new Date()),
+const S = { session: null, me: null, household: null, members: [], busy: [], calLink: null, pantry: [], recipes: [], books: [], plan: [], list: [], spending: [], tab: 'week', weekStart: ymd(new Date()),
   recipeQ: '', rview: 'meal', book: null, channel: null, library: [], libLoaded: false, loc: null, checks: {}, done: {}, pantryQ: '', zone: null, pview: 'kitchen' };
 try { S.loc = JSON.parse(localStorage.getItem('wc-loc') || 'null'); } catch (_) { }
 const memberById = id => S.members.find(m => m.user_id === id);
@@ -106,8 +106,28 @@ async function loadAll() {
     sb.from('spending').select('*').eq('household_id', hid).gte('day', ymd(addDays(new Date(), -62))).order('day')
   ]);
   for (const r of [mem, pan, rec, pl, li, bk, sp]) if (r.error) throw r.error;
+  await loadCalendar();
   S.members = mem.data; S.pantry = pan.data; S.recipes = rec.data; S.plan = pl.data; S.list = li.data; S.books = bk.data; S.spending = sp.data;
   if (!S.libLoaded) await loadLibrary();
+}
+async function loadCalendar() {
+  const hid = S.household.id;
+  const [b, l] = await Promise.all([
+    sb.from('calendar_busy').select('user_id, day, reason, calendar').eq('household_id', hid).gte('day', ymd(addDays(new Date(), -7))).order('day'),
+    sb.from('calendar_links').select('user_id, google_email, calendars, match_name, dinner_start, dinner_end, tz, last_sync, last_error').eq('user_id', S.session.user.id).maybeSingle()
+  ]);
+  S.busy = b.error ? [] : b.data; S.calLink = l.error ? null : l.data;
+}
+async function calFn(body) {
+  const { data, error } = await sb.functions.invoke('calendar', { body });
+  if (error) { let m = error.message; try { const j = await error.context.json(); m = j.error || m; } catch (_) { } throw new Error(m); }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+let calSyncing = false;
+async function autoSyncCalendar() {
+  if (calSyncing) return; calSyncing = true;
+  try { const r = await calFn({ action: 'sync' }); if (r.synced) { await loadCalendar(); if (!$('.sheet')) render(); } } catch (_) { } finally { calSyncing = false; }
 }
 async function ensureBooks() {
   if (S.books.length) return;
@@ -120,7 +140,7 @@ function subscribe() {
   if (S.channel) sb.removeChannel(S.channel);
   const f = `household_id=eq.${S.household.id}`;
   S.channel = sb.channel('hh-' + S.household.id);
-  for (const t of ['members', 'pantry_items', 'recipes', 'meal_plan', 'shopping_items', 'recipe_books', 'spending'])
+  for (const t of ['members', 'pantry_items', 'recipes', 'meal_plan', 'shopping_items', 'recipe_books', 'spending', 'calendar_busy'])
     S.channel.on('postgres_changes', { event: '*', schema: 'public', table: t, filter: f }, () => { if (Date.now() < quietUntil) return; clearTimeout(reloadT); reloadT = setTimeout(async () => { try { await loadAll(); if (!$('.sheet')) render(); } catch (e) { } }, 400); });
   S.channel.subscribe();
 }
@@ -213,7 +233,15 @@ function ideas(limit = 3) {
   return S.recipes.filter(isMeal).map(r => { const m = recipeMatch(r); const uses = soon.filter(p => (r.ingredients || []).some(i => same(i.name, p.name))).length; return { r, m, score: m.pct + uses * 15 + (r.favorite ? 5 : 0) + (r.rating || 0) * 2 }; })
     .filter(x => x.m.total >= 3 && x.m.pct >= 50).sort((a, b) => b.score - a.score).slice(0, limit);
 }
-const homeCount = p => Math.max(0, S.members.length - (p?.away?.length || 0)) || 1;
+const busyOn = d => d ? S.busy.filter(b => b.day === d && memberById(b.user_id)) : [];
+/** Who's away for dinner: marked away on the plan, plus anyone working per their calendar (unless marked home). */
+function awayOn(p, d) {
+  d = d || p?.day; const set = new Set(p?.away || []);
+  for (const b of busyOn(d)) if (!(p?.present || []).includes(b.user_id)) set.add(b.user_id);
+  return [...set];
+}
+const shortReason = b => (b.reason || '').replace(/\s+/g, ' ').slice(0, 70);
+const homeCount = p => Math.max(0, S.members.length - awayOn(p).length) || 1;
 const factorFor = (p, r) => (p.headcount || homeCount(p)) / (r.servings || 4);
 
 async function buildList() {
@@ -447,11 +475,14 @@ function weekView() {
     const k = p?.kind; const ds = k === 'cook' ? dishesOf(p) : []; const r = ds[0];
     const title = p ? (r?.title || p.place_name || p.title || (k === 'away' ? 'No dinner at home' : KINDS[k])) : 'Nothing planned';
     const cook = p?.cook_id && memberById(p.cook_id);
-    const who = S.members.map(m => av(m, p?.away?.includes(m.user_id))).join('');
+    const aw = awayOn(p, d); const who = S.members.map(m => av(m, aw.includes(m.user_id))).join('');
+    const work = busyOn(d).map(b => { const m = memberById(b.user_id); const home = (p?.present || []).includes(b.user_id);
+      return `<span class="work${home ? ' home' : ''}">${svg('cal')}<span style="white-space:nowrap">${esc(m.display_name.split(' ')[0])} ${home ? 'home for dinner' : 'working'}</span><span class="wr"> · ${esc(shortReason(b))}</span></span>`; }).join('');
     return `<button class="card day${d === today ? ' today' : ''}" data-day="${d}" style="--k:var(--${k || 'line'})">
       <span class="dd"><span>${d === today ? 'Today' : DOW[dt.getDay()]}</span><b>${dt.getDate()}</b></span>
       <span>${p ? `<span class="kind" style="--k:var(--${k})"><i></i>${esc(KINDS[k])}${p.cooked ? ' · cooked ✓' : ''}</span>` : ''}
         <span class="dt${p ? '' : ' none'}">${r ? emojiOf(r) + ' ' : ''}${esc(title)}</span>${ds.length > 1 ? `<span class="dm" style="display:block">with ${esc(ds.slice(1).map(x => x.title).join(', '))}</span>` : ''}
+        ${work}
         ${p?.place_name ? `<span class="dm" style="display:block">${esc(p.place_address || '')}${p.place_address ? ' · ' : ''}<span role="link" tabindex="0" data-ext="${esc(mapsUrl(p))}" style="color:var(--greend);font-weight:700;text-decoration:underline">Directions</span></span>` : ''}
         <span class="row" style="margin-top:4px"><span class="dm">${[cook ? `${esc(cook.display_name)} cooking` : '', p && k !== 'away' ? `${p.headcount || homeCount(p)} eating` : '', p?.cost ? money(p.cost) : '', p?.note ? esc(p.note) : ''].filter(Boolean).join(' · ')}</span><span class="avs">${who}</span></span>
         ${!p && ide && d >= today ? `<span class="idea">${svg('spark').replace('<svg', '<svg width="15" height="15" style="stroke:currentColor;fill:none;stroke-width:2"')} Idea: ${esc(ide.r.title)} · ${ide.m.have}/${ide.m.total} at home</span>` : ''}
@@ -597,6 +628,7 @@ function familyView() {
   return `<h2>${esc(S.household.name)}</h2><p class="lede">${S.members.length} ${S.members.length === 1 ? 'member' : 'members'}</p>
   <div class="card"><div class="imeta">Invite code — family members sign in, then enter this code to join</div><div class="row" style="margin-top:8px"><span class="code">${esc(S.household.invite_code)}</span><span class="sp"></span><button class="btn sm ghost" data-act="copycode">Copy invite</button></div></div>
   <h3>Members</h3><div class="card">${S.members.map(m => `<div class="item"><span class="row" style="flex-wrap:nowrap">${av(m)}<span><span class="iname">${esc(m.display_name)}${m.user_id === S.session.user.id ? ' (you)' : ''}</span><span class="imeta" style="display:block">${m.role === 'owner' ? 'Owner' : 'Member'}${m.dislikes ? ' · Avoids: ' + esc(m.dislikes) : ''}</span></span></span></div>`).join('')}</div>
+  ${calendarSection()}
   <h3>Home area</h3><div class="card"><div class="imeta">Used to find nearby restaurants when phone location is off</div>
   <div class="row" style="margin-top:6px"><span class="iname sp">${esc(S.household.home_label || 'Not set')}</span><button class="btn sm ghost" data-act="sethome">${S.household.home_label ? 'Change' : 'Set home area'}</button></div></div>
   <h3>Your profile</h3>
@@ -608,6 +640,57 @@ function familyView() {
   <button class="btn line" data-act="signout">Sign out</button>`;
 }
 
+const fmtDay = d => { const t = parseYmd(d), today = ymd(new Date()); return d === today ? 'Tonight' : d === ymd(addDays(new Date(), 1)) ? 'Tomorrow' : t.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }); };
+const ago = t => { const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 2 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} hr ago` : `${Math.round(m / 1440)} days ago`; };
+function calendarSection() {
+  const L = S.calLink, today = ymd(new Date());
+  const up = S.busy.filter(b => b.day >= today && memberById(b.user_id)).slice(0, 10);
+  const nights = up.length ? `<div class="card">${up.map(b => { const m = memberById(b.user_id); return `<div class="item"><span class="row" style="flex-wrap:nowrap">${av(m, true)}<span><span class="iname">${fmtDay(b.day)} · ${esc(m.display_name)} working</span><span class="imeta" style="display:block">${esc(shortReason(b))}</span></span></span></div>`; }).join('')}</div>` : '';
+  if (!L) return `<h3>Work schedule</h3><div class="card calcard"><div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:12px"><span class="calicon">${svg('cal')}</span><span><span class="iname">Sync your work calendar</span>
+    <span class="imeta" style="display:block;margin-top:2px">We're Cooked reads your Google Calendar and marks the nights you're working as away, so dinner gets planned for whoever's home. Read-only. Nothing on your calendar is changed.</span></span></div>
+    <button class="btn wide" style="margin-top:12px" data-act="calconnect">${GOOGLE_G} Connect Google Calendar</button></div>${nights ? '<h3>Coming up</h3>' + nights : ''}`;
+  const cals = (L.calendars || []);
+  return `<h3>Work schedule</h3><form id="calform" class="card calcard">
+    <div class="row"><span class="calicon">${svg('cal')}</span><span class="sp"><span class="iname">Google Calendar connected</span><span class="imeta" style="display:block">${esc(L.google_email || '')}${L.last_sync ? ' · synced ' + ago(L.last_sync) : ''}</span></span></div>
+    ${L.last_error ? `<p class="err" style="margin:10px 0 0">${esc(L.last_error)}</p>` : ''}
+    <label style="margin-top:14px">Calendars to watch</label>
+    <div class="callist">${cals.map((c, i) => `<div class="calrow"><label class="tog"><input type="checkbox" data-cw="${i}" ${c.watch ? 'checked' : ''}><span>${esc(c.summary)}</span></label>
+      <select data-cm="${i}" aria-label="How to read ${esc(c.summary)}"><option value="mine" ${c.mode === 'mine' ? 'selected' : ''}>Only shifts with my name</option><option value="all" ${c.mode === 'all' ? 'selected' : ''}>Every event means I'm out</option></select></div>`).join('') || '<p class="imeta">No calendars found.</p>'}</div>
+    <label for="cmn">Your name on shared schedules</label><input type="text" id="cmn" value="${esc(L.match_name || '')}" placeholder="e.g. Keith" maxlength="40">
+    <p class="imeta" style="margin:4px 0 0">On a shared schedule like "Tom Open / Keith Close", Close, DBL, PM and night shifts count as working at dinner. Open, AM and OFF count as home.</p>
+    <div class="row" style="gap:10px;margin-top:4px"><span class="sp"><label for="cds">Dinner starts</label><input type="time" id="cds" value="${esc(L.dinner_start)}"></span><span class="sp"><label for="cde">Dinner ends</label><input type="time" id="cde" value="${esc(L.dinner_end)}"></span></div>
+    <p class="imeta" style="margin:4px 0 0">Timed events that overlap this window count as away.</p>
+    <div class="row" style="gap:8px;margin-top:14px"><button class="btn" type="submit">Save &amp; sync</button><button class="btn ghost" type="button" data-act="calsync">Sync now</button><span class="sp"></span><button class="btn line sm" type="button" data-act="caldisconnect">Disconnect</button></div>
+  </form>${nights ? '<h3>Coming up</h3>' + nights : '<p class="imeta">No working nights found in the next 4 weeks.</p>'}`;
+}
+async function connectCalendar() {
+  try { localStorage.setItem('wc_cal', String(Date.now())); } catch (_) { }
+  const redirectTo = IS_APP ? 'werecooked://auth-callback' : location.origin + location.pathname;
+  const r = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: IS_APP, scopes: 'https://www.googleapis.com/auth/calendar.readonly',
+    queryParams: { access_type: 'offline', prompt: 'consent', login_hint: S.session?.user?.email || '' } } });
+  if (r.error) throw r.error;
+  if (IS_APP) window.Android.openExternal(r.data.url); else location.assign(r.data.url);
+}
+let calFinishing = false;
+async function finishCalendar(session) {
+  let pending = 0; try { pending = Number(localStorage.getItem('wc_cal') || 0); } catch (_) { }
+  if (!pending || Date.now() - pending > 15 * 60e3 || !session?.provider_refresh_token || calFinishing || !S.household) return;
+  calFinishing = true;
+  try {
+    localStorage.removeItem('wc_cal');
+    toast('Connecting your calendar…');
+    const r = await calFn({ action: 'connect', refresh_token: session.provider_refresh_token });
+    await loadCalendar(); S.tab = 'family'; render();
+    toast(r.error ? r.error : `Calendar connected · ${r.nights || 0} working night${r.nights === 1 ? '' : 's'} found`);
+  } catch (e) { fail(e); } finally { calFinishing = false; }
+}
+async function saveCalendar(form, sync = true) {
+  const cals = (S.calLink.calendars || []).map((c, i) => ({ ...c, watch: form.querySelector(`[data-cw="${i}"]`).checked, mode: form.querySelector(`[data-cm="${i}"]`).value }));
+  const row = { calendars: cals, match_name: $('#cmn').value.trim() || null, dinner_start: $('#cds').value || '17:00', dinner_end: $('#cde').value || '20:00' };
+  const r = await sb.from('calendar_links').update(row).eq('user_id', S.session.user.id); if (r.error) throw r.error;
+  Object.assign(S.calLink, row);
+  if (sync) { const s = await calFn({ action: 'sync', force: true }); await loadCalendar(); render(); const e = (s.results || []).find(x => x.error); toast(e ? e.error : 'Saved · schedule synced'); }
+}
 function render() {
   const app = $('#app');
   if (!S.session) return authView();
@@ -620,6 +703,7 @@ function render() {
   live('#rq', 'recipeQ'); live('#psearch', 'pantryQ');
   setTimeout(queuePhotos, 60);
   const al = $('#addlist'); if (al) al.onsubmit = async e => { e.preventDefault(); const v = $('#li').value.trim(); if (!v) return; const p = parseIng(v); const pi = pantryFor(p.name); const r = await sb.from('shopping_items').insert({ household_id: S.household.id, name: p.name, qty: p.qty, unit: p.unit, category: pi?.category || 'Other', source: 'manual', added_by: S.session.user.id }); if (r.error) return fail(r.error); await loadAll(); render(); $('#li')?.focus(); };
+  const cf = $('#calform'); if (cf) cf.onsubmit = async e => { e.preventDefault(); const b = cf.querySelector('[type=submit]'); b.disabled = true; b.textContent = 'Syncing…'; try { await saveCalendar(cf); } catch (er) { fail(er); render(); } };
   const pf = $('#profile'); if (pf) {
     let color = S.me.color;
     pf.querySelectorAll('[data-color]').forEach(b => b.onclick = () => { color = b.dataset.color; pf.querySelectorAll('[data-color]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
@@ -672,7 +756,7 @@ function onboardView() {
   $('#jn').onsubmit = async e => { e.preventDefault(); const r = await sb.rpc('join_household', { p_code: $('#ic').value, p_display_name: $('#jy').value }); if (r.error) return ($('#oerr').textContent = r.error.message); await enter(); };
 }
 async function refreshMe() { const r = await sb.from('members').select('*').eq('user_id', S.session.user.id).maybeSingle(); if (r.error) throw r.error; S.me = r.data; if (S.me) { const h = await sb.from('households').select('*').eq('id', S.me.household_id).single(); if (h.error) throw h.error; S.household = h.data; } else S.household = null; }
-async function enter() { try { await refreshMe(); if (S.household) { await loadAll(); await ensureBooks(); subscribe(); } render(); } catch (e) { fail(e); } }
+async function enter() { try { await refreshMe(); if (S.household) { await loadAll(); await ensureBooks(); subscribe(); } render(); if (S.household) { finishCalendar(S.session); setTimeout(autoSyncCalendar, 1500); } } catch (e) { fail(e); } }
 
 // ---------- sheets ----------
 function sheet(html, onReady, opts = {}) {
@@ -710,7 +794,8 @@ function dishPicker(selected, onDone) {
 }
 function dayEditor(day) {
   const p = S.plan.find(x => x.day === day) || { day, kind: 'cook', away: [], recipe_id: null, recipe_ids: [], cook_id: null, headcount: null, title: '', note: '', cost: null };
-  const st = { kind: p.kind, away: [...(p.away || [])], dishes: [...dishIds(p)], cook_id: p.cook_id, q: '', results: [], busy: false, err: '',
+  const busyIds = busyOn(day).map(b => b.user_id);
+  const st = { kind: p.kind, away: awayOn(p, day), dishes: [...dishIds(p)], cook_id: p.cook_id, q: '', results: [], busy: false, err: '',
     place: p.place_name ? { name: p.place_name, address: p.place_address, lat: p.place_lat, lon: p.place_lon } : null };
   let map = null, keepRef = () => { };
   const keep = () => keepRef();
@@ -745,7 +830,8 @@ function dayEditor(day) {
     ${st.kind === 'cook' ? menu() + `<label for="dc">Who's cooking</label><select id="dc"><option value="">Not decided</option>${S.members.map(m => `<option value="${m.user_id}" ${st.cook_id === m.user_id ? 'selected' : ''}>${esc(m.display_name)}</option>`).join('')}</select>` : ''}
     ${st.kind === 'out' || st.kind === 'takeout' ? placePicker() + `<label for="dcost">What did it cost? (optional)</label><input type="number" id="dcost" min="0" step="0.01" inputmode="decimal" value="${p.cost ?? ''}" placeholder="$">` : ''}
     ${st.kind === 'other' ? `<label for="dt">Plan</label><input type="text" id="dt" value="${esc(p.title || '')}" maxlength="80">` : ''}
-    ${st.kind !== 'away' ? `<label>Who's home (tap to mark away)</label><div class="chips">${S.members.map(m => `<button type="button" class="chip" data-away="${m.user_id}" aria-pressed="${!st.away.includes(m.user_id)}" style="display:inline-flex;align-items:center;gap:6px">${av(m, st.away.includes(m.user_id))}${esc(m.display_name)}</button>`).join('')}</div>
+    ${st.kind !== 'away' ? `<label>Who's home (tap to mark away)</label><div class="chips">${S.members.map(m => `<button type="button" class="chip" data-away="${m.user_id}" aria-pressed="${!st.away.includes(m.user_id)}" style="display:inline-flex;align-items:center;gap:6px">${av(m, st.away.includes(m.user_id))}${esc(m.display_name)}${busyIds.includes(m.user_id) ? `<small style="opacity:.75">· ${st.away.includes(m.user_id) ? 'working' : 'home anyway'}</small>` : ''}</button>`).join('')}</div>
+    ${busyOn(day).map(b => `<p class="calnote">${svg('cal')}<span><b>${esc(memberById(b.user_id).display_name)}'s calendar:</b> ${esc(shortReason(b))}. ${st.away.includes(b.user_id) ? 'Tap their name if they\'ll be home for dinner after all.' : 'Marked home for dinner anyway.'}</span></p>`).join('')}
     <label for="dh">How many eating (blank = everyone home)</label><input type="number" id="dh" min="0" max="80" value="${p.headcount ?? ''}" placeholder="${homeCount({ away: st.away })}">` : ''}
     <label for="dn">Note</label><input type="text" id="dn" value="${esc(p.note || '')}" maxlength="120" placeholder="e.g. game night, Thanksgiving at our house">`;
     if (map) { map.remove(); map = null; }
@@ -781,7 +867,7 @@ function dayEditor(day) {
       const same0 = JSON.stringify(cookDishes) === JSON.stringify(dishIds(p)) && st.kind === p.kind;
       const row = { household_id: S.household.id, day, kind: st.kind, recipe_ids: cookDishes, recipe_id: cookDishes[0] || null, cook_id: st.kind === 'cook' ? st.cook_id : null, title: st.kind === 'cook' || st.kind === 'away' ? null : (p.title || null),
         place_name: pl ? pl.name : null, place_address: pl ? pl.address || null : null, place_lat: pl ? pl.lat ?? null : null, place_lon: pl ? pl.lon ?? null : null, cost: (st.kind === 'out' || st.kind === 'takeout') ? p.cost : null,
-        away: st.kind === 'away' ? S.members.map(m => m.user_id) : st.away, headcount: st.kind === 'away' ? 0 : p.headcount, note: p.note || null, cooked: same0 ? !!p.cooked : false };
+        away: st.kind === 'away' ? S.members.map(m => m.user_id) : st.away.filter(id => !busyIds.includes(id)), present: st.kind === 'away' ? [] : busyIds.filter(id => !st.away.includes(id)), headcount: st.kind === 'away' ? 0 : p.headcount, note: p.note || null, cooked: same0 ? !!p.cooked : false };
       const r = await sb.from('meal_plan').upsert(row, { onConflict: 'household_id,day' }); if (r.error) return fail(r.error);
       await loadAll(); close();
     };
@@ -1119,6 +1205,9 @@ document.addEventListener('click', async e => {
     if (a === 'putaway') return checkedToPantry();
     if (a === 'importlib') return importLibrary(t);
     if (a === 'sethome') return homeEditor();
+    if (a === 'calconnect') return connectCalendar();
+    if (a === 'calsync') { t.disabled = true; t.textContent = 'Syncing…'; const s = await calFn({ action: 'sync', force: true }); await loadCalendar(); render(); const e = (s.results || []).find(x => x.error); toast(e ? e.error : 'Schedule synced'); return; }
+    if (a === 'caldisconnect') { t.disabled = true; await calFn({ action: 'disconnect' }); await loadCalendar(); render(); toast('Calendar disconnected'); return; }
     if (a === 'copycode') { try { await navigator.clipboard.writeText(`Join our household on We're Cooked: ${WEB_HOME} — invite code ${S.household.invite_code}`); toast('Invite copied'); } catch (_) { toast('Code: ' + S.household.invite_code); } return; }
     if (a === 'signout') { if (S.channel) sb.removeChannel(S.channel); await sb.auth.signOut(); return; }
   } catch (err) { fail(err); }
@@ -1129,9 +1218,10 @@ window.__back = () => { const s = [...document.querySelectorAll('.sheet')].pop()
 sb.auth.onAuthStateChange((ev, session) => {
   const was = S.session?.user?.id; S.session = session;
   if (!session) { S.household = null; S.me = null; render(); return; }
-  if (session.user.id !== was) setTimeout(enter, 0);
+  if (session.user.id !== was) setTimeout(enter, 0); else if (session.provider_refresh_token) setTimeout(() => finishCalendar(session), 0);
 });
 sb.auth.getSession().then(({ data }) => { S.session = data.session; if (data.session) enter(); else render(); });
 
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.household) autoSyncCalendar(); });
 if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }

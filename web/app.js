@@ -59,7 +59,7 @@ const EMOJI = [[/waffle/, '🧇'], [/pancake/, '🥞'], [/french toast/, '🍞']
   [/seasoning|rub|blend/, '🧂'], [/sauce|gravy|dressing|preserve|chow|vinegar|jelly/, '🫙']];
 
 // ---------- state ----------
-const S = { session: null, me: null, household: null, members: [], busy: [], calLink: null, pantry: [], recipes: [], books: [], plan: [], list: [], spending: [], events: [], tab: 'home', weekStart: ymd(new Date()),
+const S = { session: null, me: null, household: null, members: [], busy: [], calLink: null, lists: [], listId: null, pantry: [], recipes: [], books: [], plan: [], list: [], spending: [], events: [], tab: 'home', weekStart: ymd(new Date()),
   recipeQ: '', rview: 'meal', book: null, channel: null, library: [], libLoaded: false, loc: null, checks: {}, done: {}, pantryQ: '', zone: null, pview: 'kitchen' };
 try { S.loc = JSON.parse(localStorage.getItem('wc-loc') || 'null'); } catch (_) { }
 const memberById = id => S.members.find(m => m.user_id === id);
@@ -114,11 +114,13 @@ async function loadAll() {
 }
 async function loadCalendar() {
   const hid = S.household.id;
-  const [b, l, ev] = await Promise.all([
+  const [b, l, ev, sl] = await Promise.all([
     sb.from('calendar_busy').select('user_id, day, reason, calendar').eq('household_id', hid).gte('day', ymd(addDays(new Date(), -7))).order('day'),
     sb.from('calendar_links').select('user_id, google_email, calendars, match_name, dinner_start, dinner_end, tz, last_sync, last_error').eq('user_id', S.session.user.id).maybeSingle(),
-    sb.from('household_events').select('*').eq('household_id', hid).gte('day', ymd(addDays(new Date(), -1))).order('day')
+    sb.from('household_events').select('*').eq('household_id', hid).gte('day', ymd(addDays(new Date(), -1))).order('day'),
+    sb.from('shopping_lists').select('*').eq('household_id', hid).order('created_at')
   ]);
+  S.lists = sl.error ? [] : sl.data; if (S.listId && !S.lists.some(x => x.id === S.listId)) S.listId = null;
   S.events = ev.error ? [] : ev.data;
   S.busy = b.error ? [] : b.data; S.calLink = l.error ? null : l.data;
 }
@@ -144,7 +146,7 @@ function subscribe() {
   if (S.channel) sb.removeChannel(S.channel);
   const f = `household_id=eq.${S.household.id}`;
   S.channel = sb.channel('hh-' + S.household.id);
-  for (const t of ['members', 'pantry_items', 'recipes', 'meal_plan', 'shopping_items', 'recipe_books', 'spending', 'calendar_busy', 'household_events'])
+  for (const t of ['members', 'pantry_items', 'recipes', 'meal_plan', 'shopping_items', 'recipe_books', 'spending', 'calendar_busy', 'household_events', 'shopping_lists'])
     S.channel.on('postgres_changes', { event: '*', schema: 'public', table: t, filter: f }, () => { if (Date.now() < quietUntil) return; clearTimeout(reloadT); reloadT = setTimeout(async () => { try { await loadAll(); if (!$('.sheet')) render(); } catch (e) { } }, 400); });
   S.channel.subscribe();
 }
@@ -350,8 +352,8 @@ async function buildList() {
   }
   for (const p of S.pantry) if (Number(p.par) > 0 && Number(p.qty) < Number(p.par) && !rows.some(r => same(r.name, p.name)))
     rows.push({ household_id: hid, name: p.name, qty: Number(p.par) - Number(p.qty), unit: p.unit, category: p.category, source: 'par', added_by: S.session.user.id });
-  const finalRows = rows.filter(r => !S.list.some(l => l.source === 'manual' && !l.checked && same(l.name, r.name)));
-  const del = await sb.from('shopping_items').delete().eq('household_id', hid).eq('checked', false).in('source', ['plan', 'par']);
+  const finalRows = rows.filter(r => !S.list.some(l => !l.list_id && l.source === 'manual' && !l.checked && same(l.name, r.name)));
+  const del = await sb.from('shopping_items').delete().eq('household_id', hid).eq('checked', false).is('list_id', null).in('source', ['plan', 'par']);
   if (del.error) throw del.error;
   if (finalRows.length) { const ins = await sb.from('shopping_items').insert(finalRows); if (ins.error) throw ins.error; }
   await loadAll(); render();
@@ -390,11 +392,11 @@ async function addToPantry(items) {
   return { added, updated };
 }
 async function checkedToPantry() {
-  const done = S.list.filter(l => l.checked); if (!done.length) return toast('Check off items first');
+  const done = S.list.filter(l => l.checked && (l.list_id || null) === S.listId); if (!done.length) return toast('Check off items first');
   await addToPantry(done.map(l => ({ name: l.name, qty: l.qty, unit: l.unit, category: l.category })));
   const d = await sb.from('shopping_items').delete().in('id', done.map(x => x.id)); if (d.error) throw d.error;
   await loadAll(); render(); toast(`Put away ${done.length} item${done.length > 1 ? 's' : ''}`);
-  spendEditor('groceries');
+  if (!S.listId) spendEditor('groceries');
 }
 
 // ---------- places (OpenStreetMap search) ----------
@@ -549,7 +551,7 @@ function setTheme(t) {
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if (getTheme() === 'system' && S.session) render(); });
 function shell(inner) {
   const lowN = S.pantry.filter(p => Number(p.par) > 0 && Number(p.qty) < Number(p.par)).length;
-  const listN = S.list.filter(l => !l.checked).length;
+  const listN = S.list.filter(l => !l.checked && !l.list_id).length;
   return `<header class="top"><img src="logo.svg" alt=""><div class="brand"><b>We're Cooked</b><span>${esc(S.household.name)}</span></div><button class="themebtn" data-act="theme" aria-label="Switch to ${isDark() ? 'light' : 'dark'} mode" title="Switch to ${isDark() ? 'light' : 'dark'} mode">${svg(isDark() ? 'sun' : 'moon')}</button>${av(S.me)}</header>
   <main id="main">${inner}</main>
   <nav class="tabs" aria-label="Sections">${TABS.map(([k, l]) => `<button data-tab="${k}" aria-current="${S.tab === k ? 'page' : 'false'}"><span class="pill">${svg(k === 'recipes' ? 'recipes' : k)}</span><span>${l}</span>${k === 'list' && listN ? `<b class="cnt">${listN}</b>` : ''}${k === 'pantry' && lowN ? `<b class="cnt">${lowN}</b>` : ''}</button>`).join('')}</nav>`;
@@ -677,7 +679,7 @@ async function addStaples(btn) {
 function rcard(r) {
   const m = isMeal(r) ? recipeMatch(r) : { total: 0 };
   return `<button class="rcard" data-recipe="${r.id}" style="--c:${colorOf(r)}"><span class="art${r.photo_url ? ' has' : ''}"${photoStyle(r.photo_url)} ${needsPhoto(r) ? `data-ph="r" data-ph-id="${r.id}"` : ''}><span class="e">${emojiOf(r)}</span>${r.favorite ? '<span class="fav">★</span>' : ''}</span>
-  <span class="body"><span class="t">${esc(r.title)}</span><span class="m">${isTodo(r) ? '<span class="todo">Needs recipe</span>' : ''}${r.time_min ? `<span>⏱ ${fmtTime(r.time_min)}</span>` : ''}${r.rating ? `<span class="stars">${'★'.repeat(r.rating)}</span>` : ''}${m.total ? `<span class="match">${m.have}/${m.total} at home</span>` : ''}</span></span></button>`;
+  <span class="body"><span class="eye">${esc(RCATS[catOf(r)]?.[0] || '')}</span><span class="t">${esc(r.title)}</span><span class="m">${isTodo(r) ? '<span class="todo">Needs recipe</span>' : ''}${r.time_min ? `<span>${fmtTime(r.time_min)}</span>` : ''}${r.rating ? `<span class="stars">${'★'.repeat(r.rating)}</span>` : ''}${m.total ? `<span class="match${m.have === m.total ? ' all' : ''}">${m.have}/${m.total} at home</span>` : ''}</span></span></button>`;
 }
 function cookbooksView() {
   const q = S.recipeQ.toLowerCase();
@@ -709,18 +711,65 @@ function cookbooksView() {
 }
 
 // ---------- list ----------
+const LIST_PRESETS = [['🦃', 'Thanksgiving'], ['🎄', 'Christmas'], ['🎉', 'Party'], ['🎁', 'Gifts'], ['🏖️', 'Trip'], ['📦', 'Bulk run'], ['🧹', 'Household']];
+const LIST_EMOJI = ['🛍️', '🦃', '🎄', '🎉', '🎁', '🏖️', '📦', '🧹', '🎂', '🍖', '🥂', '🏈', '🐣', '🎃', '🧺', '🛠️'];
+const curList = () => S.lists.find(x => x.id === S.listId) || null;
+const itemsOn = id => S.list.filter(l => (l.list_id || null) === (id || null));
 function listView() {
-  const open = S.list.filter(l => !l.checked), done = S.list.filter(l => l.checked);
+  const L = curList(), items = itemsOn(S.listId);
+  const open = items.filter(l => !l.checked), done = items.filter(l => l.checked);
   const groups = CATS.map(c => [c, open.filter(l => (CATS.includes(l.category) ? l.category : 'Other') === c)]).filter(g => g[1].length);
-  const row = l => `<div class="chk${l.checked ? ' done' : ''}"><input type="checkbox" data-check="${l.id}" ${l.checked ? 'checked' : ''} aria-label="Got ${esc(l.name)}"><span><span class="iname">${esc(l.name)}</span><span class="imeta" style="display:block">${[l.qty ? fmtQty(l.qty) + ' ' + l.unit : '', l.source === 'plan' ? 'for this week' : l.source === 'par' ? 'below par' : ''].filter(Boolean).map(esc).join(' · ')}</span></span><button class="del" data-delitem="${l.id}" aria-label="Remove">×</button></div>`;
-  return `<div class="row"><h2 class="sp">Shopping list</h2><button class="btn sm ghost" data-act="buildlist">Rebuild</button></div>
-  <p class="lede">${open.length} to get${done.length ? ` · ${done.length} in the cart` : ''}</p>
-  <form id="addlist" class="row" style="flex-wrap:nowrap;margin-bottom:6px"><input type="text" id="li" placeholder="Add an item, e.g. 2 lb chicken thighs" aria-label="Add item" autocomplete="off"><button class="btn" type="submit" aria-label="Add">${svg('plus')}</button></form>
-  ${open.length ? groups.map(([c, items]) => `<h3>${esc(c)}</h3><div class="card">${items.map(row).join('')}</div>`).join('') : `<div class="empty"><span class="e">🛒</span>The list is empty. Tap Rebuild to add what this week's meals need and anything below par.</div>`}
-  ${done.length ? `<h3>In the cart</h3><div class="card">${done.map(row).join('')}</div><button class="btn wide" data-act="putaway">Put checked items in the pantry</button>` : ''}
-  <button class="btn line wide" style="margin-top:10px" data-act="logspend">Log a grocery trip</button>`;
+  const row = l => `<div class="chk${l.checked ? ' done' : ''}"><input type="checkbox" data-check="${l.id}" ${l.checked ? 'checked' : ''} aria-label="Got ${esc(l.name)}"><span><span class="iname">${esc(l.name)}</span><span class="imeta" style="display:block">${[l.qty ? fmtQty(l.qty) + ' ' + l.unit : '', l.source === 'plan' ? 'for this week' : l.source === 'par' ? 'below par' : ''].filter(Boolean).map(esc).join(' · ')}</span></span><button class="del" data-delitem="${l.id}" aria-label="Remove ${esc(l.name)}">×</button></div>`;
+  const tabs = `<div class="ltabs" role="tablist" aria-label="Shopping lists"><button class="lt" role="tab" data-lst="" aria-selected="${!L}">🛒 Groceries${itemsOn(null).filter(l => !l.checked).length ? ` <b>${itemsOn(null).filter(l => !l.checked).length}</b>` : ''}</button>${S.lists.map(x => { const n = itemsOn(x.id).filter(l => !l.checked).length;
+    return `<button class="lt" role="tab" data-lst="${x.id}" aria-selected="${L?.id === x.id}">${esc(x.emoji)} ${esc(x.name)}${n ? ` <b>${n}</b>` : ''}</button>`; }).join('')}<button class="lt add" data-act="newlist">＋ New list</button></div>`;
+  const due = L?.due ? (() => { const n = Math.round((parseYmd(L.due) - parseYmd(ymd(new Date()))) / 864e5); return n < 0 ? 'Date passed' : n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `In ${n} days · ${parseYmd(L.due).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}`; })() : '';
+  const head = L ? `<div class="lhero"><span class="le">${esc(L.emoji)}</span><span class="sp"><h2>${esc(L.name)}</h2><p>${[due, `${open.length} to get`, done.length ? `${done.length} got` : ''].filter(Boolean).join(' · ')}</p></span><button class="ib" data-act="editlist" aria-label="Edit list">${svg('pen')}</button></div>`
+    : `<div class="row"><h2 class="sp">Groceries</h2><button class="btn sm ghost" data-act="buildlist">Rebuild</button></div><p class="lede">${open.length} to get${done.length ? ` · ${done.length} in the cart` : ''} · this week's meals and anything below par land here</p>`;
+  const empty = L ? `<div class="empty"><span class="e">${esc(L.emoji)}</span>Nothing on this list yet. Add things as you think of them — it's yours to keep running until ${L.due ? 'the day' : 'you clear it'}.</div>`
+    : `<div class="empty"><span class="e">🛒</span>The list is empty. Tap Rebuild to add what this week's meals need and anything below par.</div>`;
+  return `${tabs}${head}
+  <form id="addlist" class="row" style="flex-wrap:nowrap;margin-bottom:6px"><input type="text" id="li" placeholder="${L ? 'Add anything: turkey, napkins, folding chairs…' : 'Add an item, e.g. 2 lb chicken thighs'}" aria-label="Add item" autocomplete="off"><button class="btn" type="submit" aria-label="Add">${svg('plus')}</button></form>
+  ${L ? `<button class="btn sm ghost" data-act="listrecipes" style="margin:4px 0 6px">${svg('recipes')} Add what recipes need</button>` : ''}
+  ${open.length ? groups.map(([c, its]) => `<h3>${esc(c)}</h3><div class="card">${its.map(row).join('')}</div>`).join('') : empty}
+  ${done.length ? `<h3>${L ? 'Got it' : 'In the cart'}</h3><div class="card">${done.map(row).join('')}</div><div class="row" style="gap:8px"><button class="btn sp" data-act="putaway">Put checked in the pantry</button>${L ? '<button class="btn ghost" data-act="clearchecked">Clear checked</button>' : ''}</div>` : ''}
+  ${L ? '' : '<button class="btn line wide" style="margin-top:10px" data-act="logspend">Log a grocery trip</button>'}`;
 }
-
+function listEditor(id) {
+  const L = S.lists.find(x => x.id === id) || { name: '', emoji: '🛍️', due: '' };
+  let emoji = L.emoji, sure = false;
+  sheet(`<h2>${id ? 'Edit list' : 'New list'}</h2><p class="lede">${id ? '' : 'A running list for a holiday, a party, a trip — anything that isn’t this week’s groceries.'}</p>
+    ${id ? '' : `<div class="chips">${LIST_PRESETS.map(([e, n]) => `<button type="button" class="chip" data-preset="${esc(e)}|${esc(n)}">${e} ${esc(n)}</button>`).join('')}</div>`}
+    <form id="lf"><label for="lname">Name</label><input type="text" id="lname" value="${esc(L.name)}" required maxlength="60" placeholder="Thanksgiving">
+    <label>Icon</label><div class="emo">${LIST_EMOJI.map(e => `<button type="button" data-emo="${e}" aria-pressed="${e === emoji}">${e}</button>`).join('')}</div>
+    <label for="ldue">Date (optional)</label><input type="date" id="ldue" value="${esc(L.due || '')}">
+    <p class="imeta" style="margin:4px 0 0">Lists with a date show up under Coming up on Home.</p>
+    <div class="row" style="margin-top:18px"><button class="btn" type="submit">${id ? 'Save' : 'Create list'}</button><button class="btn ghost" type="button" data-close>Cancel</button><span class="sp"></span>${id ? '<button class="btn line sm" type="button" id="ldel">Delete list</button>' : ''}</div></form>`, (el, close) => {
+    const pickEmo = e => { emoji = e; el.querySelectorAll('[data-emo]').forEach(b => b.setAttribute('aria-pressed', b.dataset.emo === e)); };
+    el.querySelectorAll('[data-emo]').forEach(b => b.onclick = () => pickEmo(b.dataset.emo));
+    el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { const [e, n] = b.dataset.preset.split('|'); el.querySelector('#lname').value = n; if (!LIST_EMOJI.includes(e)) LIST_EMOJI.push(e); pickEmo(e);
+      if (n === 'Thanksgiving' || n === 'Christmas') { const y = new Date().getFullYear(); const d = n === 'Christmas' ? new Date(y, 11, 25) : (() => { const f = new Date(y, 10, 1); return new Date(y, 10, 1 + ((4 - f.getDay() + 7) % 7) + 21); })(); if (d >= new Date(new Date().toDateString())) el.querySelector('#ldue').value = ymd(d); } });
+    el.querySelector('#lf').onsubmit = async e => { e.preventDefault();
+      const row = { household_id: S.household.id, name: el.querySelector('#lname').value.trim(), emoji, due: el.querySelector('#ldue').value || null };
+      const r = id ? await sb.from('shopping_lists').update(row).eq('id', id).select().single() : await sb.from('shopping_lists').insert(row).select().single();
+      if (r.error) return fail(r.error); S.listId = r.data?.id || id; S.tab = 'list'; await loadAll(); close(); toast(id ? 'List saved' : `${row.emoji} ${row.name} list created`); };
+    el.querySelector('#ldel')?.addEventListener('click', async e => { if (!sure) { sure = true; e.target.textContent = 'Tap again to delete'; return; }
+      const r = await sb.from('shopping_lists').delete().eq('id', id); if (r.error) return fail(r.error); S.listId = null; await loadAll(); close(); toast('List deleted'); });
+  });
+}
+/** Ask which list (when there's more than Groceries), then run cb(listId|null). */
+function chooseList(title, cb) {
+  if (!S.lists.length) return cb(null);
+  sheet(`<h2>${esc(title)}</h2><p class="lede">Which list?</p><div class="card flat" style="padding:4px 14px">${[{ id: '', emoji: '🛒', name: 'Groceries' }, ...S.lists].map(x => `<button class="item" data-pick-list="${x.id}" style="all:unset;display:flex;gap:12px;align-items:center;width:100%;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer"><span style="font-size:22px">${esc(x.emoji)}</span><span class="iname sp">${esc(x.name)}</span><span class="imeta">${itemsOn(x.id || null).filter(l => !l.checked).length} items ›</span></button>`).join('')}</div>`,
+    (el, close) => el.addEventListener('click', e => { const b = e.target.closest('[data-pick-list]'); if (!b) return; el.remove(); cb(b.dataset.pickList || null); }));
+}
+async function addBuys(listId, buys) {
+  const on = itemsOn(listId).filter(l => !l.checked);
+  const add = buys.filter(b => !on.some(l => l.name.toLowerCase() === b.name.toLowerCase() || same(l.name, b.name)));
+  if (!add.length) return toast(buys.length ? 'Already on the list' : 'Nothing missing — you have it all');
+  const u = await sb.from('shopping_items').insert(add.map(b => ({ household_id: S.household.id, list_id: listId, name: b.name, qty: b.qty ? roundBuy(b.qty, b.unit) : null, unit: b.unit || '', category: b.category || 'Other', source: 'manual', added_by: S.session.user.id })));
+  if (u.error) return fail(u.error);
+  await loadAll(); if (!$('.sheet')) render(); toast(`Added ${add.length} to ${listId ? S.lists.find(x => x.id === listId)?.name : 'Groceries'}`);
+}
 // ---------- family ----------
 function familyView() {
   return `<h2>${esc(S.household.name)}</h2><p class="lede">${S.members.length} ${S.members.length === 1 ? 'member' : 'members'}</p>
@@ -801,7 +850,7 @@ function render() {
   const live = (id, key) => { const el = $(id); if (el) el.oninput = e => { S[key] = e.target.value; const pos = e.target.selectionStart; render(); const n = $(id); n.focus(); n.setSelectionRange(pos, pos); }; };
   live('#rq', 'recipeQ'); live('#psearch', 'pantryQ');
   setTimeout(queuePhotos, 60);
-  const al = $('#addlist'); if (al) al.onsubmit = async e => { e.preventDefault(); const v = $('#li').value.trim(); if (!v) return; const p = parseIng(v); const pi = pantryFor(p.name); const r = await sb.from('shopping_items').insert({ household_id: S.household.id, name: p.name, qty: p.qty, unit: p.unit, category: pi?.category || 'Other', source: 'manual', added_by: S.session.user.id }); if (r.error) return fail(r.error); await loadAll(); render(); $('#li')?.focus(); };
+  const al = $('#addlist'); if (al) al.onsubmit = async e => { e.preventDefault(); const v = $('#li').value.trim(); if (!v) return; const p = parseIng(v); const lk = linkOf(p.name); const pi = lk?.items.length ? itemNamed(lk.items[0]) : null; const r = await sb.from('shopping_items').insert({ household_id: S.household.id, name: p.name, qty: p.qty, unit: p.unit, category: pi?.category || (lk?.items[0] && itemMeta(lk.items[0])?.[1]) || 'Other', source: 'manual', list_id: S.listId || null, added_by: S.session.user.id }); if (r.error) return fail(r.error); await loadAll(); render(); $('#li')?.focus(); };
   const cf = $('#calform'); if (cf) cf.onsubmit = async e => { e.preventDefault(); const b = cf.querySelector('[type=submit]'); b.disabled = true; b.textContent = 'Syncing…'; try { await saveCalendar(cf); } catch (er) { fail(er); render(); } };
   const pf = $('#profile'); if (pf) {
     let color = S.me.color;
@@ -1095,12 +1144,7 @@ function recipeView(id, opts = {}) {
       if (t.closest('#redit')) { el.remove(); return recipeEditor(id); }
       if (t.closest('#rphoto') || t.closest('[data-ownphoto]')) return setOwnPhoto('recipes', r, redraw);
       if (t.closest('#rplan')) return planRecipe(r);
-      if (t.closest('#rmiss')) {
-        const f = serves / (r.servings || 4); const miss = missingBuys(r, f).filter(b => !S.list.some(l => !l.checked && (l.name.toLowerCase() === b.name.toLowerCase() || same(l.name, b.name))));
-        if (!miss.length) return toast('Nothing missing — you have it all');
-        const u = await sb.from('shopping_items').insert(miss.map(i => ({ household_id: S.household.id, name: i.name, qty: i.qty ? roundBuy(i.qty, i.unit) : null, unit: i.unit || '', category: i.category || 'Other', source: 'manual', added_by: S.session.user.id }))); if (u.error) return fail(u.error);
-        await loadAll(); toast(`Added ${miss.length} to the shopping list`);
-      }
+      if (t.closest('#rmiss')) { const f = serves / (r.servings || 4); return chooseList(`Add what's missing for ${r.title}`, id => addBuys(id, missingBuys(r, f))); }
     });
   }, { full: true, onClose: () => { wakeLock?.release(); wakeLock = null; } });
 }
@@ -1313,9 +1357,10 @@ document.addEventListener('click', e => {
 let pantryT;
 document.addEventListener('keydown', e => { const z = e.target.closest?.('[data-zone]'); if (z && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); z.dispatchEvent(new MouseEvent('click', { bubbles: true })); } });
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-day],[data-week],[data-act],[data-edit-pantry],[data-recipe],[data-check],[data-delitem],[data-dq],[data-rview],[data-book],[data-pview],[data-zone],[data-zone-go]');
+  const t = e.target.closest('[data-lst],[data-tab],[data-day],[data-week],[data-act],[data-edit-pantry],[data-recipe],[data-check],[data-delitem],[data-dq],[data-rview],[data-book],[data-pview],[data-zone],[data-zone-go]');
   if (!t || t.closest('.sheet')) return;
   try {
+    if (t.dataset.lst != null) { S.listId = t.dataset.lst || null; render(); $('#main').scrollTop = 0; return; }
     if (t.dataset.tab) { S.tab = t.dataset.tab; render(); $('#main').scrollTop = 0; return; }
     if (t.dataset.day) return dayEditor(t.dataset.day);
     if (t.dataset.week) { S.weekStart = ymd(addDays(parseYmd(S.weekStart), Number(t.dataset.week))); return render(); }
@@ -1345,6 +1390,10 @@ document.addEventListener('click', async e => {
     if (a === 'logspend') return spendEditor(S.tab === 'list' ? 'groceries' : 'groceries');
     if (a === 'buildlist') { t.disabled = true; await buildList(); return; }
     if (a === 'putaway') return checkedToPantry();
+    if (a === 'newlist') return listEditor(null);
+    if (a === 'editlist') return listEditor(S.listId);
+    if (a === 'clearchecked') { const ids = itemsOn(S.listId).filter(l => l.checked).map(l => l.id); if (!ids.length) return; const r = await sb.from('shopping_items').delete().in('id', ids); if (r.error) return fail(r.error); await loadAll(); render(); return toast(`Cleared ${ids.length}`); }
+    if (a === 'listrecipes') { const lid = S.listId; return dishPicker([], ids => { const buys = ids.map(id => S.recipes.find(r => r.id === id)).filter(Boolean).flatMap(r => missingBuys(r, 1)); const seen = new Map(); for (const b of buys) { const k = b.name.toLowerCase(); if (seen.has(k)) { const c = seen.get(k); if (c.qty && b.qty && c.unit === b.unit) c.qty += b.qty; } else seen.set(k, { ...b }); } addBuys(lid, [...seen.values()]); }); }
     if (a === 'importlib') return importLibrary(t);
     if (a === 'sethome') return homeEditor();
     if (a === 'theme') return setTheme(isDark() ? 'light' : 'dark');
@@ -1438,7 +1487,7 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
     const t = todayStr(), end = ymd(addDays(new Date(), 6)), out = new Map();
     for (const p of S.plan.filter(p => p.kind === 'cook' && !p.cooked && p.day >= t && p.day <= end))
       for (const r of dishesOf(p)) for (const b of missingBuys(r)) {
-        if (S.list.some(l => !l.checked && (l.name.toLowerCase() === b.name.toLowerCase() || same(l.name, b.name)))) continue;
+        if (S.list.some(l => !l.checked && !l.list_id && (l.name.toLowerCase() === b.name.toLowerCase() || same(l.name, b.name)))) continue;
         if (!out.has(b.name.toLowerCase())) out.set(b.name.toLowerCase(), b.name);
       }
     return [...out.values()];
@@ -1560,6 +1609,7 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
     const rows = [
       ...hs.filter(h => h !== feature).map(h => ({ day: h.day, e: h.emoji, t: h.name, s: 'Holiday', a: `data-day="${h.day}"` })),
       ...evs.map(e => ({ day: e.day, e: { birthday: '🎂', guests: '👥', party: '🎉', other: '📌' }[e.kind], t: e.title, s: [e.guests ? `${e.guests} guests` : '', e.note || ''].filter(Boolean).join(' · ') || { birthday: 'Birthday', guests: 'Guests coming', party: 'Party', other: 'Occasion' }[e.kind], a: `data-h="occ" data-id="${e.id}"` })),
+      ...S.lists.filter(x => x.due && daysUntil(x.due) >= 0 && daysUntil(x.due) <= 60).map(x => ({ day: x.due, e: x.emoji, t: `${x.name} list`, s: `${itemsOn(x.id).filter(l => !l.checked).length} to get`, a: `data-h="openlist" data-id="${x.id}"` })),
       ...mine.map(b => ({ day: b.day, e: '💼', t: 'You’re working', s: shortReason(b), a: `data-day="${b.day}"` }))
     ].sort((a, b) => a.day.localeCompare(b.day)).slice(0, 6);
     html += `<div class="card cup">${rows.map(r => `<button class="cu" ${r.a}><span class="cu-d"><b>${parseYmd(r.day).getDate()}</b><i>${parseYmd(r.day).toLocaleDateString(undefined, { month: 'short' })}</i></span><span class="cu-e">${r.e}</span><span class="cu-t"><b>${esc(r.t)}</b><i>${esc(r.s)}</i></span><span class="cu-n">${inDays(daysUntil(r.day))}</span></button>`).join('') || '<p class="kc-e" style="padding:14px 16px">Nothing coming up. Add a birthday or a night with guests.</p>'}
@@ -1660,6 +1710,7 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
       if (h === 'tonight-add') { t.disabled = true; await addDishToDay(todayStr(), t.dataset.id); await loadAll(); render(); return toast('Planned for tonight'); }
       if (h === 'plan') { const r = S.recipes.find(x => x.id === t.dataset.id); if (r) planRecipe(r); return; }
       if (h === 'fill') return fillWeek();
+      if (h === 'openlist') { S.listId = t.dataset.id; S.tab = 'list'; render(); $('#main').scrollTop = 0; return; }
       if (h === 'occ-new') return occasionEditor(null);
       if (h === 'occ') return occasionEditor(t.dataset.id);
     } catch (er) { fail(er); }

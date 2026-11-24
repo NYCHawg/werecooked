@@ -416,6 +416,46 @@ details.offstock .ptile{opacity:.75}
 
 .themebtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;margin-left:auto;margin-right:8px;flex:none}
 .themebtn svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- recipe cards: photo-forward, info on the image ---------- */
+.rgrid{gap:12px}
+.rcard{position:relative;display:block;aspect-ratio:4/5;border:0;border-radius:22px;overflow:hidden;padding:0;color:#fff;text-align:left;background:#17392A;box-shadow:0 14px 30px -20px rgba(23,40,30,.65);cursor:pointer;isolation:isolate;transition:transform .18s ease}
+.rcard:active{transform:scale(.98)}
+.rcard:focus-visible{outline:3px solid var(--yolk);outline-offset:2px}
+.rcard .art{position:absolute;inset:0;height:auto;padding:0;display:block;z-index:0;background-color:var(--c);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),radial-gradient(130% 90% at 100% 0%,rgba(255,255,255,.22),transparent 55%),linear-gradient(160deg,var(--c),color-mix(in srgb,var(--c) 55%,#000));
+  background-size:cover;background-position:center;transition:transform .5s ease}
+.rcard .art.has{background-color:var(--sunk)}
+.rcard:hover .art.has{transform:scale(1.04)}
+.rcard::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(8,20,14,0) 28%,rgba(8,20,14,.35) 55%,rgba(8,20,14,.88) 100%)}
+.rcard:not(:has(.art.has))::after{background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.38) 100%)}
+.rcard .art .e{position:absolute;top:14px;left:14px;font-size:44px;line-height:1;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+.rcard .art.has .e{display:none}
+.rcard .art .fav{position:absolute;top:10px;right:10px;z-index:3;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);color:var(--yolk);font-size:14px;text-shadow:none}
+.rcard .body{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:12px 12px 13px;display:flex;flex-direction:column;gap:5px}
+.rcard .eye{font:700 9.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--yolk);text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.rcard .t{font:600 17px/1.12 var(--serif);letter-spacing:-.01em;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.35);-webkit-line-clamp:3}
+.rcard .m{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;color:rgba(255,255,255,.88);font-size:11px}
+.rcard .m>span{padding:3px 7px;border-radius:99px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);font-weight:600;line-height:1.2}
+.rcard .m .stars{color:var(--yolk);letter-spacing:-1px}
+.rcard .m .match.all{background:rgba(255,197,49,.92);color:#17392A}
+.rcard .m .todo{background:var(--flame);color:#fff}
+@media (min-width:620px){.rcard .t{font-size:18.5px}}
+/* ---------- shopping lists ---------- */
+.ltabs{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 16px;padding:2px 16px 4px;scrollbar-width:none}
+.ltabs::-webkit-scrollbar{display:none}
+.lt{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:600 13.5px var(--sans);cursor:pointer;white-space:nowrap}
+.lt b{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--sunk);font-size:11px;display:inline-grid;place-items:center}
+.lt[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lt[aria-selected=true] b{background:var(--yolk);color:#17392A}
+.lt.add{border-style:dashed;color:var(--greend)}
+.lhero{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.lhero .le{width:56px;height:56px;border-radius:18px;background:var(--paper);border:1px solid var(--line);display:grid;place-items:center;font-size:30px;flex:none}
+.lhero h2{margin:0}.lhero p{margin:2px 0 0;font-size:13.5px;color:var(--mute)}
+.lhero .ib svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.emo{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.emo button{aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:var(--paper);font-size:20px;cursor:pointer}
+.emo button[aria-pressed=true]{border-color:var(--green);box-shadow:0 0 0 2px var(--green) inset;background:var(--greenbg)}
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 </head>

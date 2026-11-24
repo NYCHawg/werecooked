@@ -13,7 +13,7 @@ cat('spices', 'Spices', 'jar', 'Kosher salt', 'Table salt', 'Sea salt', 'Picklin
     'Paprika', 'Smoked paprika', 'Cayenne pepper', 'Chili powder', 'Ground cumin', 'Dried oregano', 'Dried thyme', 'Dried basil', 'Dried rosemary', 'Rubbed sage', 'Bay leaves',
     'Red pepper flakes', 'Italian seasoning', 'Cajun seasoning', 'Old Bay seasoning', 'Poultry seasoning', 'Ground cinnamon', 'Cinnamon sticks', 'Ground nutmeg', 'Ground ginger',
     'Ground cloves', 'Ground allspice', 'Ground coriander', 'Ground turmeric', 'Dry mustard', 'Mustard seed', 'Celery seed', 'Dill seed', 'Dried dill', 'Dried parsley',
-    'Curry powder', 'Taco seasoning', 'Seasoned salt', 'Lemon pepper', 'Aleppo pepper', 'Urfa pepper', 'Sumac', "Za'atar", 'Filé powder', 'Malt vinegar powder', 'Burger seasoning', 'Sesame seeds')
+    'Curry powder', 'Taco seasoning', 'Seasoned salt', 'Lemon pepper', 'Aleppo pepper', 'Urfa pepper', 'Sumac', "Za'atar", 'Filé powder', 'Malt vinegar powder', 'Burger seasoning', 'Sesame seeds', 'Ranch seasoning')
 cat('fridge', 'Dairy & Eggs', 'each', 'Eggs')
 cat('fridge', 'Dairy & Eggs', 'gal', 'Whole milk')
 cat('fridge', 'Dairy & Eggs', 'stick', 'Butter', 'Margarine')
@@ -29,14 +29,14 @@ cat('fridge', 'Meat & Seafood', 'lb', 'Bacon', 'Ground beef', 'Ground pork', 'Gr
     'Cooked turkey', 'Duck breasts', 'Frog legs', 'Catfish fillets', 'Salmon fillets', 'Crab meat', 'Crawfish tails', 'Shrimp', 'Oysters')
 cat('fridge', 'Pantry', 'jar', 'Mayonnaise', 'Yellow mustard', 'Dijon mustard', 'Creole mustard', 'Stone-ground mustard', 'Ketchup', 'Dill pickles', 'Dill pickle relish',
     'Sweet pickle relish', 'Pickled jalapeños', 'Prepared horseradish', 'Capers', 'Anchovy paste', 'Salsa', 'Italian dressing', 'Ranch dressing', 'Tartar sauce',
-    'Thousand Island dressing', 'Maraschino cherries', 'Cherry jam', 'Panang curry paste', 'Bacon grease', 'Pecan butter', 'Guacamole')
+    'Thousand Island dressing', 'Blue cheese dressing', 'Maraschino cherries', 'Cherry jam', 'Panang curry paste', 'Bacon grease', 'Pecan butter', 'Guacamole')
 cat('fridge', 'Bakery', 'pack', 'Corn tortillas', 'Flour tortillas', 'Wonton wrappers', 'Refrigerated pie crust')
 cat('freezer', 'Frozen', 'bag', 'Frozen peas', 'Frozen corn', 'Frozen peas and carrots', 'Frozen broccoli', 'Frozen hash browns', 'Frozen french fries', 'Frozen pie crusts',
-    'Frozen purple hull peas', 'Frozen green beans', 'Whipped topping', 'Vanilla ice cream', 'Frozen strawberries')
+    'Frozen purple hull peas', 'Frozen green beans', 'Frozen butter beans', 'Whipped topping', 'Vanilla ice cream', 'Frozen strawberries')
 cat('counter', 'Produce', 'each', 'Yellow onions', 'Sweet onions', 'Red onions', 'White onions', 'Garlic', 'Russet potatoes', 'Yukon Gold potatoes', 'Baby potatoes',
     'Sweet potatoes', 'Tomatoes', 'Green tomatoes', 'Bananas', 'Apples', 'Lemons', 'Limes', 'Oranges', 'Avocados', 'Pineapple', 'Peaches', 'Figs')
 cat('fridge', 'Produce', 'each', 'Green onions', 'Celery', 'Carrots', 'Green bell peppers', 'Red bell peppers', 'Jalapeños', 'Hatch green chiles', 'Hot peppers', 'Lettuce',
-    'Green cabbage', 'Coleslaw mix', 'Spinach', 'Collard greens', 'Turnip greens', 'Turnips', 'Okra', 'Zucchini', 'Yellow squash', 'Mushrooms', 'Broccoli', 'Sweet corn',
+    'Green cabbage', 'Coleslaw mix', 'Cucumbers', 'Spinach', 'Collard greens', 'Turnip greens', 'Turnips', 'Okra', 'Zucchini', 'Yellow squash', 'Mushrooms', 'Broccoli', 'Sweet corn',
     'Green beans', 'Strawberries', 'Blackberries', 'Fresh cranberries', 'Cherries', 'Fresh parsley', 'Cilantro', 'Fresh basil', 'Fresh thyme', 'Fresh sage', 'Fresh rosemary',
     'Fresh dill', 'Chives', 'Fresh mint', 'Fresh ginger', 'Makrut lime leaves', 'Magnolia blossoms', 'Pico de gallo')
 cat('pantry', 'Pantry', 'bag', 'Long-grain white rice', 'Jasmine rice', 'Spaghetti', 'Elbow macaroni', 'Egg noodles', 'Fettuccine', 'Grits', 'Old-fashioned oats',
@@ -44,10 +44,10 @@ cat('pantry', 'Pantry', 'bag', 'Long-grain white rice', 'Jasmine rice', 'Spaghet
 cat('pantry', 'Pantry', 'can', 'Diced tomatoes', 'Rotel', 'Crushed tomatoes', 'Whole peeled tomatoes', 'Tomato sauce', 'Tomato paste', 'Sun-dried tomatoes', 'Chicken broth',
     'Beef broth', 'Turkey stock', 'Vegetable broth', 'Seafood stock', 'Black beans', 'Pinto beans', 'Kidney beans', 'Refried beans', 'Cream of chicken soup',
     'Cream of mushroom soup', 'Coconut milk', 'Green enchilada sauce', 'Pumpkin purée', 'French fried onions', 'Water chestnuts', 'Baby corn', 'Canned corn',
-    'Cream-style corn', 'Diced green chiles', 'Diced pimentos', 'Canned pineapple', 'Mandarin oranges', 'Black olives', 'Canned chicken', 'Canned salmon', 'Spam', 'Marinara sauce')
+    'Cream-style corn', 'Diced green chiles', 'Diced pimentos', 'Canned pineapple', 'Mandarin oranges', 'Black olives', 'Canned black-eyed peas', 'Pork and beans', 'Canned beets', 'Canned chicken', 'Canned salmon', 'Spam', 'Marinara sauce')
 cat('pantry', 'Pantry', 'bottle', 'Peanut butter', 'Honey', 'Molasses', 'Maple syrup', 'Vegetable oil', 'Peanut oil', 'Olive oil', 'Toasted sesame oil', 'White vinegar',
     'Apple cider vinegar', 'Balsamic vinegar', 'Rice vinegar', 'Soy sauce', 'Fish sauce', 'Worcestershire sauce', 'Hot sauce', 'Barbecue sauce')
-cat('pantry', 'Snacks', 'box', 'Saltine crackers', 'Ritz crackers', 'Tortilla chips', 'Pretzels', 'Vanilla wafers', 'Crisp rice cereal', 'Taco shells')
+cat('pantry', 'Snacks', 'box', 'Croutons', 'Saltine crackers', 'Ritz crackers', 'Tortilla chips', 'Pretzels', 'Vanilla wafers', 'Crisp rice cereal', 'Taco shells')
 cat('pantry', 'Bakery', 'loaf', 'White sandwich bread', 'Sourdough bread', 'Rye bread', 'Texas toast', 'Hamburger buns', 'Brioche buns', 'Hoagie rolls', 'Pita bread')
 cat('pantry', 'Drinks', 'bag', 'Coffee', 'Espresso', 'Tea bags')
 cat('pantry', 'Drinks', 'bottle', 'Dry white wine', 'Red wine', 'Beer', 'Banana liqueur', 'Cherry liqueur', 'Elderflower liqueur', 'Coconut rum', 'Spiced rum', 'Tequila',
@@ -98,6 +98,15 @@ R = [
  (r"^salt and (black )?pepper", "Table salt + Black pepper"),
  (r"burger seasoning blend \(or salt and pepper\)", "sub:Burger Seasoning Blend"),
  (r"brioche buns, buttered", "Brioche buns + Butter"),
+ (r"butter beans|lima beans", "Frozen butter beans"),
+ (r"ranch seasoning", "Ranch seasoning"),
+ (r"blue cheese dressing", "Blue cheese dressing"),
+ (r"\(15 oz\) black-eyed peas|canned black-eyed", "Canned black-eyed peas"),
+ (r"pork and beans|baked beans", "Pork and beans"),
+ (r"beets", "Canned beets"),
+ (r"cucumber", "Cucumbers"),
+ (r"croutons", "Croutons"),
+ (r"sunflower seeds or chopped pecans", "Pecans"),
  (r"^american cheese or velveeta", "Sliced American cheese"),
  (r"^(whole )?milk or ", "Whole milk"),
  (r"pineapple juice with a squeeze of lime", "Pineapple juice + Limes"),

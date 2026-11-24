@@ -49,7 +49,7 @@ const RCATS = {
   drink: ['Drink', '☕', '#3D6F96'], sauce: ['Sauce', '🫙', '#8A3A2C'], seasoning: ['Seasoning', '🧂', '#6E6150'], dressing: ['Dressing', '🥄', '#5C7A4A'], condiment: ['Condiment', '🫙', '#7A5A2E']
 };
 const COMPONENT_CATS = ['sauce', 'seasoning', 'dressing', 'condiment', 'drink'];
-const DEFAULT_BOOKS = [['Family Recipes', '👪', '#2E6B4E'], ['Quick Meals', '⚡', '#D24F14'], ['Arkansas Classics', '🐗', '#8A2A2A'], ['Thanksgiving', '🦃', '#A0611C'], ['Holiday & Desserts', '🥧', '#7A3F6B']];
+const DEFAULT_BOOKS = [['Family Recipes', '👪', '#2E6B4E'], ['Quick Meals', '⚡', '#D24F14'], ['Arkansas Classics', '🐗', '#8A2A2A'], ['Thanksgiving', '🦃', '#A0611C'], ['Holiday & Desserts', '🥧', '#7A3F6B'], ['Side Dishes', '🥔', '#5E7D2A']];
 const BOOK_COLORS = ['#2E6B4E', '#D24F14', '#8A2A2A', '#A0611C', '#7A3F6B', '#2F6F9F', '#5E7D2A', '#4B4A8A', '#9A6A12', '#3D3A36'];
 const EMOJI = [[/waffle/, '🧇'], [/pancake/, '🥞'], [/french toast/, '🍞'], [/turkey/, '🦃'], [/duck/, '🦆'], [/catfish|fish|salmon|bream|crappie/, '🐟'], [/shrimp|crawfish|crab|seafood|oyster/, '🦐'], [/frog/, '🐸'],
   [/taco|burrito|nacho|tamale/, '🌮'], [/burger|patty melt/, '🍔'], [/sandwich|blt|bologna|po' boy/, '🥪'], [/pizza/, '🍕'], [/chili|gumbo|stew|soup|chowder|étouffée|etouffee/, '🍲'],
@@ -112,6 +112,7 @@ async function loadAll() {
   if (!S.libLoaded) await loadLibrary();
   if (!Object.keys(ING.items).length) await loadIngredientMap();
   scheduleLinks();
+  setTimeout(() => ensureSideBook().catch(console.error), 300);
 }
 async function loadCalendar() {
   const hid = S.household.id;
@@ -135,6 +136,21 @@ let calSyncing = false;
 async function autoSyncCalendar() {
   if (calSyncing) return; calSyncing = true;
   try { const r = await calFn({ action: 'sync' }); if (r.synced) { await loadCalendar(); if (!$('.sheet')) render(); } } catch (_) { } finally { calSyncing = false; }
+}
+let sideBookDone = false;
+/** Make sure there's a Side Dishes cookbook holding every side and salad. */
+async function ensureSideBook() {
+  if (sideBookDone || !S.household || !S.books.length) return;
+  let b = S.books.find(x => x.name.toLowerCase() === 'side dishes');
+  const todo = b ? S.recipes.filter(r => ['side', 'salad'].includes(catOf(r)) && !(r.books || []).includes(b.id)) : [1];
+  if (b && !todo.length) return;
+  sideBookDone = true;
+  try {
+  if (!b) { const r = await sb.from('recipe_books').insert({ household_id: S.household.id, name: 'Side Dishes', emoji: '🥔', color: '#5E7D2A', sort: S.books.length }).select().single(); if (r.error) return console.error(r.error); b = r.data; S.books.push(b); }
+  quietUntil = Date.now() + 6000;
+  for (const r of S.recipes) if (['side', 'salad'].includes(catOf(r)) && !(r.books || []).includes(b.id)) { r.books = [...(r.books || []), b.id]; await sb.from('recipes').update({ books: r.books }).eq('id', r.id); }
+  if (!$('.sheet')) render();
+  } finally { sideBookDone = false; }
 }
 async function ensureBooks() {
   if (S.books.length) return;
@@ -571,7 +587,7 @@ function weekView() {
   const cards = days.map(d => {
     const p = S.plan.find(x => x.day === d); const dt = parseYmd(d);
     const k = p?.kind; const ds = k === 'cook' ? dishesOf(p) : []; const r = ds[0];
-    const title = p ? (r?.title || p.place_name || p.title || (k === 'away' ? 'No dinner at home' : KINDS[k])) : 'Nothing planned';
+    const title = p ? ((ds.length ? mealTitle(p) : '') || p.place_name || p.title || (k === 'away' ? 'No dinner at home' : KINDS[k])) : 'Nothing planned';
     const cook = p?.cook_id && memberById(p.cook_id);
     const aw = awayOn(p, d); const who = S.members.map(m => av(m, aw.includes(m.user_id))).join('');
     const work = busyOn(d).map(b => { const m = memberById(b.user_id); const home = (p?.present || []).includes(b.user_id);
@@ -579,7 +595,7 @@ function weekView() {
     return `<button class="card day${d === today ? ' today' : ''}" data-day="${d}" style="--k:var(--${k || 'line'})">
       <span class="dd"><span>${d === today ? 'Today' : DOW[dt.getDay()]}</span><b>${dt.getDate()}</b></span>
       <span>${p ? `<span class="kind" style="--k:var(--${k})"><i></i>${esc(KINDS[k])}${p.cooked ? ' · cooked ✓' : ''}</span>` : ''}
-        <span class="dt${p ? '' : ' none'}">${r ? emojiOf(r) + ' ' : ''}${esc(title)}</span>${ds.length > 1 ? `<span class="dm" style="display:block">with ${esc(ds.slice(1).map(x => x.title).join(', '))}</span>` : ''}
+        <span class="dt${p ? '' : ' none'}">${r ? emojiOf(r) + ' ' : ''}${esc(title)}</span>${ds.length > 1 ? `<span class="dm" style="display:block">${esc(withLine(p))}</span>` : ''}
         ${work}
         ${p?.place_name ? `<span class="dm" style="display:block">${esc(p.place_address || '')}${p.place_address ? ' · ' : ''}<span role="link" tabindex="0" data-ext="${esc(mapsUrl(p))}" style="color:var(--greend);font-weight:700;text-decoration:underline">Directions</span></span>` : ''}
         <span class="row" style="margin-top:4px"><span class="dm">${[cook ? `${esc(cook.display_name)} cooking` : '', p && k !== 'away' ? `${p.headcount || homeCount(p)} eating` : '', p?.cost ? money(p.cost) : '', p?.note ? esc(p.note) : ''].filter(Boolean).join(' · ')}</span><span class="avs">${who}</span></span>
@@ -1036,15 +1052,63 @@ const busy = (el, text) => { el.querySelector('[role=dialog]').innerHTML = `<div
 
 // ---------- day planner ----------
 const dishIds = p => p ? (p.recipe_ids?.length ? p.recipe_ids : p.recipe_id ? [p.recipe_id] : []) : [];
-const dishesOf = p => dishIds(p).map(id => S.recipes.find(r => r.id === id)).filter(Boolean);
-function dishPicker(selected, onDone) {
-  const st = { sel: [...selected], book: S.book || '', q: '' };
-  const list = () => S.recipes.filter(r => isMeal(r) && !isTodo(r) && (!st.book || (r.books || []).includes(st.book)) && (!st.q || r.title.toLowerCase().includes(st.q.toLowerCase()) || (r.tags || []).join(' ').toLowerCase().includes(st.q.toLowerCase())));
+const SLOTS = { main: ['Main', 'Choose a main', 'Add another main'], side: ['Sides', 'Add a side', 'Add another side'], salad: ['Salad', 'Add a salad', 'Add another salad'], bread: ['Bread', 'Add bread', 'Add more bread'], dessert: ['Dessert', 'Add dessert', 'Add another dessert'] };
+const SLOT_ORDER = ['main', 'side', 'salad', 'bread', 'dessert'];
+const SLOT_CATS = { main: ['main', 'soup', 'breakfast', 'appetizer'], side: ['side'], salad: ['salad'], bread: ['bread'], dessert: ['dessert'] };
+const slotFor = r => { const c = catOf(r); return ['side', 'salad', 'bread', 'dessert'].includes(c) ? c : 'main'; };
+const orderCourses = cs => SLOT_ORDER.flatMap(sl => cs.filter(x => x.slot === sl));
+/** [{id, slot}] for a plan row; older rows without courses get roles from each recipe's type. */
+function coursesOf(p) {
+  if (!p) return []; const ids = dishIds(p);
+  const c = Array.isArray(p.courses) ? p.courses.filter(x => x && ids.includes(x.id)) : [], known = new Set(c.map(x => x.id));
+  for (const id of ids) if (!known.has(id)) { const r = S.recipes.find(x => x.id === id); c.push({ id, slot: r ? slotFor(r) : 'main' }); }
+  return orderCourses(c);
+}
+const dishesOf = p => coursesOf(p).map(x => S.recipes.find(r => r.id === x.id)).filter(Boolean);
+const bySlot = (p, sl) => coursesOf(p).filter(x => x.slot === sl).map(x => S.recipes.find(r => r.id === x.id)).filter(Boolean);
+function mealTitle(p) { const m = bySlot(p, 'main'); const ds = dishesOf(p); return (m.length ? m : ds.slice(0, 1)).map(r => r.title).join(' + '); }
+function mealWith(p) { const cs = coursesOf(p), hasMain = cs.some(x => x.slot === 'main'); return (hasMain ? cs.filter(x => x.slot !== 'main') : cs.slice(1)).map(x => S.recipes.find(r => r.id === x.id)).filter(Boolean); }
+const withLine = p => { const w = mealWith(p); return w.length ? 'with ' + w.map(r => r.title).join(', ') : ''; };
+const PAIRS = [
+  [/catfish|fish fry|crappie|fried fish|fish fillets/i, ['Hushpuppies', 'Arkansas BBQ Coleslaw', 'French Fries', 'Fried Green Tomatoes', 'Southern Baked Beans']],
+  [/fried chicken|chicken fried|cube steak|country fried|pork chop|smothered|chicken and dumplings/i, ['Mashed Potatoes', 'Southern Green Beans', 'Collard Greens', 'Baked Mac and Cheese', 'Fried Okra', 'Southern Creamed Corn']],
+  [/bbq|barbecue|pulled pork|ribs|brisket|smoked|pork shoulder/i, ['Arkansas BBQ Coleslaw', 'Southern Baked Beans', 'Southern Potato Salad', 'Baked Mac and Cheese', 'Southern Macaroni Salad']],
+  [/turkey|\bham\b|thanksgiving|christmas/i, ['Cornbread Dressing', 'Green Bean Casserole', 'Sweet Potato Casserole', 'Mashed Potatoes', 'Candied Yams', 'Corn Pudding', 'Southern Green Beans']],
+  [/meatloaf|pot roast|roast beef|chuck|salisbury/i, ['Mashed Potatoes', 'Southern Green Beans', 'Honey Glazed Carrots', 'Southern Creamed Corn']],
+  [/steak|ribeye|sirloin/i, ['Baked Potatoes', 'Twice Baked Potatoes', 'Southern Creamed Corn', 'Sautéed Squash and Onions', 'Au Gratin Potatoes']],
+  [/gumbo|jambalaya|etouffee|étouffée|red beans|creole|cajun/i, ['Dirty Rice', 'Fried Okra', 'Stewed Okra and Tomatoes']],
+  [/pinto|soup beans|beans and cornbread|ham hock/i, ['Fried Potatoes', 'Fried Cabbage', 'Fried Apples', 'Turnip Greens']],
+  [/burger|hot dog|sandwich|bologna|po.?boy/i, ['French Fries', 'Southern Potato Salad', 'Southern Macaroni Salad', 'Southern Baked Beans']],
+  [/spaghetti|lasagna|pasta|alfredo|italian|parm/i, ['Sautéed Squash and Onions', 'Fried Zucchini']],
+  [/duck|venison|quail|dove|game/i, ['Dirty Rice', 'Collard Greens', 'Sweet Potato Casserole']],
+  [/chicken/i, ['Mashed Potatoes', 'Southern Green Beans', 'Baked Mac and Cheese', 'Broccoli Rice Casserole']]];
+const PAIR_EXTRAS = { salad: [[/steak|ribeye/i, ['Classic Wedge Salad']], [/bbq|barbecue|burger|catfish|fish/i, ['Cucumber, Tomato and Onion Salad', 'Broccoli Salad with Bacon']], [/turkey|ham|thanksgiving/i, ['Seven-Layer Salad', 'English Pea Salad']]],
+  bread: [[/beans|greens|catfish|fish|chili|soup|stew|gumbo/i, ['Skillet Cornbread', 'Fried Cornbread (Hoecakes)', 'Hot Water Cornbread']], [/turkey|ham|roast|thanksgiving/i, ['Yeast Dinner Rolls', 'Angel Biscuits', 'Sweet Potato Biscuits']], [/fried chicken|pork chop|smothered|steak/i, ['Cathead Biscuits', 'Garlic Texas Toast']], [/spaghetti|pasta|lasagna|italian/i, ['Garlic Texas Toast']]],
+  dessert: [[/turkey|thanksgiving/i, ['Pecan Pie', 'Sweet Potato Pie', 'Pumpkin Pie']], [/bbq|barbecue|catfish|fish|burger/i, ['Banana Pudding', 'Peach Cobbler']]] };
+/** Best recipes for a slot, given the mains: known pairings first, then what you can make, then favorites. */
+function suggestFor(mains, slot, exclude = [], n = 4) {
+  const want = new Map();
+  const rules = slot === 'side' ? PAIRS : (PAIR_EXTRAS[slot] || []);
+  for (const m of mains) for (const [rx, names] of rules) if (rx.test(m.title)) names.forEach((nm, j) => { const k = nm.toLowerCase(); want.set(k, Math.max(want.get(k) || 0, 50 - j * 4)); });
+  return S.recipes.filter(r => isMeal(r) && !isTodo(r) && slotFor(r) === slot && !exclude.includes(r.id))
+    .map(r => ({ r, s: (want.get(r.title.toLowerCase()) || 0) + recipeMatch(r).pct * 0.2 + (r.rating || 0) * 3 + (r.favorite ? 6 : 0) + Math.random() * 5 }))
+    .sort((a, b) => b.s - a.s).slice(0, n).map(x => x.r);
+}
+/** Write a whole cooked meal for a day in one go. */
+async function setMeal(day, courses) {
+  const cs = orderCourses(courses), ids = cs.map(x => x.id);
+  const u = await sb.from('meal_plan').upsert({ household_id: S.household.id, day, kind: 'cook', courses: cs, recipe_ids: ids, recipe_id: ids[0] || null, cooked: false, title: null, place_name: null, place_address: null, place_lat: null, place_lon: null, cost: null }, { onConflict: 'household_id,day' });
+  if (u.error) throw u.error;
+}
+function dishPicker(selected, onDone, opts = {}) {
+  const st = { sel: [...selected], book: opts.slot ? '' : (S.book || ''), q: '', all: !opts.slot };
+  const list = () => S.recipes.filter(r => isMeal(r) && !isTodo(r) && (st.all || SLOT_CATS[opts.slot].includes(catOf(r))) && (!st.book || (r.books || []).includes(st.book)) && (!st.q || r.title.toLowerCase().includes(st.q.toLowerCase()) || (r.tags || []).join(' ').toLowerCase().includes(st.q.toLowerCase())));
   const body = () => {
     const rs = list(); const groups = {}; for (const r of rs) (groups[catOf(r)] = groups[catOf(r)] || []).push(r);
     return ['main', 'side', 'soup', 'salad', 'bread', 'appetizer', 'breakfast', 'dessert', 'drink'].filter(c => groups[c]).map(c => `<h3>${RCATS[c][0]}${RCATS[c][0].endsWith('s') ? '' : 's'}</h3><div class="card flat" style="padding:2px 12px">${groups[c].sort((a, b) => a.title.localeCompare(b.title)).map(r => { const on = st.sel.includes(r.id), m = recipeMatch(r); return `<button class="pick${on ? ' on' : ''}" data-pk="${r.id}"><span class="thumb${r.photo_url ? ' has' : ''}" style="--c:${colorOf(r)}${r.photo_url ? `;background-image:url('${esc(r.photo_url)}')` : ''}"><span>${emojiOf(r)}</span></span><span style="min-width:0"><span class="iname">${esc(r.title)}</span><span class="imeta" style="display:block">${[fmtTime(r.time_min), m.total ? `${m.have}/${m.total} at home` : '', r.rating ? '★'.repeat(r.rating) : ''].filter(Boolean).join(' · ')}</span></span><span class="tick">${on ? '✓' : '+'}</span></button>`; }).join('')}</div>`).join('') || '<p class="empty">No recipes in this book yet.</p>';
   };
-  sheet(`<div class="row"><h2 class="sp">Add dishes</h2><button class="btn sm" id="pkdone">Done</button></div>
+  sheet(`<div class="row"><h2 class="sp">${opts.slot ? esc(SLOTS[opts.slot][1].replace(/^Add /, 'Choose ').replace(/^Choose a main$/, 'Choose the main')) : 'Add dishes'}</h2><button class="btn sm" id="pkdone">Done</button></div>
+  ${opts.slot ? `<div class="row" style="margin:-4px 0 8px"><span class="imeta sp">Showing ${esc(SLOTS[opts.slot][0].toLowerCase())}</span><button type="button" class="btn sm ghost" id="pkall">Show every recipe</button></div>` : ''}
   <div class="chips scroll">${[['', '📚', 'All']].concat(S.books.map(b => [b.id, b.emoji, b.name])).map(([id, e, n]) => `<button class="chip" data-pb="${id}" aria-pressed="${st.book === id}" style="white-space:nowrap">${esc(e)} ${esc(n)}</button>`).join('')}</div>
   <div class="search">${svg('search')}<input type="search" id="pkq" placeholder="Search this cookbook"></div><div id="pkl">${body()}</div>`, (el) => {
     const redraw = () => { el.querySelector('#pkl').innerHTML = body(); el.querySelector('#pkdone').textContent = st.sel.length ? `Done (${st.sel.length})` : 'Done'; };
@@ -1052,6 +1116,7 @@ function dishPicker(selected, onDone) {
     el.addEventListener('click', e => {
       const b = e.target.closest('[data-pb]'); if (b) { st.book = b.dataset.pb; el.querySelectorAll('[data-pb]').forEach(x => x.setAttribute('aria-pressed', x === b)); return redraw(); }
       const k = e.target.closest('[data-pk]'); if (k) { const id = k.dataset.pk; st.sel = st.sel.includes(id) ? st.sel.filter(x => x !== id) : [...st.sel, id]; return redraw(); }
+      if (e.target.closest('#pkall')) { st.all = !st.all; e.target.closest('#pkall').textContent = st.all ? `Only ${SLOTS[opts.slot][0].toLowerCase()}` : 'Show every recipe'; return redraw(); }
       if (e.target.closest('#pkdone')) { el.remove(); onDone(st.sel); }
     });
     redraw();
@@ -1060,7 +1125,7 @@ function dishPicker(selected, onDone) {
 function dayEditor(day) {
   const p = S.plan.find(x => x.day === day) || { day, kind: 'cook', away: [], recipe_id: null, recipe_ids: [], cook_id: null, headcount: null, title: '', note: '', cost: null };
   const busyIds = busyOn(day).map(b => b.user_id);
-  const st = { kind: p.kind, away: awayOn(p, day), dishes: [...dishIds(p)], cook_id: p.cook_id, q: '', results: [], busy: false, err: '',
+  const st = { kind: p.kind, away: awayOn(p, day), courses: coursesOf(p), open: new Set(coursesOf(p).map(x => x.slot)), cook_id: p.cook_id, q: '', results: [], busy: false, err: '',
     place: p.place_name ? { name: p.place_name, address: p.place_address, lat: p.place_lat, lon: p.place_lon } : null };
   let map = null, keepRef = () => { };
   const keep = () => keepRef();
@@ -1081,14 +1146,26 @@ function dayEditor(day) {
       <label for="dt">Or just type it</label><input type="text" id="dt" value="${esc(p.title || '')}" maxlength="80" placeholder="e.g. Grandma's, the taco truck">`;
   };
   const menu = () => {
-    const ds = st.dishes.map(id => S.recipes.find(r => r.id === id)).filter(Boolean);
-    const miss = [...new Set(ds.flatMap(r => recipeMatch(r).missing.map(i => buyName(i.name))))];
+    const ds = st.courses.map(c => ({ ...c, r: S.recipes.find(x => x.id === c.id) })).filter(c => c.r);
+    const of = sl => ds.filter(c => c.slot === sl), mains = of('main').map(c => c.r), used = ds.map(c => c.id);
+    const miss = [...new Set(ds.flatMap(c => missingBuys(c.r).map(b => b.name)))];
+    const dish = c => `<div class="pick on" style="cursor:default"><span class="thumb${c.r.photo_url ? ' has' : ''}" style="--c:${colorOf(c.r)}${c.r.photo_url ? `;background-image:url('${esc(c.r.photo_url)}')` : ''}"><span>${emojiOf(c.r)}</span></span><span style="min-width:0"><span class="iname">${esc(c.r.title)}</span><span class="imeta" style="display:block">${(() => { const m = recipeMatch(c.r); return [c.r.time_min ? fmtTime(c.r.time_min) : '', m.total ? `${m.have}/${m.total} at home` : ''].filter(Boolean).join(' · '); })()}</span></span><button type="button" class="del" data-undish="${c.id}" aria-label="Remove ${esc(c.r.title)}">×</button></div>`;
+    const section = sl => { const list = of(sl), sug = mains.length && sl !== 'main' ? suggestFor(mains, sl, used, list.length ? (sl === 'side' ? 3 : 2) : (sl === 'side' ? 4 : 3)) : [];
+      return `<div class="course"><div class="course-h"><span>${SLOTS[sl][0]}</span>${sl !== 'main' && sl !== 'side' && !list.length ? `<button type="button" class="course-x" data-unslot="${sl}" aria-label="Remove ${SLOTS[sl][0]} slot">×</button>` : ''}</div>
+        ${list.length ? `<div class="card flat" style="padding:2px 12px;margin:0">${list.map(dish).join('')}</div>` : ''}
+        ${sug.length && list.length < 4 ? `<div class="sugrow"><span class="imeta">${list.length ? 'More that go with it' : 'Goes well with ' + esc(mains[0].title)}</span><div class="chips">${sug.map(r => `<button type="button" class="chip" data-addslot="${sl}" data-rid="${r.id}">${svg('plus')} ${esc(r.title)}</button>`).join('')}</div></div>` : ''}
+        <button type="button" class="btn sm ghost" data-pickslot="${sl}">${svg('plus')} ${list.length ? SLOTS[sl][2] : SLOTS[sl][1]}</button></div>`; };
+    const extras = ['salad', 'bread', 'dessert'], shown = extras.filter(sl => st.open.has(sl) || of(sl).length), hidden = extras.filter(sl => !shown.includes(sl));
     return `<label>On the menu</label>
-      ${ds.length ? `<div class="card flat" style="padding:2px 12px;margin:0">${ds.map((r, i) => `<div class="pick on" style="cursor:default"><span class="thumb${r.photo_url ? ' has' : ''}" style="--c:${colorOf(r)}${r.photo_url ? `;background-image:url('${esc(r.photo_url)}')` : ''}"><span>${emojiOf(r)}</span></span><span style="min-width:0"><span class="iname">${esc(r.title)}</span><span class="imeta" style="display:block">${RCATS[catOf(r)][0]}${r.time_min ? ' · ' + fmtTime(r.time_min) : ''}</span></span><button type="button" class="del" data-undish="${i}" aria-label="Remove ${esc(r.title)}">×</button></div>`).join('')}</div>` : '<p class="imeta" style="margin:0">Nothing yet — add a main, sides, dessert, as many dishes as you like.</p>'}
-      <div class="row" style="margin-top:10px"><button type="button" class="btn sm" id="dadd">${svg('plus')} Add ${ds.length ? 'another dish' : 'a dish'}</button><button type="button" class="btn sm flame" id="dchef">${svg('spark')} Ask the chef</button></div>
-      ${!ds.length && ide.length ? `<div class="imeta" style="margin-top:10px">Makeable from your pantry:</div><div class="chips" style="margin-top:6px">${ide.map(x => `<button type="button" class="chip" data-pick="${x.r.id}">${emojiOf(x.r)} ${esc(x.r.title)}</button>`).join('')}</div>` : ''}
+      ${section('main')}
+      ${!mains.length && ide.length ? `<div class="imeta" style="margin:-2px 0 6px">Makeable from your pantry:</div><div class="chips" style="margin-bottom:8px">${ide.map(x => `<button type="button" class="chip" data-addslot="main" data-rid="${x.r.id}">${emojiOf(x.r)} ${esc(x.r.title)}</button>`).join('')}</div>` : ''}
+      ${section('side')}
+      ${shown.map(section).join('')}
+      ${hidden.length ? `<div class="course-add"><span class="imeta">Add a course</span>${hidden.map(sl => `<button type="button" class="chip" data-openslot="${sl}">${svg('plus')} ${SLOTS[sl][0]}</button>`).join('')}</div>` : ''}
+      <div class="row" style="margin-top:10px"><button type="button" class="btn sm flame" id="dchef">${svg('spark')} Ask the chef</button></div>
       ${ds.length ? `<div class="imeta" style="margin-top:8px">${miss.length ? 'Need to buy: ' + esc(miss.slice(0, 10).join(', ')) + (miss.length > 10 ? '…' : '') : 'Everything is in the pantry'}</div>` : ''}`;
   };
+
   const draw = el => {
     el.querySelector('#dbody').innerHTML = `
     <div class="seg">${Object.entries(KINDS).map(([k, l]) => `<button type="button" data-kind="${k}" style="--k:var(--${k})" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
@@ -1115,9 +1192,11 @@ function dayEditor(day) {
     el.addEventListener('click', e => {
       const k = e.target.closest('[data-kind]'); if (k) { keep(); st.kind = k.dataset.kind; draw(el); return; }
       const a = e.target.closest('[data-away]'); if (a) { keep(); const id = a.dataset.away; st.away = st.away.includes(id) ? st.away.filter(x => x !== id) : [...st.away, id]; draw(el); return; }
-      const pk = e.target.closest('[data-pick]'); if (pk) { keep(); if (!st.dishes.includes(pk.dataset.pick)) st.dishes.push(pk.dataset.pick); draw(el); return; }
-      const ud = e.target.closest('[data-undish]'); if (ud) { keep(); st.dishes.splice(Number(ud.dataset.undish), 1); draw(el); return; }
-      if (e.target.closest('#dadd')) { keep(); dishPicker(st.dishes, sel => { st.dishes = sel; draw(el); }); return; }
+      const ud = e.target.closest('[data-undish]'); if (ud) { keep(); st.courses = st.courses.filter(c => c.id !== ud.dataset.undish); draw(el); return; }
+      const as = e.target.closest('[data-addslot]'); if (as) { keep(); if (!st.courses.some(c => c.id === as.dataset.rid)) st.courses = orderCourses([...st.courses, { id: as.dataset.rid, slot: as.dataset.addslot }]); st.open.add(as.dataset.addslot); draw(el); return; }
+      const os = e.target.closest('[data-openslot]'); if (os) { keep(); st.open.add(os.dataset.openslot); draw(el); return; }
+      const uso = e.target.closest('[data-unslot]'); if (uso) { keep(); st.open.delete(uso.dataset.unslot); draw(el); return; }
+      const ps = e.target.closest('[data-pickslot]'); if (ps) { keep(); const sl = ps.dataset.pickslot; dishPicker(st.courses.filter(c => c.slot === sl).map(c => c.id), sel => { st.courses = orderCourses([...st.courses.filter(c => c.slot !== sl && !sel.includes(c.id)), ...sel.map(id => ({ id, slot: sl }))]); st.open.add(sl); draw(el); }, { slot: sl }); return; }
       const pl = e.target.closest('[data-place]'); if (pl) { choose(el, Number(pl.dataset.place)); return; }
       const us = e.target.closest('[data-usual]'); if (us) { keep(); st.place = usualSpots(st.kind)[Number(us.dataset.usual)]; draw(el); return; }
       if (e.target.closest('#pgo')) { runSearch(el); return; }
@@ -1128,9 +1207,9 @@ function dayEditor(day) {
     el.addEventListener('keydown', e => { if (e.target.id === 'pq2' && e.key === 'Enter') { e.preventDefault(); runSearch(el); } });
     el.querySelector('#dform').onsubmit = async e => {
       e.preventDefault(); keep();
-      const pl = (st.kind === 'out' || st.kind === 'takeout') && st.place, cookDishes = st.kind === 'cook' ? st.dishes : [];
+      const pl = (st.kind === 'out' || st.kind === 'takeout') && st.place, cookCourses = st.kind === 'cook' ? orderCourses(st.courses) : [], cookDishes = cookCourses.map(c => c.id);
       const same0 = JSON.stringify(cookDishes) === JSON.stringify(dishIds(p)) && st.kind === p.kind;
-      const row = { household_id: S.household.id, day, kind: st.kind, recipe_ids: cookDishes, recipe_id: cookDishes[0] || null, cook_id: st.kind === 'cook' ? st.cook_id : null, title: st.kind === 'cook' || st.kind === 'away' ? null : (p.title || null),
+      const row = { household_id: S.household.id, day, kind: st.kind, courses: cookCourses, recipe_ids: cookDishes, recipe_id: cookDishes[0] || null, cook_id: st.kind === 'cook' ? st.cook_id : null, title: st.kind === 'cook' || st.kind === 'away' ? null : (p.title || null),
         place_name: pl ? pl.name : null, place_address: pl ? pl.address || null : null, place_lat: pl ? pl.lat ?? null : null, place_lon: pl ? pl.lon ?? null : null, cost: (st.kind === 'out' || st.kind === 'takeout') ? p.cost : null,
         away: st.kind === 'away' ? S.members.map(m => m.user_id) : st.away.filter(id => !busyIds.includes(id)), present: st.kind === 'away' ? [] : busyIds.filter(id => !st.away.includes(id)), headcount: st.kind === 'away' ? 0 : p.headcount, note: p.note || null, cooked: same0 ? !!p.cooked : false };
       const r = await sb.from('meal_plan').upsert(row, { onConflict: 'household_id,day' }); if (r.error) return fail(r.error);
@@ -1142,9 +1221,11 @@ function dayEditor(day) {
 }
 async function addDishToDay(day, recipeId) {
   const p = S.plan.find(x => x.day === day);
-  const ids = p && p.kind === 'cook' ? [...new Set([...dishIds(p), recipeId])] : [recipeId];
+  const r = S.recipes.find(x => x.id === recipeId);
+  const prev = p && p.kind === 'cook' ? coursesOf(p) : [];
+  const cs = orderCourses(prev.some(x => x.id === recipeId) ? prev : [...prev, { id: recipeId, slot: r ? slotFor(r) : 'main' }]), ids = cs.map(x => x.id);
   const base = p && p.kind === 'cook' ? {} : { title: null, place_name: null, place_address: null, place_lat: null, place_lon: null, cost: null };
-  const u = await sb.from('meal_plan').upsert({ household_id: S.household.id, day, kind: 'cook', recipe_ids: ids, recipe_id: ids[0], cooked: false, ...base }, { onConflict: 'household_id,day' });
+  const u = await sb.from('meal_plan').upsert({ household_id: S.household.id, day, kind: 'cook', courses: cs, recipe_ids: ids, recipe_id: ids[0], cooked: false, ...base }, { onConflict: 'household_id,day' });
   if (u.error) throw u.error;
 }
 
@@ -1596,12 +1677,13 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
     const cands = dinnerCandidates().filter(r => !planned.has(r.id));
     const scored = cands.map(r => { const m = recipeMatch(r); const last = lc.get(r.id); const recent = last && daysUntil(last) > -14;
       return { r, m, base: m.pct * 0.5 + (r.rating || 0) * 8 + (r.favorite ? 10 : 0) + (recent ? -40 : 0) + Math.random() * 12 }; });
-    const used = new Set();
+    const used = new Set(), usedSides = new Set();
     const rows = days.map(d => {
       const awayNames = awayOn(null, d).map(memberById).filter(Boolean).map(m => m.display_name.split(' ')[0]); const short = awayNames.length > 0;
       const ranked = scored.map(x => ({ ...x, s: x.base + (short && x.r.time_min && x.r.time_min <= 45 ? 15 : 0) })).sort((a, b) => b.s - a.s);
       const pick = ranked.find(x => !used.has(x.r.id)); if (pick) used.add(pick.r.id);
-      return { day: d, short, awayNames, ranked, pick };
+      const sides = pick ? suggestFor([pick.r], 'side', [...usedSides], 2) : []; sides.forEach(x => usedSides.add(x.id));
+      return { day: d, short, awayNames, ranked, pick, sides };
     }).filter(x => x.pick);
     return rows;
   }
@@ -1659,10 +1741,11 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
       extra = ide.length ? `<div class="tideas"><p class="tl">From what’s in your kitchen</p>${ide.map(x => `<div class="tidea"><button class="ti-main" data-recipe="${x.r.id}"><span class="ti-e">${emojiOf(x.r)}</span><span><b>${esc(x.r.title)}</b><i>${x.m.have}/${x.m.total} at home${x.r.time_min ? ' · ' + fmtTime(x.r.time_min) : ''}</i></span></button><button class="ti-add" data-h="tonight-add" data-id="${x.r.id}" aria-label="Plan ${esc(x.r.title)} tonight">${svg('plus')}</button></div>`).join('')}</div>` : '';
       actions = `<button class="hbtn" data-day="${d}">${svg('cal')} Plan tonight</button><button class="hbtn ghost" data-act="chef">${svg('spark')} Ask the chef</button>`;
     } else if (k === 'cook') {
-      title = ds.length ? esc(ds.map(x => x.title).join(' + ')) : 'Cooking in';
+      title = ds.length ? esc(mealTitle(p)) : 'Cooking in';
+      if (mealWith(p).length) extra = `<p class="t-with">${esc(withLine(p))}</p>`;
       sub = [cook ? `${first(cook)} is cooking` : 'Cook not picked', r?.time_min ? fmtTime(Math.max(...ds.map(x => x.time_min || 0))) : ''].filter(Boolean).join(' · ');
       actions = p.cooked ? `<span class="tdone">✓ Cooked</span><button class="hbtn ghost" data-day="${d}">Details</button>`
-        : `${r ? `<button class="hbtn" data-h="cook" data-id="${r.id}">${svg('fire')} Start cooking</button>` : ''}${ds.length ? `<button class="hbtn ghost" data-h="cooked" data-pid="${p.id}">Mark cooked</button>` : `<button class="hbtn ghost" data-day="${d}">Add dishes</button>`}`;
+        : `${r ? `<button class="hbtn" data-h="cook" data-id="${(bySlot(p, 'main')[0] || r).id}">${svg('fire')} Start cooking</button>` : ''}${ds.length ? `<button class="hbtn ghost" data-h="cooked" data-pid="${p.id}">Mark cooked</button>` : `<button class="hbtn ghost" data-day="${d}">Add dishes</button>`}`;
     } else if (k === 'away') {
       title = 'Nobody’s home for dinner'; sub = p.note ? esc(p.note) : 'Night off from the kitchen';
       actions = `<button class="hbtn ghost" data-day="${d}">Change plans</button>`;
@@ -1671,7 +1754,7 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
       actions = p.place_name ? `<button class="hbtn" data-ext="${esc(mapsUrl(p))}">${svg('link')} Directions</button>` : `<button class="hbtn ghost" data-day="${d}">Edit</button>`;
     }
     const tm = S.plan.find(x => x.day === ymd(addDays(new Date(), 1)));
-    const tmText = tm ? (tm.kind === 'cook' && dishesOf(tm).length ? dishesOf(tm).map(x => x.title).join(' + ') : tm.place_name || tm.title || KINDS[tm.kind]) : 'Nothing planned';
+    const tmText = tm ? (tm.kind === 'cook' && dishesOf(tm).length ? mealTitle(tm) + (mealWith(tm).length ? ` + ${mealWith(tm).length} more` : '') : tm.place_name || tm.title || KINDS[tm.kind]) : 'Nothing planned';
     const photo = r?.photo_url;
     return `<article class="tonight${photo ? ' has' : ''}"${photo ? ` style="--img:url('${esc(photo)}')"` : ''}>
       <div class="t-top"><span class="t-eye">Tonight${k !== 'away' ? ` · ${eating} eating` : ''}</span>${p ? `<button class="t-kind" style="--k:var(--${k})" data-day="${d}" aria-label="Edit tonight's plan">${esc(KINDS[k])} ${svg('pen')}</button>` : ''}</div>
@@ -1780,21 +1863,21 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
   function fillWeek() {
     let rows = propose();
     if (!rows.length) return toast('Add a few dinner recipes first and the chef can fill your week.');
-    const draw = () => `<h2>Fill my week</h2><p class="lede">Picked from your cookbooks: what you can make with what’s at home, favorites first, quicker meals on nights someone’s working.</p>
+    const draw = () => `<h2>Fill my week</h2><p class="lede">Picked from your cookbooks: a main you can make with what’s at home plus two sides that go with it. Quicker meals on nights someone’s working. Tap ↻ to swap.</p>
       <div class="fw">${rows.map((x, i) => { const dt = parseYmd(x.day), m = x.pick.m;
         return `<div class="fw-row"><span class="fw-d"><b>${daysUntil(x.day) === 0 ? 'Tonight' : DOW[dt.getDay()]}</b><i>${dt.getDate()}</i></span>
-        <button class="fw-r" data-recipe="${x.pick.r.id}"><span class="fw-e">${emojiOf(x.pick.r)}</span><span><b>${esc(x.pick.r.title)}</b><i>${[m.total ? `${m.have}/${m.total} at home` : '', x.pick.r.time_min ? fmtTime(x.pick.r.time_min) : '', x.short ? `${esc(x.awayNames.join(' & '))} working` : ''].filter(Boolean).join(' · ')}</i></span></button>
+        <button class="fw-r" data-recipe="${x.pick.r.id}"><span class="fw-e">${emojiOf(x.pick.r)}</span><span><b>${esc(x.pick.r.title)}</b><i>${x.sides.length ? `with ${esc(x.sides.map(r => r.title).join(' & '))}` : [m.total ? `${m.have}/${m.total} at home` : '', x.pick.r.time_min ? fmtTime(x.pick.r.time_min) : ''].filter(Boolean).join(' · ')}${x.short ? ` · ${esc(x.awayNames.join(' & '))} working` : ''}</i></span></button>
         <span class="fw-a"><button class="ib" data-fswap="${i}" aria-label="Swap">↻</button><button class="ib" data-fdel="${i}" aria-label="Remove">✕</button></span></div>`; }).join('') || '<p class="imeta">No nights left to fill.</p>'}</div>
       <div class="row" style="gap:8px;margin-top:16px"><button class="btn" id="fwgo" ${rows.length ? '' : 'disabled'}>Add ${rows.length} dinner${rows.length === 1 ? '' : 's'}</button><button class="btn ghost" id="fwlist" ${rows.length ? '' : 'disabled'}>Add + shopping list</button></div>`;
     sheet(draw(), (el, close) => {
       const box = el.querySelector('[role=dialog]'); const redraw = () => { box.innerHTML = draw(); };
       el.addEventListener('click', async e => {
         const sw = e.target.closest('[data-fswap]'); if (sw) { const x = rows[+sw.dataset.fswap]; const usedIds = new Set(rows.map(r => r.pick.r.id));
-          const idx = x.ranked.findIndex(c => c.r.id === x.pick.r.id); const next = [...x.ranked.slice(idx + 1), ...x.ranked.slice(0, idx)].find(c => !usedIds.has(c.r.id)); if (next) x.pick = next; else toast('No other options right now'); return redraw(); }
+          const idx = x.ranked.findIndex(c => c.r.id === x.pick.r.id); const next = [...x.ranked.slice(idx + 1), ...x.ranked.slice(0, idx)].find(c => !usedIds.has(c.r.id)); if (next) { x.pick = next; x.sides = suggestFor([next.r], 'side', rows.filter(y => y !== x).flatMap(y => y.sides.map(r => r.id)), 2); } else toast('No other options right now'); return redraw(); }
         const dl = e.target.closest('[data-fdel]'); if (dl) { rows.splice(+dl.dataset.fdel, 1); return redraw(); }
         const go = e.target.closest('#fwgo, #fwlist'); if (!go) return;
         go.disabled = true; go.textContent = 'Adding…';
-        try { for (const x of rows) await addDishToDay(x.day, x.pick.r.id); await loadAll(); if (go.id === 'fwlist') await buildList(); } catch (er) { return fail(er); }
+        try { for (const x of rows) await setMeal(x.day, [{ id: x.pick.r.id, slot: 'main' }, ...x.sides.map(r => ({ id: r.id, slot: 'side' }))]); await loadAll(); if (go.id === 'fwlist') await buildList(); } catch (er) { return fail(er); }
         el.remove(); render(); toast(`${rows.length} dinner${rows.length === 1 ? '' : 's'} planned`);
       });
     });

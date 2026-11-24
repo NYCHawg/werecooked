@@ -1,7 +1,9 @@
 {
 const SUPABASE_URL = 'https://iticnrxdxykvgwoueqtk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_JyHvBjN_1lfvcjsLfX2ybQ_lnU67nP_';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } });
+const IS_APP = !!(window.Android && window.Android.openExternal);
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 // ---------- helpers ----------
 const $ = s => document.querySelector(s);
@@ -34,7 +36,8 @@ const KINDS = { cook: 'Cooking in', out: 'Eating out', takeout: 'Takeout', lefto
 const CATS = ['Produce', 'Meat & Seafood', 'Dairy & Eggs', 'Pantry', 'Spices', 'Frozen', 'Bakery', 'Drinks', 'Household', 'Other'];
 
 // ---------- state ----------
-const S = { session: null, me: null, household: null, members: [], pantry: [], recipes: [], plan: [], list: [], tab: 'week', weekStart: ymd(new Date()), recipeQ: '', channel: null };
+const S = { session: null, me: null, household: null, members: [], pantry: [], recipes: [], plan: [], list: [], tab: 'week', weekStart: ymd(new Date()), recipeQ: '', channel: null, library: [], loc: null };
+try { S.loc = JSON.parse(localStorage.getItem('wc-loc') || 'null'); } catch (_) { }
 const memberById = id => S.members.find(m => m.user_id === id);
 const initials = n => (n || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
 const av = (m, off) => m ? `<span class="av${off ? ' off' : ''}" style="background:${esc(m.color)}" title="${esc(m.display_name)}">${esc(initials(m.display_name))}</span>` : '';
@@ -51,6 +54,7 @@ async function loadAll() {
   ]);
   for (const r of [mem, pan, rec, pl, li]) if (r.error) throw r.error;
   S.members = mem.data; S.pantry = pan.data; S.recipes = rec.data; S.plan = pl.data; S.list = li.data;
+  if (!S.library.length) { const lib = await sb.from('recipe_library').select('*').order('title'); if (!lib.error) S.library = lib.data; }
 }
 let reloadT;
 function subscribe() {
@@ -136,6 +140,39 @@ async function checkedToPantry() {
   await loadAll(); render(); toast(`Put away ${done.length} item${done.length > 1 ? 's' : ''}`);
 }
 
+// ---------- places (OpenStreetMap search) ----------
+const FOOD_TAGS = ['amenity:restaurant', 'amenity:fast_food', 'amenity:cafe', 'amenity:bar', 'amenity:pub', 'amenity:food_court', 'amenity:ice_cream', 'amenity:biergarten'];
+const biasPoint = () => S.loc || (S.household?.home_lat != null ? { lat: S.household.home_lat, lon: S.household.home_lon } : null);
+const distMi = (a, b) => { if (!a || !b) return null; const R = 3958.8, r = x => x * Math.PI / 180; const dl = r(b.lat - a.lat), dn = r(b.lon - a.lon); const h = Math.sin(dl / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
+async function photon(q, tags) {
+  const c = biasPoint();
+  let u = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lang=en`;
+  if (c) u += `&lat=${c.lat}&lon=${c.lon}&location_bias_scale=0.4&zoom=12`;
+  for (const t of tags || []) u += '&osm_tag=' + encodeURIComponent(t);
+  const r = await fetch(u); if (!r.ok) throw new Error('Place search is unavailable right now');
+  const j = await r.json();
+  return (j.features || []).map(f => { const p = f.properties || {}; const [lon, lat] = f.geometry.coordinates;
+    const addr = [[p.housenumber, p.street].filter(Boolean).join(' '), p.district || p.locality, p.city || p.town || p.village, p.state].filter(Boolean).join(', ');
+    return { name: p.name || p.street || q, address: addr, lat, lon, kind: (p.osm_value || '').replace(/_/g, ' '), d: distMi(c, { lat, lon }) }; });
+}
+async function searchFood(q) { let r = await photon(q, FOOD_TAGS); if (!r.length) r = await photon(q); return r.sort((a, b) => (a.d ?? 1e9) - (b.d ?? 1e9)); }
+function locateMe() {
+  return new Promise((res, rej) => { if (!navigator.geolocation) return rej(new Error('Location is not available on this device'));
+    navigator.geolocation.getCurrentPosition(p => { S.loc = { lat: p.coords.latitude, lon: p.coords.longitude }; try { localStorage.setItem('wc-loc', JSON.stringify(S.loc)); } catch (_) { } res(S.loc); },
+      () => rej(new Error('Location permission was denied. Set a home area on the Family tab instead.')), { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }); });
+}
+const mapsUrl = p => { const q = encodeURIComponent([p.place_name, p.place_address].filter(Boolean).join(', ')); return IS_IOS ? `https://maps.apple.com/?q=${encodeURIComponent(p.place_name || '')}${p.place_lat != null ? `&ll=${p.place_lat},${p.place_lon}` : `&address=${q}`}` : `https://www.google.com/maps/search/?api=1&query=${q}`; };
+function openOut(url) { if (IS_APP) window.Android.openExternal(url); else window.open(url, '_blank', 'noopener'); }
+function miniMap(el, places, pick) {
+  if (!window.L || !el) return null;
+  el.innerHTML = ''; const m = L.map(el, { zoomControl: false, attributionControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
+  const pts = places.map((p, i) => { const mk = L.circleMarker([p.lat, p.lon], { radius: 9, color: '#fff', weight: 2, fillColor: '#E4572E', fillOpacity: 1 }).addTo(m); mk.bindTooltip(p.name); mk.on('click', () => pick(i)); return [p.lat, p.lon]; });
+  const me = biasPoint(); if (me) L.circleMarker([me.lat, me.lon], { radius: 6, color: '#fff', weight: 2, fillColor: '#2E86AB', fillOpacity: 1 }).addTo(m).bindTooltip('Home / you');
+  if (pts.length > 1) m.fitBounds(pts, { padding: [24, 24] }); else if (pts.length) m.setView(pts[0], 15); else if (me) m.setView([me.lat, me.lon], 13); else m.setView([40.7, -73.95], 11);
+  setTimeout(() => m.invalidateSize(), 50); return m;
+}
+
 // ---------- screens ----------
 const ICONS = {
   week: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
@@ -161,13 +198,14 @@ function weekView() {
   const cards = days.map(d => {
     const p = S.plan.find(x => x.day === d); const dt = parseYmd(d);
     const k = p?.kind; const r = p?.recipe_id && S.recipes.find(x => x.id === p.recipe_id);
-    const title = p ? (r?.title || p.title || (k === 'away' ? 'No dinner at home' : KINDS[k])) : 'Not planned yet';
+    const title = p ? (r?.title || p.title || p.place_name || (k === 'away' ? 'No dinner at home' : KINDS[k])) : 'Not planned yet';
     const cook = p?.cook_id && memberById(p.cook_id);
     const who = S.members.map(m => av(m, p?.away?.includes(m.user_id))).join('');
     return `<button class="card day${d === today ? ' today' : ''}" data-day="${d}" style="--k:var(--${k || 'line'})">
       <span class="dd"><span>${DOW[dt.getDay()]}</span><b>${dt.getDate()}</b></span>
       <span>${p ? `<span class="kind" style="--k:var(--${k})">${esc(KINDS[k])}${p.cooked ? ' ✓' : ''}</span>` : ''}
-        <span class="dt" style="display:block${p ? '' : ';color:var(--mute)'}">${esc(title)}</span>
+        <span class="dt" style="display:block${p ? '' : ';color:var(--mute)'}">${esc(p?.place_name || title)}</span>
+        ${p?.place_name ? `<span class="dm" style="display:block">${esc(p.place_address || '')} · <span role="link" tabindex="0" data-ext="${esc(mapsUrl(p))}" style="color:var(--tomd);font-weight:700;text-decoration:underline">Directions</span></span>` : ''}
         <span class="row" style="justify-content:space-between"><span class="dm">${cook ? `${esc(cook.display_name)} cooking · ` : ''}${p && k !== 'away' ? `${p.headcount || homeCount(p)} eating` : ''}${p?.note ? ` · ${esc(p.note)}` : ''}</span><span class="avs">${who}</span></span>
         ${!p && ide && d >= today ? `<span class="idea" style="display:block;margin-top:4px">Idea: ${esc(ide.r.title)} (${ide.m.have}/${ide.m.total} in pantry)</span>` : ''}
       </span></button>`;
@@ -197,7 +235,9 @@ function recipesView() {
   const list = S.recipes.filter(r => !q || r.title.toLowerCase().includes(q) || (r.tags || []).join(' ').toLowerCase().includes(q) || (r.ingredients || []).some(i => i.name.toLowerCase().includes(q)))
     .map(r => ({ r, m: recipeMatch(r) })).sort((a, b) => (b.r.favorite - a.r.favorite) || b.m.pct - a.m.pct || a.r.title.localeCompare(b.r.title));
   const ide = ideas(3);
+  const fresh = S.library.filter(l => !S.recipes.some(r => r.title.toLowerCase() === l.title.toLowerCase()));
   return `<div class="row"><h2 class="sp">Family recipe book</h2><button class="btn sm" data-act="addrecipe">+ Add recipe</button></div>
+  ${fresh.length ? `<div class="card" style="background:var(--soft)"><div class="iname">${fresh.length} recipe${fresh.length > 1 ? 's' : ''} found in your Drive and Gmail</div><div class="imeta">${esc(fresh.slice(0, 4).map(l => l.title).join(', '))}${fresh.length > 4 ? '…' : ''}</div><button class="btn sm" style="margin-top:8px" data-act="importlib">Add them to the family book</button></div>` : ''}
   <input type="search" id="rq" placeholder="Search recipes, tags or ingredients" value="${esc(S.recipeQ)}" aria-label="Search recipes">
   ${ide.length ? `<h3>You can make these with what's at home</h3>${ide.map(x => `<button class="card recipe" data-recipe="${x.r.id}"><span><span class="iname">${esc(x.r.title)}</span><span class="imeta" style="display:block">${x.m.missing.length ? `Missing: ${esc(x.m.missing.slice(0, 3).map(i => i.name).join(', '))}` : 'Everything is in the pantry'}</span></span><span class="match">${x.m.have}/${x.m.total}</span></button>`).join('')}` : ''}
   <h3>All recipes (${S.recipes.length})</h3>
@@ -217,6 +257,8 @@ function listView() {
 function familyView() {
   return `<h2>${esc(S.household.name)}</h2>
   <div class="card"><div class="imeta">Invite code: family members create an account, then enter this code</div><div class="row" style="margin-top:6px"><span class="code">${esc(S.household.invite_code)}</span><span class="sp"></span><button class="btn sm ghost" data-act="copycode">Copy</button></div></div>
+  <h3>Home area</h3><div class="card"><div class="imeta">Used to find nearby restaurants when phone location is off</div>
+  <div class="row" style="margin-top:6px"><span class="iname sp">${esc(S.household.home_label || 'Not set')}</span><button class="btn sm ghost" data-act="sethome">${S.household.home_label ? 'Change' : 'Set home area'}</button></div></div>
   <h3>Members</h3><div class="card">${S.members.map(m => `<div class="item"><span class="row">${av(m)}<span><span class="iname">${esc(m.display_name)}${m.user_id === S.session.user.id ? ' (you)' : ''}</span><span class="imeta" style="display:block">${m.role === 'owner' ? 'Owner' : 'Member'}${m.dislikes ? ' · Avoids: ' + esc(m.dislikes) : ''}</span></span></span></div>`).join('')}</div>
   <h3>Your profile</h3>
   <form id="profile" class="card"><label for="pn">Your name</label><input type="text" id="pn" value="${esc(S.me.display_name)}" maxlength="40">
@@ -244,21 +286,37 @@ function render() {
 function authView(mode = 'in', msg = '') {
   $('#app').innerHTML = `<main><div class="auth"><div class="hero"><img src="icon-192.png" alt=""></div>
   <h2 style="text-align:center">We're Cooked</h2><p class="imeta" style="text-align:center">Plan the week, stock the pantry, share the family recipe book.</p>
+  <button class="btn google" id="gbtn" type="button"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</button>
+  <div class="or"><span>or use email</span></div>
   <form id="auth"><label for="ae">Email</label><input type="email" id="ae" autocomplete="email" required>
   <label for="ap">Password</label><input type="password" id="ap" autocomplete="${mode === 'in' ? 'current-password' : 'new-password'}" minlength="6" required>
   <button class="btn" type="submit" style="width:100%;margin-top:16px">${mode === 'in' ? 'Sign in' : 'Create account'}</button>
   <div class="err" id="aerr">${esc(msg)}</div></form>
   <p style="text-align:center"><button class="btn line sm" id="swap">${mode === 'in' ? 'New here? Create an account' : 'Have an account? Sign in'}</button></p></div></main>`;
   $('#swap').onclick = () => authView(mode === 'in' ? 'up' : 'in');
+  $('#gbtn').onclick = () => googleSignIn().catch(e => { $('#aerr').textContent = e.message; });
   $('#auth').onsubmit = async e => {
     e.preventDefault(); const email = $('#ae').value.trim(), password = $('#ap').value; $('#aerr').textContent = '';
     const btn = e.target.querySelector('button'); btn.disabled = true;
-    const r = mode === 'in' ? await sb.auth.signInWithPassword({ email, password }) : await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } });
+    const r = mode === 'in' ? await sb.auth.signInWithPassword({ email, password }) : await sb.auth.signUp({ email, password, options: { emailRedirectTo: IS_APP ? WEB_HOME : location.origin + location.pathname } });
     btn.disabled = false;
     if (r.error) return ($('#aerr').textContent = r.error.message);
     if (mode === 'up' && !r.data.session) return authView('in', 'Check your email for a confirmation link, then sign in here.');
   };
 }
+const WEB_HOME = 'https://nychawg.github.io/werecooked/';
+async function googleSignIn() {
+  const redirectTo = IS_APP ? 'werecooked://auth-callback' : location.origin + location.pathname;
+  const r = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: IS_APP, queryParams: { prompt: 'select_account' } } });
+  if (r.error) throw r.error;
+  if (IS_APP) window.Android.openExternal(r.data.url);
+}
+// Android hands the deep link back here after Google sign-in in the system browser
+window.__authCallback = async url => {
+  try { const u = new URL(url); const code = u.searchParams.get('code'); const err = u.searchParams.get('error_description');
+    if (err) return authView('in', err);
+    if (code) { const r = await sb.auth.exchangeCodeForSession(code); if (r.error) authView('in', r.error.message); } } catch (e) { fail(e); }
+};
 function onboardView() {
   $('#app').innerHTML = `<main><div class="auth"><div class="hero"><img src="icon-192.png" alt=""></div><h2>Set up your household</h2>
   <form id="mk" class="card"><h3 style="margin-top:0">Start a new household</h3><label for="hn">Household name</label><input type="text" id="hn" placeholder="The Carter House" required maxlength="80">
@@ -282,9 +340,22 @@ function sheet(html, onReady) {
 
 function dayEditor(day) {
   const p = S.plan.find(x => x.day === day) || { day, kind: 'cook', away: [], recipe_id: null, cook_id: null, headcount: null, title: '', note: '' };
-  const st = { kind: p.kind, away: [...(p.away || [])], recipe_id: p.recipe_id, cook_id: p.cook_id };
+  const st = { kind: p.kind, away: [...(p.away || [])], recipe_id: p.recipe_id, cook_id: p.cook_id, q: '', results: [], busy: false, err: '',
+    place: p.place_name ? { name: p.place_name, address: p.place_address, lat: p.place_lat, lon: p.place_lon } : null };
+  let map = null, keepRef = () => { };
+  const keep = () => keepRef();
   const dt = parseYmd(day);
   const ide = ideas(5);
+  const placePicker = () => st.place ? `<label>${st.kind === 'out' ? 'Where' : 'Ordering from'}</label>
+      <div class="card" style="margin:0"><div class="iname">${esc(st.place.name)}</div><div class="imeta">${esc(st.place.address || '')}</div>
+      <div class="row" style="margin-top:8px">${st.place.lat != null || st.place.address ? `<button type="button" class="btn sm ghost" data-ext="${esc(mapsUrl({ place_name: st.place.name, place_address: st.place.address, place_lat: st.place.lat, place_lon: st.place.lon }))}">Open in Maps</button>` : ''}<span class="sp"></span><button type="button" class="btn sm line" id="pchg">Change</button></div></div>`
+    : `<label for="pq">${st.kind === 'out' ? 'Where are we eating?' : 'Where are we ordering from?'}</label>
+      <div class="row" style="gap:6px"><input type="search" id="pq" class="sp" value="${esc(st.q)}" placeholder="Restaurant name or type, e.g. tacos" autocomplete="off"><button type="button" class="btn sm" id="pgo">Search</button></div>
+      <div class="row" style="margin-top:6px"><button type="button" class="btn sm ghost" id="pnear">📍 ${S.loc ? 'Update my location' : 'Use my location'}</button><span class="imeta sp" style="text-align:right">${S.loc ? 'Searching near you' : S.household.home_label ? 'Near ' + esc(S.household.home_label) : 'Set a home area on the Family tab for nearby results'}</span></div>
+      ${st.err ? `<div class="err">${esc(st.err)}</div>` : ''}${st.busy ? '<div class="imeta" style="margin-top:8px">Searching…</div>' : ''}
+      ${st.results.length ? `<div id="pmap" style="height:180px;border-radius:14px;margin-top:10px;overflow:hidden;border:1.5px solid var(--line)"></div>
+      <div class="card" style="margin:8px 0 0;padding:4px 12px">${st.results.map((r, i) => `<button type="button" data-place="${i}" style="all:unset;display:block;width:100%;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer"><span class="iname">${esc(r.name)}</span> <span class="imeta">${esc(r.kind)}${r.d != null ? ` · ${r.d < 10 ? r.d.toFixed(1) : Math.round(r.d)} mi` : ''}</span><br><span class="imeta">${esc(r.address)}</span></button>`).join('')}</div>` : ''}
+      <label for="dt">Or just type it</label><input type="text" id="dt" value="${esc(p.title || '')}" maxlength="80" placeholder="e.g. Grandma's, the taco truck">`;
   const draw = el => {
     const sel = st.recipe_id && S.recipes.find(r => r.id === st.recipe_id);
     el.querySelector('#dbody').innerHTML = `
@@ -293,26 +364,39 @@ function dayEditor(day) {
       ${!st.recipe_id && ide.length ? `<div class="imeta" style="margin-top:8px">Ideas from the pantry: ${ide.map(x => `<button type="button" class="btn sm ghost" style="margin:4px 4px 0 0" data-pick="${x.r.id}">${esc(x.r.title)} ${x.m.have}/${x.m.total}</button>`).join('')}</div>` : ''}
       ${sel ? `<div class="imeta" style="margin-top:6px">${recipeMatch(sel).missing.length ? 'Missing: ' + esc(recipeMatch(sel).missing.map(i => i.name).join(', ')) : 'Everything is in the pantry'}</div>` : ''}
       <label for="dc">Who's cooking</label><select id="dc"><option value="">Not decided</option>${S.members.map(m => `<option value="${m.user_id}" ${st.cook_id === m.user_id ? 'selected' : ''}>${esc(m.display_name)}</option>`).join('')}</select>` : ''}
-    ${st.kind !== 'cook' && st.kind !== 'away' ? `<label for="dt">${st.kind === 'out' ? 'Where' : st.kind === 'takeout' ? 'Ordering from' : 'Plan'}</label><input type="text" id="dt" value="${esc(p.title || '')}" maxlength="80">` : ''}
+    ${st.kind === 'out' || st.kind === 'takeout' ? placePicker() : ''}
+    ${st.kind === 'other' ? `<label for="dt">Plan</label><input type="text" id="dt" value="${esc(p.title || '')}" maxlength="80">` : ''}
     ${st.kind !== 'away' ? `<label>Who's home (tap to mark away)</label><div class="avs" style="gap:8px">${S.members.map(m => `<button type="button" data-away="${m.user_id}" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1.5px solid var(--line);border-radius:999px">${av(m, st.away.includes(m.user_id))}<span style="font-size:14px;${st.away.includes(m.user_id) ? 'text-decoration:line-through;color:var(--mute)' : ''}">${esc(m.display_name)}</span></button>`).join('')}</div>
     <label for="dh">How many eating (blank = everyone home)</label><input type="number" id="dh" min="0" max="50" value="${p.headcount ?? ''}" placeholder="${homeCount({ away: st.away })}">` : ''}
     <label for="dn">Note</label><input type="text" id="dn" value="${esc(p.note || '')}" maxlength="120" placeholder="e.g. game night, early dinner">`;
+    if (map) { map.remove(); map = null; }
+    if (st.results.length && !st.place) map = miniMap(el.querySelector('#pmap'), st.results, i => choose(el, i));
   };
+  const choose = (el, i) => { keep(el); const r = st.results[i]; st.place = { name: r.name, address: r.address, lat: r.lat, lon: r.lon }; st.results = []; draw(el); };
+  const runSearch = async el => { keep(el); st.q = (el.querySelector('#pq')?.value || '').trim(); if (!st.q) return; st.busy = true; st.err = ''; draw(el);
+    try { st.results = await searchFood(st.q); if (!st.results.length) st.err = 'No places found. Try another name, or just type it below.'; } catch (e) { st.err = e.message; }
+    st.busy = false; draw(el); };
   sheet(`<h2>${DOW[dt.getDay()]} ${dt.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}</h2><form id="dform"><div id="dbody"></div>
     <div class="row" style="margin-top:16px"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" data-close>Cancel</button><span class="sp"></span>
     ${p.id ? `<button class="btn line sm" type="button" id="dclear">Clear day</button>` : ''}</div>
     ${p.id && p.kind === 'cook' && p.recipe_id && !p.cooked ? `<button class="btn line" type="button" id="dcooked" style="width:100%;margin-top:10px">We cooked this (update the pantry)</button>` : ''}</form>`, (el, close) => {
     draw(el);
-    const keep = () => { const g = id => el.querySelector(id); if (g('#dr')) st.recipe_id = g('#dr').value || null; if (g('#dc')) st.cook_id = g('#dc').value || null; if (g('#dt')) p.title = g('#dt').value; if (g('#dh')) p.headcount = g('#dh').value ? Number(g('#dh').value) : null; if (g('#dn')) p.note = g('#dn').value; };
+    const keep0 = () => { const g = id => el.querySelector(id); if (g('#dr')) st.recipe_id = g('#dr').value || null; if (g('#dc')) st.cook_id = g('#dc').value || null; if (g('#dt')) p.title = g('#dt').value; if (g('#dh')) p.headcount = g('#dh').value ? Number(g('#dh').value) : null; if (g('#dn')) p.note = g('#dn').value; if (g('#pq')) st.q = g('#pq').value; };
+    keepRef = keep0;
     el.addEventListener('click', e => {
       const k = e.target.closest('[data-kind]'); if (k) { keep(); st.kind = k.dataset.kind; draw(el); return; }
       const a = e.target.closest('[data-away]'); if (a) { keep(); const id = a.dataset.away; st.away = st.away.includes(id) ? st.away.filter(x => x !== id) : [...st.away, id]; draw(el); return; }
-      const pk = e.target.closest('[data-pick]'); if (pk) { keep(); st.recipe_id = pk.dataset.pick; draw(el); }
+      const pk = e.target.closest('[data-pick]'); if (pk) { keep(); st.recipe_id = pk.dataset.pick; draw(el); return; }
+      const pl = e.target.closest('[data-place]'); if (pl) { choose(el, Number(pl.dataset.place)); return; }
+      if (e.target.closest('#pgo')) { runSearch(el); return; }
+      if (e.target.closest('#pchg')) { keep(); st.place = null; draw(el); setTimeout(() => el.querySelector('#pq')?.focus(), 0); return; }
+      if (e.target.closest('#pnear')) { keep(); st.err = ''; st.busy = true; draw(el); locateMe().then(() => { st.busy = false; if ((el.querySelector('#pq')?.value || st.q).trim()) runSearch(el); else draw(el); }).catch(er => { st.busy = false; st.err = er.message; draw(el); }); return; }
     });
     el.addEventListener('change', e => { if (e.target.id === 'dr') { keep(); draw(el); } });
+    el.addEventListener('keydown', e => { if (e.target.id === 'pq' && e.key === 'Enter') { e.preventDefault(); runSearch(el); } });
     el.querySelector('#dform').onsubmit = async e => {
       e.preventDefault(); keep();
-      const row = { household_id: S.household.id, day, kind: st.kind, recipe_id: st.kind === 'cook' ? st.recipe_id : null, cook_id: st.kind === 'cook' ? st.cook_id : null, title: st.kind === 'cook' || st.kind === 'away' ? null : (p.title || null), away: st.kind === 'away' ? S.members.map(m => m.user_id) : st.away, headcount: st.kind === 'away' ? 0 : p.headcount, note: p.note || null, cooked: st.kind === p.kind && st.recipe_id === p.recipe_id ? !!p.cooked : false };
+      const row = { household_id: S.household.id, day, kind: st.kind, recipe_id: st.kind === 'cook' ? st.recipe_id : null, cook_id: st.kind === 'cook' ? st.cook_id : null, title: st.kind === 'cook' || st.kind === 'away' ? null : (p.title || null), ...(() => { const pl = (st.kind === 'out' || st.kind === 'takeout') && st.place; return { place_name: pl ? pl.name : null, place_address: pl ? pl.address || null : null, place_lat: pl ? pl.lat ?? null : null, place_lon: pl ? pl.lon ?? null : null }; })(), away: st.kind === 'away' ? S.members.map(m => m.user_id) : st.away, headcount: st.kind === 'away' ? 0 : p.headcount, note: p.note || null, cooked: st.kind === p.kind && st.recipe_id === p.recipe_id ? !!p.cooked : false };
       const r = await sb.from('meal_plan').upsert(row, { onConflict: 'household_id,day' }); if (r.error) return fail(r.error);
       await loadAll(); close();
     };
@@ -349,6 +433,7 @@ function recipeView(id) {
   <h3>Ingredients <span style="font-weight:500">(✓ at home)</span></h3><ul class="ings" id="ri"></ul>
   ${(r.steps || []).length ? `<h3>Steps</h3><ol class="steps">${r.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>` : ''}
   ${r.notes ? `<h3>Notes</h3><p>${esc(r.notes)}</p>` : ''}
+  ${r.source_url ? `<p><a href="${esc(r.source_url)}" data-ext="${esc(r.source_url)}" style="color:var(--tomd);font-weight:700">Open the original recipe ↗</a></p>` : ''}
   <div class="row" style="margin-top:16px"><button class="btn" id="rmiss">Add missing to list</button><button class="btn ghost" id="redit">Edit</button><button class="btn ghost" data-close>Close</button></div>`, (el, close) => {
     drawI(el);
     el.querySelector('#rm').onclick = () => { serves = Math.max(1, serves - 1); drawI(el); };
@@ -373,10 +458,11 @@ function recipeEditor(id) {
   <label for="rig">Ingredients, one per line</label><textarea id="rig" placeholder="2 cup rice&#10;1 lb chicken thighs&#10;3 clove garlic">${esc((r.ingredients || []).map(ingLine).join('\n'))}</textarea>
   <label for="rst">Steps, one per line</label><textarea id="rst">${esc((r.steps || []).join('\n'))}</textarea>
   <label for="rno">Notes</label><input type="text" id="rno" value="${esc(r.notes || '')}" maxlength="400">
+  <label for="rsu">Link to the original (optional)</label><input type="text" id="rsu" value="${esc(r.source_url || '')}" placeholder="https://…">
   <div class="row" style="margin-top:16px"><button class="btn" type="submit">Save to family book</button><button class="btn ghost" type="button" data-close>Cancel</button><span class="sp"></span>${id ? '<button class="btn line sm" type="button" id="rdel">Delete</button>' : ''}</div></form>`, (el, close) => {
     el.querySelector('#rform').onsubmit = async e => {
       e.preventDefault(); const g = s => el.querySelector(s).value;
-      const row = { household_id: S.household.id, title: g('#rt').trim(), servings: Math.min(50, Math.max(1, Number(g('#rsv')) || 4)), time_min: g('#rtm') ? Number(g('#rtm')) : null, tags: g('#rtg').split(',').map(s => s.trim()).filter(Boolean), ingredients: g('#rig').split('\n').map(parseIng).filter(Boolean), steps: g('#rst').split('\n').map(s => s.trim()).filter(Boolean), notes: g('#rno').trim() || null };
+      const row = { household_id: S.household.id, title: g('#rt').trim(), servings: Math.min(50, Math.max(1, Number(g('#rsv')) || 4)), time_min: g('#rtm') ? Number(g('#rtm')) : null, tags: g('#rtg').split(',').map(s => s.trim()).filter(Boolean), ingredients: g('#rig').split('\n').map(parseIng).filter(Boolean), steps: g('#rst').split('\n').map(s => s.trim()).filter(Boolean), notes: g('#rno').trim() || null, source_url: /^https?:\/\//i.test(g('#rsu').trim()) ? g('#rsu').trim() : null };
       if (!id) row.created_by = S.session.user.id;
       const q = id ? await sb.from('recipes').update(row).eq('id', id) : await sb.from('recipes').insert(row); if (q.error) return fail(q.error);
       await loadAll(); close(); toast('Saved to the family recipe book');
@@ -385,7 +471,34 @@ function recipeEditor(id) {
   });
 }
 
+async function importLibrary(btn) {
+  const fresh = S.library.filter(l => !S.recipes.some(r => r.title.toLowerCase() === l.title.toLowerCase()));
+  if (!fresh.length) return; btn.disabled = true;
+  const rows = fresh.map(l => ({ household_id: S.household.id, title: l.title, servings: l.servings, time_min: l.time_min, tags: l.tags, ingredients: l.ingredients, steps: l.steps, notes: [l.notes, l.found_in ? `Found in ${l.found_in}.` : ''].filter(Boolean).join(' '), source_url: l.source_url, created_by: S.session.user.id }));
+  const r = await sb.from('recipes').insert(rows); if (r.error) { btn.disabled = false; return fail(r.error); }
+  await loadAll(); render(); toast(`Added ${rows.length} recipes`);
+}
+function homeEditor() {
+  const st = { results: [], err: '' };
+  const drawRes = el => { el.querySelector('#hres').innerHTML = (st.err ? `<div class="err">${esc(st.err)}</div>` : '') + st.results.map((r, i) => `<button type="button" data-h="${i}" style="all:unset;display:block;width:100%;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer"><span class="iname">${esc(r.name)}</span><br><span class="imeta">${esc(r.address)}</span></button>`).join(''); };
+  sheet(`<h2>Home area</h2><p class="imeta">Pick your neighborhood or zip code. Restaurant searches show places near here first. Only this rough area is saved, not your address.</p>
+  <div class="row" style="gap:6px"><input type="search" id="hq" class="sp" placeholder="e.g. Bushwick, Brooklyn or 11237"><button type="button" class="btn sm" id="hgo">Search</button></div>
+  <button type="button" class="btn sm ghost" id="hme" style="margin-top:8px">📍 Use my current location</button><div id="hres" style="margin-top:8px"></div>
+  <div class="row" style="margin-top:16px"><button class="btn ghost" type="button" data-close>Cancel</button></div>`, (el, close) => {
+    const save = async (label, lat, lon) => { const r = await sb.from('households').update({ home_label: label, home_lat: Math.round(lat * 100) / 100, home_lon: Math.round(lon * 100) / 100 }).eq('id', S.household.id); if (r.error) return fail(r.error); await refreshMe(); close(); toast('Home area saved'); };
+    const go = async () => { const q = el.querySelector('#hq').value.trim(); if (!q) return; st.err = ''; try { st.results = (await photon(q, ['place', 'boundary:postal_code', 'boundary:administrative'])).slice(0, 6); if (!st.results.length) st.err = 'Nothing found'; } catch (e) { st.err = e.message; } drawRes(el); };
+    el.querySelector('#hgo').onclick = go;
+    el.querySelector('#hq').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+    el.querySelector('#hme').onclick = async () => { try { const l = await locateMe(); await save('Near my location', l.lat, l.lon); } catch (e) { st.err = e.message; drawRes(el); } };
+    el.addEventListener('click', e => { const b = e.target.closest('[data-h]'); if (b) { const r = st.results[Number(b.dataset.h)]; save([r.name, r.address].filter(Boolean).join(', ').slice(0, 60), r.lat, r.lon); } });
+  });
+}
+
 // ---------- events ----------
+document.addEventListener('click', e => {
+  const x = e.target.closest('[data-ext]'); if (!x) return;
+  e.preventDefault(); e.stopPropagation(); openOut(x.dataset.ext);
+}, true);
 document.addEventListener('click', async e => {
   const t = e.target.closest('[data-tab],[data-day],[data-week],[data-act],[data-dq],[data-edit-pantry],[data-recipe],[data-check],[data-delitem]');
   if (!t || t.closest('.sheet')) return;
@@ -404,6 +517,8 @@ document.addEventListener('click', async e => {
     if (a === 'buildlist') { t.disabled = true; await buildList(); return; }
     if (a === 'putaway') return checkedToPantry();
     if (a === 'copycode') { try { await navigator.clipboard.writeText(`Join our household on We're Cooked with code ${S.household.invite_code}`); toast('Invite copied'); } catch (_) { toast('Code: ' + S.household.invite_code); } return; }
+    if (a === 'importlib') return importLibrary(t);
+    if (a === 'sethome') return homeEditor();
     if (a === 'signout') { if (S.channel) sb.removeChannel(S.channel); await sb.auth.signOut(); return; }
   } catch (err) { fail(err); }
 });

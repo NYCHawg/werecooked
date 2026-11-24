@@ -1,6 +1,6 @@
 // Caches the app shell so it opens fast and offline; data always comes live from Supabase.
-const V = 'werecooked-v1';
-const SHELL = ['./', 'index.html', 'app.js', 'vendor/supabase.js', 'manifest.json', 'icon-192.png', 'apple-touch-icon.png'];
+const V = 'werecooked-v2';
+const SHELL = ['./', 'index.html', 'app.js', 'vendor/supabase.js', 'vendor/leaflet.js', 'vendor/leaflet.css', 'manifest.json', 'icon-192.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k))))); self.clients.claim(); });
 self.addEventListener('fetch', e => {

@@ -52,6 +52,8 @@ public class MainActivity extends Activity {
         s.setGeolocationEnabled(true);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
+        s.setSaveFormData(false);
+        if (android.os.Build.VERSION.SDK_INT >= 26) web.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
         web.addJavascriptInterface(new Bridge(), "Android");
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -99,8 +101,16 @@ public class MainActivity extends Activity {
                 try {
                     Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                     i.addCategory(Intent.CATEGORY_OPENABLE);
-                    i.setType("image/*");
-                    startActivityForResult(Intent.createChooser(i, "Choose a photo"), FILE_REQ);
+                    String[] accept = params.getAcceptTypes();
+                    String joined = accept == null ? "" : String.join(",", accept);
+                    boolean images = joined.isEmpty() || joined.contains("image");
+                    if (images) {
+                        i.setType("image/*");
+                    } else {
+                        i.setType("*/*");
+                        i.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"text/csv", "text/comma-separated-values", "text/plain", "application/csv", "application/vnd.ms-excel", "application/octet-stream"});
+                    }
+                    startActivityForResult(Intent.createChooser(i, images ? "Choose a photo" : "Choose a CSV file"), FILE_REQ);
                 } catch (Exception e) {
                     fileCallback = null;
                     return false;

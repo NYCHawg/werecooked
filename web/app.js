@@ -14,6 +14,7 @@ const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const parseYmd = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const mondayOf = d => { const x = new Date(d); x.setHours(12, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
 const money = n => { const v = Math.round(Number(n || 0) * 100) / 100; return '$' + v.toLocaleString(undefined, { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); };
 const fmtQty = q => { if (q == null || q === '') return ''; const n = Math.round(Number(q) * 100) / 100; const w = Math.floor(n), f = n - w; const fr = [[.25, '¼'], [.5, '½'], [.75, '¾'], [.33, '⅓'], [.67, '⅔'], [.125, '⅛']].find(([v]) => Math.abs(v - f) < .03); return f < .03 ? String(w) : fr ? (w ? w : '') + fr[1] : String(n); };
 const DESCRIPTORS = /\b(sharp|mild|large|small|medium|extra|fresh|freshly|dried|ground|rubbed|packed|lightly|light|dark|unsalted|salted|whole|chopped|minced|diced|sliced|shredded|grated|softened|melted|cold|warm|hot|day old|extra virgin|boneless|skinless|thin|thick|cut|cubed|peeled|seeded|crushed|frozen|unbaked|baked|deep dish|\d+ inch|room temperature|optional|good quality|best quality|store bought|homemade|plain|pure|real|raw|cooked)\b/g;
@@ -59,7 +60,7 @@ const EMOJI = [[/waffle/, '🧇'], [/pancake/, '🥞'], [/french toast/, '🍞']
   [/seasoning|rub|blend/, '🧂'], [/sauce|gravy|dressing|preserve|chow|vinegar|jelly/, '🫙']];
 
 // ---------- state ----------
-const S = { session: null, me: null, household: null, members: [], busy: [], calLink: null, lists: [], listId: null, pantry: [], recipes: [], books: [], plan: [], list: [], spending: [], events: [], tab: 'home', weekStart: ymd(new Date()),
+const S = { session: null, me: null, household: null, members: [], busy: [], calLink: null, lists: [], listId: null, pantry: [], recipes: [], books: [], plan: [], list: [], spending: [], events: [], tab: 'home', weekStart: ymd(mondayOf(new Date())),
   recipeQ: '', rview: 'meal', book: null, channel: null, library: [], libLoaded: false, loc: null, checks: {}, done: {}, pantryQ: '', zone: null, pview: 'kitchen' };
 try { S.loc = JSON.parse(localStorage.getItem('wc-loc') || 'null'); } catch (_) { }
 const memberById = id => S.members.find(m => m.user_id === id);
@@ -681,6 +682,106 @@ function rcard(r) {
   return `<button class="rcard" data-recipe="${r.id}" style="--c:${colorOf(r)}"><span class="art${r.photo_url ? ' has' : ''}"${photoStyle(r.photo_url)} ${needsPhoto(r) ? `data-ph="r" data-ph-id="${r.id}"` : ''}><span class="e">${emojiOf(r)}</span>${r.favorite ? '<span class="fav">★</span>' : ''}</span>
   <span class="body"><span class="eye">${esc(RCATS[catOf(r)]?.[0] || '')}</span><span class="t">${esc(r.title)}</span><span class="m">${isTodo(r) ? '<span class="todo">Needs recipe</span>' : ''}${r.time_min ? `<span>${fmtTime(r.time_min)}</span>` : ''}${r.rating ? `<span class="stars">${'★'.repeat(r.rating)}</span>` : ''}${m.total ? `<span class="match${m.have === m.total ? ' all' : ''}">${m.have}/${m.total} at home</span>` : ''}</span></span></button>`;
 }
+const hashStr = t => { let h = 2166136261; for (const ch of String(t)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+function bookCover(b, n, i) {
+  const h = hashStr(b.name + (b.id || 'all')), all = i < 0;
+  const variant = all ? 'v-all' : ['v-bands', 'v-frame', 'v-spine', 'v-mono'][h % 4];
+  const ht = all ? 168 : 150 + (h % 5) * 6, wd = all ? 120 : 108 + ((h >> 3) % 4) * 6;
+  const words = b.name.trim().split(/\s+/), mono = (words[0]?.[0] || '') + (words[1]?.[0] || '');
+  return `<button class="book ${variant}" style="--c:${esc(b.color || '#2F5D47')};--h:${ht}px;--w:${wd}px" data-book="${b.id}" aria-pressed="${all ? !S.book : S.book === b.id}" aria-label="${esc(b.name)}, ${n} recipes">
+    <span class="cover"><span class="foil-top"></span>
+      <span class="kick">${all ? 'The Complete' : i < ROMAN.length ? 'Vol. ' + ROMAN[i] : 'Vol. ' + (i + 1)}</span>
+      ${variant === 'v-mono' ? `<span class="mono">${esc(mono.toUpperCase())}</span>` : ''}
+      <b class="ttl">${esc(b.name)}</b>
+      <span class="orn" aria-hidden="true"></span>
+      <span class="bcnt">${n} recipe${n === 1 ? '' : 's'}</span>
+      <span class="foil-bot"></span></span></button>`;
+}
+// ---------- CSV import: cookbooks and their recipes ----------
+function parseCSV(text) {
+  text = String(text || '').replace(/^﻿/, '');
+  const first = text.split(/\r?\n/)[0] || '', delim = (first.match(/\t/g) || []).length > (first.match(/,/g) || []).length ? '\t' : (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : ',';
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; continue; }
+    if (ch === '"' && cell === '') { q = true; continue; }
+    if (ch === delim) { row.push(cell); cell = ''; continue; }
+    if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cell); cell = ''; if (row.some(c => c.trim())) rows.push(row); row = []; continue; }
+    cell += ch;
+  }
+  row.push(cell); if (row.some(c => c.trim())) rows.push(row);
+  return rows;
+}
+const CSV_COLS = { book: /^(cook ?book|book|collection|cookbooks|books)$/, title: /^(title|recipe|name|recipe name|dish)$/, servings: /^(servings|serves|yield)$/, time: /^(time|minutes|mins|total time|time \(min\)|cook time)$/,
+  category: /^(category|type of dish|course|dish type)$/, kind: /^(kind|section|meal or sauce)$/, ingredients: /^(ingredients?)$/, steps: /^(steps|instructions|directions|method)$/, notes: /^(notes?|description)$/,
+  tags: /^(tags?|keywords)$/, url: /^(url|source|source url|link)$/, emoji: /^(emoji|icon)$/, color: /^(colou?r)$/ };
+const splitList = v => String(v || '').split(/\r?\n|\s*\|\s*/).map(x => x.trim()).filter(Boolean);
+const catFrom = v => { const t = String(v || '').trim().toLowerCase(); if (!t) return ''; const hit = Object.entries(RCATS).find(([k, [label]]) => k === t || label.toLowerCase() === t || label.toLowerCase().startsWith(t) || t.startsWith(k)); return hit ? hit[0] : ''; };
+function readCookbookCSV(text) {
+  const rows = parseCSV(text); if (!rows.length) throw new Error('That file is empty.');
+  const head = rows[0].map(h => h.trim().toLowerCase()), col = {};
+  for (const [k, rx] of Object.entries(CSV_COLS)) { const i = head.findIndex(h => rx.test(h)); if (i >= 0) col[k] = i; }
+  if (col.book == null && col.title == null) throw new Error('Add a header row with at least a "Cookbook" or "Title" column.');
+  const get = (r, k) => col[k] == null ? '' : String(r[col[k]] ?? '').trim();
+  const books = new Map(), recipes = [];
+  for (const r of rows.slice(1)) {
+    const bnames = col.book != null ? get(r, 'book').split(/\s*[|;]\s*/).map(x => x.trim()).filter(Boolean) : [];
+    for (const b of bnames) if (!books.has(b.toLowerCase())) books.set(b.toLowerCase(), { name: b, emoji: get(r, 'emoji') || '📖', color: /^#[0-9a-f]{6}$/i.test(get(r, 'color')) ? get(r, 'color') : '' });
+    const title = get(r, 'title'); if (!title) continue;
+    const kindRaw = get(r, 'kind').toLowerCase(), category = catFrom(get(r, 'category'));
+    recipes.push({ title, books: bnames, servings: Math.min(60, Math.max(1, parseInt(get(r, 'servings')) || 4)), time_min: parseInt(get(r, 'time')) || null, category,
+      kind: /sauce|condiment|staple|component|seasoning/.test(kindRaw) || ['sauce', 'seasoning', 'dressing', 'condiment'].includes(category) ? 'component' : 'meal',
+      ingredients: splitList(get(r, 'ingredients')).map(parseIng).filter(Boolean), steps: splitList(get(r, 'steps')).map(x => x.replace(/^\s*\d+[.)]\s*/, '')), notes: get(r, 'notes') || null,
+      tags: get(r, 'tags').split(/\s*[,;]\s*/).filter(Boolean), source_url: /^https?:\/\//i.test(get(r, 'url')) ? get(r, 'url') : null });
+  }
+  return { books: [...books.values()], recipes };
+}
+const CSV_TEMPLATE = 'Cookbook,Title,Servings,Minutes,Category,Ingredients,Steps,Notes,Tags\n"Sunday Suppers","Smothered Pork Chops",4,60,Main dish,"4 bone-in pork chops\n1 cup all-purpose flour\n2 cup chicken broth\n1 onion, sliced","Season and dredge the chops.\nBrown in a skillet.\nMake the gravy and simmer the chops until tender.","Grandma\'s way","dinner, comfort"\n"Sunday Suppers","Buttermilk Biscuits",8,25,Bread,"2 cup self-rising flour | 1/2 cup cold butter | 3/4 cup buttermilk","Cut butter into flour. | Stir in buttermilk. | Bake at 450°F for 12 minutes.",,"breakfast"\n"Game Day",,,,,,,,\n';
+function importCSVSheet() {
+  let parsed = null;
+  const draw = () => {
+    if (!parsed) return `<h2>Import cookbooks</h2><p class="lede">Upload a CSV (from Excel, Google Sheets or Numbers) to add cookbooks and their recipes in one go.</p>
+      <div class="card flat" style="font-size:13.5px;line-height:1.5"><b>Columns we read</b> (header row required, any order):<br><b>Cookbook</b>, <b>Title</b>, Servings, Minutes, Category, Ingredients, Steps, Notes, Tags, URL<br>
+      <span class="imeta">One recipe per row. Put each ingredient or step on its own line in the cell, or separate them with “|”. A row with only a Cookbook name creates an empty book. List several books with “|”.</span></div>
+      <input type="file" id="csvf" accept=".csv,.tsv,.txt,text/csv,text/plain" hidden>
+      <div class="row" style="gap:8px;margin-top:14px"><button class="btn" id="csvpick">${svg('plus')} Choose CSV file</button><a class="btn ghost" id="csvtpl" download="werecooked-cookbooks-template.csv" href="data:text/csv;charset=utf-8,${encodeURIComponent(CSV_TEMPLATE)}">Download template</a></div>
+      <p class="err" id="csverr"></p>`;
+    const existingB = new Set(S.books.map(b => b.name.toLowerCase())), existingR = new Set(S.recipes.map(r => r.title.toLowerCase()));
+    const newB = parsed.books.filter(b => !existingB.has(b.name.toLowerCase())), dupR = parsed.recipes.filter(r => existingR.has(r.title.toLowerCase())), newR = parsed.recipes.filter(r => !existingR.has(r.title.toLowerCase()));
+    return `<h2>Ready to import</h2><p class="lede">${newB.length} new cookbook${newB.length === 1 ? '' : 's'} · ${newR.length} new recipe${newR.length === 1 ? '' : 's'}${dupR.length ? ` · ${dupR.length} already in your recipes (skipped)` : ''}</p>
+      ${parsed.books.length ? `<div class="chips">${parsed.books.map(b => `<span class="chip" aria-pressed="${!existingB.has(b.name.toLowerCase())}">${esc(b.name)} · ${parsed.recipes.filter(r => r.books.some(x => x.toLowerCase() === b.name.toLowerCase())).length}</span>`).join('')}</div>` : ''}
+      <div class="card flat" style="max-height:38vh;overflow:auto;padding:4px 14px;margin-top:10px">${newR.slice(0, 200).map(r => `<div class="item" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="iname">${esc(r.title)}</span><span class="imeta" style="display:block">${[r.books.join(', '), r.ingredients.length ? `${r.ingredients.length} ingredients` : 'no ingredients', r.steps.length ? `${r.steps.length} steps` : ''].filter(Boolean).map(esc).join(' · ')}</span></div>`).join('') || '<p class="imeta">No new recipes, just cookbooks.</p>'}</div>
+      <div class="row" style="margin-top:16px"><button class="btn" id="csvgo" ${newB.length + newR.length ? '' : 'disabled'}>Import</button><button class="btn ghost" id="csvback">Choose a different file</button></div>`;
+  };
+  sheet(draw(), (el, close) => {
+    const box = el.querySelector('[role=dialog]'); const redraw = () => { box.innerHTML = draw(); };
+    el.addEventListener('click', async e => {
+      if (e.target.closest('#csvpick')) return el.querySelector('#csvf').click();
+      if (e.target.closest('#csvback')) { parsed = null; return redraw(); }
+      const go = e.target.closest('#csvgo'); if (!go) return;
+      go.disabled = true; go.textContent = 'Importing…';
+      try {
+        const existing = new Map(S.books.map(b => [b.name.toLowerCase(), b]));
+        const add = parsed.books.filter(b => !existing.has(b.name.toLowerCase())).map((b, i) => ({ household_id: S.household.id, name: b.name.slice(0, 60), emoji: b.emoji, color: b.color || BOOK_COLORS[(S.books.length + i) % BOOK_COLORS.length], sort: S.books.length + i }));
+        if (add.length) { const r = await sb.from('recipe_books').insert(add); if (r.error) throw r.error; }
+        const bk = await sb.from('recipe_books').select('*').eq('household_id', S.household.id).order('sort'); if (bk.error) throw bk.error; S.books = bk.data;
+        const idOf = n => S.books.find(b => b.name.toLowerCase() === n.toLowerCase())?.id;
+        const have = new Set(S.recipes.map(r => r.title.toLowerCase()));
+        const rows = parsed.recipes.filter(r => !have.has(r.title.toLowerCase())).map(r => ({ household_id: S.household.id, title: r.title.slice(0, 120), servings: r.servings, time_min: r.time_min, category: r.category || null, kind: r.kind,
+          ingredients: relink(r.ingredients), steps: r.steps, notes: r.notes, tags: r.tags, source_url: r.source_url, books: r.books.map(idOf).filter(Boolean), created_by: S.session.user.id, found_in: 'CSV import' }));
+        for (let k = 0; k < rows.length; k += 50) { const r = await sb.from('recipes').insert(rows.slice(k, k + 50)); if (r.error) throw r.error; }
+        await loadAll(); close(); toast(`Imported ${add.length} cookbook${add.length === 1 ? '' : 's'} and ${rows.length} recipe${rows.length === 1 ? '' : 's'}`);
+      } catch (er) { go.disabled = false; go.textContent = 'Import'; fail(er); }
+    });
+    el.addEventListener('change', async e => {
+      if (e.target.id !== 'csvf' || !e.target.files?.[0]) return;
+      try { parsed = readCookbookCSV(await e.target.files[0].text()); if (!parsed.books.length && !parsed.recipes.length) throw new Error('No cookbooks or recipes found in that file.'); redraw(); }
+      catch (er) { const m = el.querySelector('#csverr'); if (m) m.textContent = er.message; }
+    });
+  });
+}
 function cookbooksView() {
   const q = S.recipeQ.toLowerCase();
   const pool = S.recipes.filter(r => kindOf(r) === S.rview);
@@ -697,11 +798,12 @@ function cookbooksView() {
   <p class="lede">${S.recipes.filter(isMeal).length} meals · ${S.recipes.filter(r => !isMeal(r)).length} sauces & staples</p>
   ${fresh.length || fills.length || meta.length ? `<div class="banner"><span class="em">📚</span><span class="sp"><b>${fresh.length ? `${fresh.length} recipes ready to add` : 'Recipes ready to update'}</b><p>${[fresh.length && 'your saved recipes plus Arkansas classics and a full Thanksgiving', fills.length && `${fills.length} of yours filled in with Southern versions`, !fresh.length && !fills.length && meta.length && 'sort recipes into books'].filter(Boolean).join(' · ')}</p></span><button class="btn sm" data-act="importlib">Add</button></div>` : ''}
   <div class="switch" role="group" aria-label="Show"><button data-rview="meal" aria-pressed="${S.rview === 'meal'}">🍽 Meals</button><button data-rview="component" aria-pressed="${S.rview === 'component'}">🫙 Sauces & staples</button></div>
-  <div class="shelf" role="group" aria-label="Cookbooks">
-    <button class="book" style="--c:#3D3A36" data-book="" aria-pressed="${!S.book}"><span class="e">📚</span><span><b>All recipes</b><br><small>${pool.length}</small></span></button>
-    ${S.books.map(b => `<button class="book" style="--c:${esc(b.color)}" data-book="${b.id}" aria-pressed="${S.book === b.id}"><span class="e">${esc(b.emoji)}</span><span><b>${esc(b.name)}</b><br><small>${counts(b.id)}</small></span></button>`).join('')}
-    <button class="book add" data-act="newbook"><span><span style="font-size:28px">＋</span><br><b style="font-family:var(--sans);font-size:13px">New book</b></span></button>
-  </div>
+  <div class="shelfwrap"><div class="shelf" role="group" aria-label="Cookbooks">
+    ${bookCover({ id: '', name: 'All Recipes', color: '#2B2723' }, pool.length, -1)}
+    ${S.books.map((b, i) => bookCover(b, counts(b.id), i)).join('')}
+    <button class="book add" data-act="newbook" aria-label="New cookbook"><span class="cover"><span class="plus">＋</span><span class="bcnt">New book</span></span></button>
+    <button class="book add" data-act="importcsv" aria-label="Import cookbooks from a CSV file"><span class="cover"><span class="plus">⇪</span><span class="bcnt">Import CSV</span></span></button>
+  </div></div>
   ${S.book ? `<div class="row" style="margin:-4px 0 12px"><span class="imeta sp">${esc(bookById(S.book)?.name || '')}</span><button class="btn sm ghost" data-act="editbook">Edit book</button></div>` : ''}
   <div class="search">${svg('search')}<input type="search" id="rq" placeholder="Search recipes, tags or ingredients" value="${esc(S.recipeQ)}" aria-label="Search recipes"></div>
   ${ide.length ? `<h3>Cook tonight with what you have</h3><div class="rgrid">${ide.map(x => rcard(x.r)).join('')}</div>` : ''}
@@ -907,12 +1009,27 @@ async function refreshMe() { const r = await sb.from('members').select('*').eq('
 async function enter() { try { await refreshMe(); if (S.household) { await loadAll(); await ensureBooks(); subscribe(); } render(); if (S.household) { finishCalendar(S.session); setTimeout(autoSyncCalendar, 1500); } } catch (e) { fail(e); } }
 
 // ---------- sheets ----------
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+/** Swap every <select> for a one-row strip of chips (no full-screen pickers) and switch off browser autofill lists. */
+function tameInputs(root = document) {
+  root.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=file]):not([autocomplete]),textarea:not([autocomplete])').forEach(i => i.setAttribute('autocomplete', 'off'));
+  root.querySelectorAll('select:not([data-enh])').forEach(sel => {
+    sel.dataset.enh = '1'; sel.hidden = true;
+    const wrap = document.createElement('div'); wrap.className = 'pickrow'; wrap.setAttribute('role', 'radiogroup');
+    const lab = sel.id && root.querySelector?.(`label[for="${sel.id}"]`); if (lab) { lab.removeAttribute('for'); wrap.setAttribute('aria-label', lab.textContent); } else if (sel.getAttribute('aria-label')) wrap.setAttribute('aria-label', sel.getAttribute('aria-label'));
+    wrap.innerHTML = [...sel.options].map(o => `<button type="button" role="radio" aria-checked="${o.selected}" data-v="${esc(o.value)}">${esc(o.textContent)}</button>`).join('');
+    wrap.addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; sel.value = b.dataset.v; [...wrap.children].forEach(x => x.setAttribute('aria-checked', x === b)); sel.dispatchEvent(new Event('change', { bubbles: true })); });
+    sel.after(wrap);
+    requestAnimationFrame(() => { const on = wrap.querySelector('[aria-checked=true]'); if (on) wrap.scrollLeft = Math.max(0, on.offsetLeft - wrap.clientWidth / 2 + on.offsetWidth / 2); });
+  });
+}
+new MutationObserver(muts => { for (const m of muts) for (const n of m.addedNodes) if (n.nodeType === 1) tameInputs(n.parentNode || document); }).observe(document.documentElement, { childList: true, subtree: true });
 function sheet(html, onReady, opts = {}) {
   const el = document.createElement('div'); el.className = 'sheet' + (opts.full ? ' full' : ''); el.innerHTML = `<div role="dialog" aria-modal="true">${html}</div>`;
   const close = () => { el.remove(); opts.onClose?.(); if (!$('.sheet')) render(); };
   el.close = close;
   el.onclick = e => { if (e.target === el || e.target.closest('[data-close]')) close(); };
-  document.body.appendChild(el); onReady?.(el, close); if (!opts.full) el.querySelector('input:not([type=checkbox]),select,textarea')?.focus();
+  document.body.appendChild(el); onReady?.(el, close); if (!opts.full && !TOUCH) el.querySelector('input:not([type=checkbox]),textarea')?.focus();
   return el;
 }
 const busy = (el, text) => { el.querySelector('[role=dialog]').innerHTML = `<div class="spin"></div><p class="lede" style="text-align:center">${esc(text)}</p>`; };
@@ -1076,7 +1193,7 @@ function linkPicker(r, n, done) {
   let picked = [...l.items], skip = !!l.skip;
   const draw = () => `<h2>Link to the pantry</h2><p class="lede">${esc(ing.name)}</p>
     <div class="chips">${picked.map((x, k) => `<button type="button" class="chip" aria-pressed="true" data-unpick="${k}">${esc(x)} ✕</button>`).join('') || `<span class="imeta">${skip ? 'Marked as not a pantry item (like water).' : 'No pantry item linked yet.'}</span>`}</div>
-    <label for="lkq">Add a pantry item</label><input type="text" id="lkq" list="lknames" placeholder="Start typing: kosher salt, cheddar…" autocomplete="off"><datalist id="lknames">${names.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
+    <label for="lkq">Add a pantry item</label><input type="text" id="lkq" placeholder="Start typing: kosher salt, cheddar…" autocomplete="off"><div class="sugg" id="lksug" role="listbox"></div>
     <div class="row" style="margin-top:8px"><button type="button" class="btn sm ghost" id="lkadd">Add</button><span class="sp"></span><button type="button" class="btn sm line" id="lkskip">${skip ? 'It is a pantry item' : 'Not a pantry item'}</button></div>
     ${l.sub.length ? `<p class="imeta">Also uses the recipe: ${esc(l.sub.join(', '))}</p>` : ''}
     <div class="row" style="margin-top:18px"><button class="btn" id="lksave">Save link</button><button class="btn ghost" data-close>Cancel</button></div>`;
@@ -1084,8 +1201,11 @@ function linkPicker(r, n, done) {
     const box = el.querySelector('[role=dialog]'); const redraw = () => { box.innerHTML = draw(); };
     const addOne = () => { const v = el.querySelector('#lkq').value.trim(); if (!v) return; const hit = names.find(x => x.toLowerCase() === v.toLowerCase()) || v.replace(/^./, c => c.toUpperCase()); if (!picked.includes(hit)) picked.push(hit); skip = false; redraw(); el.querySelector('#lkq')?.focus(); };
     el.addEventListener('keydown', e => { if (e.target.id === 'lkq' && e.key === 'Enter') { e.preventDefault(); addOne(); } });
-    el.addEventListener('change', e => { if (e.target.id === 'lkq' && names.some(x => x.toLowerCase() === e.target.value.trim().toLowerCase())) addOne(); });
+    el.addEventListener('input', e => { if (e.target.id !== 'lkq') return; const q = e.target.value.trim().toLowerCase(), box2 = el.querySelector('#lksug'); if (!q) { box2.innerHTML = ''; return; }
+      const hits = names.filter(x => x.toLowerCase().includes(q)).sort((a, b) => a.toLowerCase().indexOf(q) - b.toLowerCase().indexOf(q) || a.length - b.length).slice(0, 6);
+      box2.innerHTML = hits.map(x => `<button type="button" role="option" data-sug="${esc(x)}">${esc(x)}</button>`).join(''); });
     el.addEventListener('click', async e => {
+      const sg = e.target.closest('[data-sug]'); if (sg) { el.querySelector('#lkq').value = sg.dataset.sug; return addOne(); }
       const u = e.target.closest('[data-unpick]'); if (u) { picked.splice(+u.dataset.unpick, 1); return redraw(); }
       if (e.target.closest('#lkadd')) return addOne();
       if (e.target.closest('#lkskip')) { skip = !skip; if (skip) picked = []; return redraw(); }
@@ -1386,6 +1506,7 @@ document.addEventListener('click', async e => {
     if (a === 'addrecipe') return addRecipeMenu();
     if (a === 'chef') return chefSheet();
     if (a === 'newbook') return bookEditor(null);
+    if (a === 'importcsv') return importCSVSheet();
     if (a === 'editbook') return bookEditor(S.book);
     if (a === 'logspend') return spendEditor(S.tab === 'list' ? 'groceries' : 'groceries');
     if (a === 'buildlist') { t.disabled = true; await buildList(); return; }
@@ -1469,7 +1590,8 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
   function bigMealDays() { return new Set(holidays().filter(h => h.prep).map(h => h.day)); }
   function propose() {
     const t = new Date(), lc = lastCooked(), big = bigMealDays();
-    const days = [...Array(7)].map((_, i) => ymd(addDays(t, i))).filter(d => !S.plan.find(p => p.day === d) && !big.has(d) && !(d === todayStr() && new Date().getHours() >= 20));
+    const sun = addDays(mondayOf(t), 6), left = Math.round((sun - mondayOf(t)) / 864e5) - ((t.getDay() + 6) % 7) + 1, span = left < 3 ? left + 7 : left;
+    const days = [...Array(span)].map((_, i) => ymd(addDays(t, i))).filter(d => !S.plan.find(p => p.day === d) && !big.has(d) && !(d === todayStr() && new Date().getHours() >= 20));
     const planned = new Set(S.plan.filter(p => p.day >= todayStr()).flatMap(dishIds));
     const cands = dinnerCandidates().filter(r => !planned.has(r.id));
     const scored = cands.map(r => { const m = recipeMatch(r); const last = lc.get(r.id); const recent = last && daysUntil(last) > -14;
@@ -1561,17 +1683,17 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
   }
 
   function weekStrip() {
-    const t = new Date(), big = bigMealDays();
-    const days = [...Array(7)].map((_, i) => ymd(addDays(t, i)));
+    const big = bigMealDays(), mon = mondayOf(new Date()), tdy = todayStr();
+    const days = [...Array(7)].map((_, i) => ymd(addDays(mon, i)));
     const ico = { out: '🍽️', takeout: '🥡', leftovers: '🍱', away: '✈️', other: '✨' };
     const cells = days.map((d, i) => { const p = S.plan.find(x => x.day === d), dt = parseYmd(d), ds = p?.kind === 'cook' ? dishesOf(p) : [];
       const em = ds[0] ? emojiOf(ds[0]) : p ? (ico[p.kind] || '🍳') : big.has(d) ? holidays().find(h => h.day === d).emoji : '';
       const aw = awayOn(p, d).map(memberById).filter(Boolean);
       const label = p ? (ds.length ? ds.map(x => x.title).join(', ') : p.place_name || p.title || KINDS[p.kind]) : 'Nothing planned';
-      return `<button class="wd${p ? ' on' : ''}${i === 0 ? ' now' : ''}" data-day="${d}" style="--k:var(--${p?.kind || 'line'})" aria-label="${DOW[dt.getDay()]} ${dt.getDate()}: ${esc(label)}${aw.length ? ', ' + aw.map(m => m.display_name).join(' and ') + ' away' : ''}">
-        <span class="wd-d">${i === 0 ? 'Today' : DOW[dt.getDay()]}</span><span class="wd-n">${dt.getDate()}</span><span class="wd-b">${em || '<span class="wd-plus">+</span>'}</span>
+      return `<button class="wd${p ? ' on' : ''}${d === tdy ? ' now' : ''}${d < tdy ? ' past' : ''}" data-day="${d}" style="--k:var(--${p?.kind || 'line'})" aria-label="${DOW[dt.getDay()]} ${dt.getDate()}: ${esc(label)}${aw.length ? ', ' + aw.map(m => m.display_name).join(' and ') + ' away' : ''}">
+        <span class="wd-d">${d === tdy ? 'Today' : DOW[dt.getDay()]}</span><span class="wd-n">${dt.getDate()}</span><span class="wd-b">${em || '<span class="wd-plus">+</span>'}</span>
         <span class="wd-a">${aw.slice(0, 2).map(m => av(m, true)).join('')}</span></button>`; }).join('');
-    const open = days.filter(d => !S.plan.find(p => p.day === d) && !big.has(d)).length;
+    const open = days.filter(d => d >= tdy && !S.plan.find(p => p.day === d) && !big.has(d)).length;
     const hasCands = dinnerCandidates().length > 0;
     return `<div class="card hweek"><div class="wstrip">${cells}</div>
       <div class="wfoot"><span>${open ? `<b>${open}</b> open night${open > 1 ? 's' : ''} this week` : '<b>Every night is planned.</b> Nice.'}</span>${open && hasCands ? `<button class="btn sm" data-h="fill">${svg('spark')} Fill my week</button>` : ''}</div></div>`;

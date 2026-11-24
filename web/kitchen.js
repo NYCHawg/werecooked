@@ -1,79 +1,78 @@
-// Interactive kitchen illustration for the Pantry tab. Each zone is a tappable group with data-zone.
+// Interactive kitchen for the Pantry tab: a clean architectural elevation. Each area is a tappable group with data-zone.
 window.kitchenSVG = function (c) {
   // c: { zone: {n: itemCount, low: lowCount} }
-  const O = 'stroke="#1A1A1A" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"';
-  const tag = (x, y, label, z, anchor = 'middle') => {
-    const k = c[z] || { n: 0, low: 0 }, w = label.length * 6.4 + 34;
-    const x0 = anchor === 'middle' ? x - w / 2 : x;
-    return `<g class="ztag" pointer-events="none"><rect x="${x0}" y="${y - 11}" width="${w}" height="22" rx="11" fill="#FFFDF8" ${O} stroke-width="1.6"/>
-      <text x="${x0 + 10}" y="${y + 4}" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="700" fill="#1E1A16">${label}</text>
-      <text x="${x0 + w - 10}" y="${y + 4}" text-anchor="end" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="700" fill="${k.low ? '#D24F14' : '#6F665C'}">${k.low ? '!' + k.low : k.n}</text></g>`;
+  const tag = (x, y, label, z) => {
+    const k = c[z] || { n: 0, low: 0 }, val = k.low ? `${k.low} low` : String(k.n), w = label.length * 7 + val.length * 6.2 + 30;
+    return `<g class="ztag" pointer-events="none" transform="translate(${x - w / 2} ${y - 10})"><rect width="${w}" height="20" rx="10" class="k-tag"/>
+      <text x="11" y="13.5" class="k-tl">${label.toUpperCase()}</text><text x="${w - 11}" y="13.5" text-anchor="end" class="k-tv${k.low ? ' low' : ''}">${val}</text></g>`;
   };
-  return `<svg class="kitchen" viewBox="0 0 360 252" role="img" aria-label="Your kitchen. Tap a spot to see what's there.">
-  <defs><pattern id="tile" width="24" height="12" patternUnits="userSpaceOnUse"><rect width="24" height="12" fill="#F4E4CC"/><path d="M0 12H24M12 0V12" stroke="#E6D2B4" stroke-width="1"/></pattern></defs>
-  <rect x="0" y="0" width="360" height="226" fill="#FBF0DF"/>
-  <rect x="92" y="76" width="168" height="76" fill="url(#tile)"/>
-  <rect x="0" y="222" width="360" height="30" fill="#D9C2A0"/><path d="M0 236H360" stroke="#C7AD88" stroke-width="1.5"/>
+  const hl = (x, y, w, h, r = 6) => `<rect class="hl" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"/>`;
+  const jars = [...Array(8)].map((_, i) => { const x = 103 + i * 14.4, h = [16, 13, 16, 14, 16, 12, 15, 16][i];
+    return `<rect x="${x}" y="${58 - h}" width="10" height="${h}" rx="2" class="k-glass"/><rect x="${x}" y="${58 - h}" width="10" height="3.2" rx="1.2" class="k-metal"/><rect x="${x + 2}" y="${58 - h + 6}" width="6" height="${Math.max(3, h - 9)}" rx="1" style="fill:${['#B4553A', '#C9963B', '#7C8C4E', '#8C3B2E', '#D7B45A', '#7A6A55', '#A9672F', '#5E7A52'][i]};opacity:.85"/>`; }).join('');
+  return `<svg class="kitchen" viewBox="0 0 360 240" role="img" aria-label="Your kitchen. Tap an area to see what's there.">
+  <defs>
+    <linearGradient id="kSteel" x1="0" x2="1"><stop offset="0" style="stop-color:var(--ks1)"/><stop offset=".55" style="stop-color:var(--ks2)"/><stop offset="1" style="stop-color:var(--ks1)"/></linearGradient>
+    <linearGradient id="kCab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--kc)"/><stop offset="1" style="stop-color:var(--kc-d)"/></linearGradient>
+    <pattern id="kTile" width="18" height="9" patternUnits="userSpaceOnUse"><rect width="18" height="9" class="k-wall2"/><path d="M0 8.5H18M9 0V9" class="k-grout"/></pattern>
+    <filter id="kSh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000" flood-opacity=".14"/></filter>
+  </defs>
+  <rect width="360" height="226" class="k-wall"/>
+  <rect x="92" y="64" width="170" height="86" fill="url(#kTile)"/>
+  <rect y="222" width="360" height="18" class="k-floor"/>
 
-  <!-- pantry cabinet -->
   <g class="zone" data-zone="pantry" tabindex="0" role="button" aria-label="Pantry cabinet">
-    <rect x="8" y="34" width="78" height="190" rx="4" fill="#B5793F" ${O}/>
-    <rect x="14" y="40" width="31" height="178" rx="2" fill="#C58B4F" ${O} stroke-width="1.8"/><rect x="49" y="40" width="31" height="178" rx="2" fill="#C58B4F" ${O} stroke-width="1.8"/>
-    <circle cx="41" cy="132" r="2.6" fill="#1A1A1A"/><circle cx="53" cy="132" r="2.6" fill="#1A1A1A"/>
-    <rect x="20" y="56" width="19" height="26" rx="2" fill="#E9DCC4" stroke="#1A1A1A" stroke-width="1.4"/><path d="M23 64h13M23 70h10" stroke="#B5793F" stroke-width="1.6"/>
-    <rect x="55" y="150" width="19" height="13" rx="2" fill="#2E6B4E" stroke="#1A1A1A" stroke-width="1.4"/><rect x="55" y="166" width="19" height="13" rx="2" fill="#D24F14" stroke="#1A1A1A" stroke-width="1.4"/>
+    <rect x="10" y="24" width="74" height="198" rx="3" fill="url(#kCab)" filter="url(#kSh)"/>
+    <rect x="15" y="30" width="30" height="186" rx="2" class="k-panel"/><rect x="49" y="30" width="30" height="186" rx="2" class="k-panel"/>
+    <rect x="40" y="104" width="2.2" height="36" rx="1.1" class="k-pull"/><rect x="52" y="104" width="2.2" height="36" rx="1.1" class="k-pull"/>
+    ${hl(8, 22, 78, 202)}
   </g>
 
-  <!-- spice rack -->
-  <g class="zone" data-zone="spices" tabindex="0" role="button" aria-label="Spice rack">
-    <rect x="98" y="22" width="122" height="48" rx="4" fill="#8A5A2E" ${O}/>
-    <path d="M98 46H220" stroke="#1A1A1A" stroke-width="2.4"/>
-    ${[0, 1, 2, 3, 4, 5, 6].map(i => { const x = 104 + i * 16.5, cols = ['#D24F14', '#C9961B', '#5E9E3A', '#8A2A2A', '#E8C468', '#6E6150', '#B9682F']; return `<rect x="${x}" y="28" width="11" height="15" rx="2" fill="#FFF7EA" stroke="#1A1A1A" stroke-width="1.4"/><rect x="${x}" y="28" width="11" height="5" rx="1.5" fill="${cols[i]}" stroke="#1A1A1A" stroke-width="1.4"/><rect x="${x}" y="52" width="11" height="15" rx="2" fill="#FFF7EA" stroke="#1A1A1A" stroke-width="1.4"/><rect x="${x}" y="52" width="11" height="5" rx="1.5" fill="${cols[(i + 3) % 7]}" stroke="#1A1A1A" stroke-width="1.4"/>`; }).join('')}
+  <g class="zone" data-zone="spices" tabindex="0" role="button" aria-label="Spice shelf">
+    <rect x="96" y="24" width="124" height="38" fill="transparent"/>
+    ${jars}
+    <rect x="96" y="58" width="124" height="4.5" rx="1.5" class="k-wood" filter="url(#kSh)"/>
+    ${hl(94, 22, 128, 43)}
   </g>
 
-  <!-- baking shelf -->
   <g class="zone" data-zone="baking" tabindex="0" role="button" aria-label="Baking shelf">
-    <rect x="98" y="76" width="122" height="38" fill="transparent"/>
-    <rect x="98" y="106" width="122" height="7" rx="2" fill="#8A5A2E" ${O}/>
-    <path d="M106 106V88a4 4 0 0 1 4-4h20a4 4 0 0 1 4 4v18z" fill="#FFFDF8" ${O}/><rect x="104" y="80" width="32" height="6" rx="2" fill="#2E6B4E" ${O} stroke-width="1.8"/>
-    <text x="120" y="100" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#1E1A16">FLOUR</text>
-    <path d="M142 106V90a4 4 0 0 1 4-4h18a4 4 0 0 1 4 4v16z" fill="#FFFDF8" ${O}/><rect x="140" y="82" width="30" height="6" rx="2" fill="#D24F14" ${O} stroke-width="1.8"/>
-    <text x="155" y="100" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#1E1A16">SUGAR</text>
-    <path d="M176 106V96a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v10z" fill="#E8C468" ${O}/><rect x="198" y="88" width="16" height="18" rx="3" fill="#7A3F1E" ${O}/><rect x="201" y="83" width="10" height="6" rx="1" fill="#1A1A1A"/>
+    <rect x="96" y="70" width="124" height="38" fill="transparent"/>
+    <rect x="104" y="79" width="26" height="25" rx="5" class="k-ceram"/><rect x="104" y="76" width="26" height="5" rx="2.5" class="k-wood"/><rect x="110" y="88" width="14" height="1.6" rx=".8" class="k-ink"/>
+    <rect x="136" y="83" width="23" height="21" rx="5" class="k-ceram"/><rect x="136" y="80" width="23" height="5" rx="2.5" class="k-wood"/><rect x="141" y="91" width="13" height="1.6" rx=".8" class="k-ink"/>
+    <rect x="165" y="87" width="19" height="17" rx="4.5" class="k-ceram"/><rect x="165" y="84" width="19" height="4.5" rx="2.2" class="k-wood"/>
+    <rect x="192" y="84" width="11" height="20" rx="3" style="fill:#6B3A22"/><rect x="194.5" y="79" width="6" height="6" rx="1" class="k-metal"/>
+    <rect x="207" y="90" width="9" height="14" rx="2.5" class="k-glass"/>
+    <rect x="96" y="104" width="124" height="4.5" rx="1.5" class="k-wood" filter="url(#kSh)"/>
+    ${hl(94, 68, 128, 43)}
   </g>
-  <!-- counter -->
+
   <g class="zone" data-zone="counter" tabindex="0" role="button" aria-label="Counter">
-    <rect x="96" y="120" width="160" height="32" fill="transparent"/>
-    <path d="M110 143c0 6 8 9 20 9s20-3 20-9z" fill="#2F6F9F" ${O}/>
-    <circle cx="122" cy="137" r="6.5" fill="#C62828" ${O} stroke-width="1.8"/><circle cx="136" cy="136" r="6.5" fill="#E8B530" ${O} stroke-width="1.8"/><path d="M127 131c4-6 13-8 19-5-6 1-10 3-12 7" fill="#F3D35B" ${O} stroke-width="1.8"/>
-    <path d="M162 150v-10c0-6 6-9 18-9s18 3 18 9v10z" fill="#D49A57" ${O}/><path d="M170 137l4 4M180 135l4 4M190 137l4 4" stroke="#8A5A2E" stroke-width="1.6"/>
-    <circle cx="214" cy="143" r="8" fill="#E9C9A0" ${O} stroke-width="1.8"/><circle cx="228" cy="144" r="7" fill="#C9A06A" ${O} stroke-width="1.8"/><path d="M214 135v-4M228 137v-3" stroke="#1A1A1A" stroke-width="1.6"/>
-    <circle cx="242" cy="145" r="6" fill="#F4ECE0" ${O} stroke-width="1.6"/>
+    <rect x="94" y="114" width="166" height="36" fill="transparent"/>
+    <path d="M176 150v-26a9 9 0 0 1 18 0v4" class="k-faucet"/>
+    <rect x="108" y="141" width="44" height="7" rx="2" class="k-wood"/><path d="M112 141c0-9 8-13 18-13s18 4 18 13z" style="fill:#C8955A"/><path d="M119 133l3 3M128 131l3 3M137 133l3 3" class="k-score"/>
+    <path d="M206 148h40c-1 0-2-11-20-11s-19 11-20 11z" class="k-ceram"/><circle cx="218" cy="137" r="5.5" style="fill:#B4553A"/><circle cx="229" cy="135.5" r="5.5" style="fill:#D7B45A"/><circle cx="239" cy="138" r="4.8" style="fill:#7C8C4E"/>
+    ${hl(92, 112, 170, 40)}
   </g>
-  <rect x="88" y="150" width="174" height="12" rx="3" fill="#E7DFD1" ${O}/>
+  <rect x="88" y="149" width="178" height="8" rx="1.5" class="k-stone" filter="url(#kSh)"/>
 
-  <!-- under-sink cabinet -->
   <g class="zone" data-zone="household" tabindex="0" role="button" aria-label="Under the sink">
-    <rect x="94" y="162" width="162" height="62" fill="#F0E4CC" ${O}/>
-    <rect x="100" y="168" width="72" height="50" rx="3" fill="#FFF7EA" ${O} stroke-width="1.8"/><rect x="178" y="168" width="72" height="50" rx="3" fill="#FFF7EA" ${O} stroke-width="1.8"/>
-    <path d="M166 193h2M184 193h2" stroke="#1A1A1A" stroke-width="3"/>
-    <path d="M112 212v-18a4 4 0 0 1 4-4h8l2-6h6v28z" fill="#5BA4D4" stroke="#1A1A1A" stroke-width="1.4"/>
+    <rect x="92" y="157" width="170" height="65" fill="url(#kCab)"/>
+    <rect x="97" y="162" width="78" height="55" rx="2" class="k-panel"/><rect x="179" y="162" width="78" height="55" rx="2" class="k-panel"/>
+    <rect x="120" y="168" width="32" height="2.2" rx="1.1" class="k-pull"/><rect x="202" y="168" width="32" height="2.2" rx="1.1" class="k-pull"/>
+    ${hl(90, 155, 174, 69, 4)}
   </g>
 
-  <!-- fridge + freezer -->
   <g class="zone" data-zone="freezer" tabindex="0" role="button" aria-label="Freezer">
-    <rect x="266" y="22" width="88" height="70" rx="8" fill="#D9E8EF" ${O}/>
-    <rect x="274" y="38" width="5" height="34" rx="2.5" fill="#1A1A1A"/>
-    <path d="M318 44l0 22M307 49l22 12M329 49l-22 12" stroke="#7FA7BA" stroke-width="2.2"/>
+    <rect x="270" y="24" width="80" height="64" rx="5" fill="url(#kSteel)" filter="url(#kSh)"/>
+    <rect x="279" y="44" width="2.6" height="30" rx="1.3" class="k-handle"/>
+    ${hl(268, 22, 84, 68)}
   </g>
   <g class="zone" data-zone="fridge" tabindex="0" role="button" aria-label="Fridge">
-    <rect x="266" y="94" width="88" height="130" rx="8" fill="#E6F0F4" ${O}/>
-    <rect x="274" y="108" width="5" height="44" rx="2.5" fill="#1A1A1A"/>
-    <rect x="298" y="112" width="18" height="22" rx="3" fill="#FFFDF8" stroke="#1A1A1A" stroke-width="1.4"/><path d="M301 112v-4h12v4" stroke="#1A1A1A" stroke-width="1.4" fill="#2F6F9F"/>
-    <circle cx="331" cy="124" r="6" fill="#FFC531" stroke="#1A1A1A" stroke-width="1.4"/>
-    <rect x="290" y="200" width="56" height="12" rx="3" fill="#CFE3D6" stroke="#1A1A1A" stroke-width="1.4"/>
+    <rect x="270" y="90" width="80" height="132" rx="5" fill="url(#kSteel)" filter="url(#kSh)"/>
+    <rect x="279" y="100" width="2.6" height="46" rx="1.3" class="k-handle"/>
+    <rect x="270" y="88.6" width="80" height="1.6" class="k-seam"/>
+    ${hl(268, 88, 84, 136)}
   </g>
-  ${tag(47, 18, 'Pantry', 'pantry')}${tag(159, 12, 'Spices', 'spices')}${tag(159, 119, 'Baking', 'baking')}${tag(214, 157, 'Counter', 'counter')}
-  ${tag(175, 240, 'Under sink', 'household')}${tag(310, 12, 'Freezer', 'freezer')}${tag(310, 168, 'Fridge', 'fridge')}
+  ${tag(47, 14, 'Pantry', 'pantry')}${tag(158, 14, 'Spices', 'spices')}${tag(128, 117, 'Baking', 'baking')}${tag(230, 117, 'Counter', 'counter')}
+  ${tag(177, 196, 'Under sink', 'household')}${tag(310, 14, 'Freezer', 'freezer')}${tag(310, 160, 'Fridge', 'fridge')}
   </svg>`;
 };

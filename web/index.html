@@ -456,6 +456,73 @@ details.offstock .ptile{opacity:.75}
 .emo{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
 .emo button{aspect-ratio:1;border-radius:12px;border:1px solid var(--line);background:var(--paper);font-size:20px;cursor:pointer}
 .emo button[aria-pressed=true]{border-color:var(--green);box-shadow:0 0 0 2px var(--green) inset;background:var(--greenbg)}
+
+/* ---------- kitchen (clean elevation) ---------- */
+:root{--kw:light-dark(#EFE7D8,#1C1A16);--kw2:light-dark(#F5EFE4,#22201B);--kgrout:light-dark(#E4DACA,#2C2923);--kfloor:light-dark(#D9CCB4,#14120F);
+ --kc:light-dark(#2F5D47,#2A4C3C);--kc-d:light-dark(#244A38,#203B2F);--kpanel:light-dark(rgba(255,255,255,.07),rgba(255,255,255,.05));--kpull:light-dark(#C9B27A,#B39B65);
+ --kwood:light-dark(#8A6142,#6D4C34);--kstone:light-dark(#FBF8F2,#3A352D);--kglass:light-dark(rgba(255,255,255,.85),rgba(255,255,255,.12));--kmetal:light-dark(#A7ADAF,#6E7578);
+ --kceram:light-dark(#FFFDF8,#E6DECF);--kink:light-dark(#BDB1A0,#9C907F);--ks1:light-dark(#D7DCDD,#3A4043);--ks2:light-dark(#F1F3F3,#4B5255);--khandle:light-dark(#8E9699,#9AA2A5)}
+.kwrap{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:10px;box-shadow:none;margin-bottom:6px;overflow:hidden}
+.kitchen .k-wall{fill:var(--kw)}.kitchen .k-wall2{fill:var(--kw2)}.kitchen .k-grout{stroke:var(--kgrout);stroke-width:.8;fill:none}.kitchen .k-floor{fill:var(--kfloor)}
+.kitchen .k-panel{fill:var(--kpanel);stroke:rgba(255,255,255,.08);stroke-width:.8}.kitchen .k-pull{fill:var(--kpull)}
+.kitchen .k-wood{fill:var(--kwood)}.kitchen .k-stone{fill:var(--kstone)}.kitchen .k-glass{fill:var(--kglass);stroke:rgba(0,0,0,.08);stroke-width:.6}.kitchen .k-metal{fill:var(--kmetal)}
+.kitchen .k-ceram{fill:var(--kceram);stroke:rgba(0,0,0,.06);stroke-width:.6}.kitchen .k-ink{fill:var(--kink)}.kitchen .k-handle{fill:var(--khandle)}.kitchen .k-seam{fill:rgba(0,0,0,.12)}
+.kitchen .k-faucet{fill:none;stroke:var(--kmetal);stroke-width:3;stroke-linecap:round}.kitchen .k-score{stroke:rgba(90,50,20,.45);stroke-width:1.2;stroke-linecap:round}
+.kitchen .k-tag{fill:var(--paper);stroke:var(--line);stroke-width:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.08))}
+.kitchen .k-tl{font:700 8.6px Inter,system-ui,sans-serif;letter-spacing:.12em;fill:var(--ink)}
+.kitchen .k-tv{font:700 9.5px Inter,system-ui,sans-serif;fill:var(--green)}.kitchen .k-tv.low{fill:var(--flamed)}
+.kitchen .hl{fill:none;stroke:var(--yolk);stroke-width:2.2;opacity:0;transition:opacity .18s}
+.kitchen .zone{cursor:pointer;outline:none;transition:transform .15s}
+.kitchen .zone:hover,.kitchen .zone:focus-visible{filter:none}
+.kitchen .zone:hover .hl,.kitchen .zone:focus-visible .hl{opacity:1}
+.kitchen .zone:active{transform:none}.kitchen .zone:active .hl{opacity:1}
+
+/* ---------- cookbook shelf: cloth-bound hardcovers ---------- */
+.shelfwrap{position:relative;margin:2px -16px 18px}
+.shelf{display:flex;align-items:flex-end;gap:10px;overflow-x:auto;padding:14px 16px 0;margin:0;scroll-snap-type:x proximity;scrollbar-width:none;min-height:190px}
+.shelf::-webkit-scrollbar{display:none}
+.shelfwrap::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:linear-gradient(180deg,light-dark(#8A6142,#5A3F2B),light-dark(#6E4C33,#3E2B1D));box-shadow:0 8px 14px -8px rgba(40,20,5,.55)}
+.book{flex:none;position:relative;width:var(--w);height:var(--h);padding:0;border:0;border-radius:3px 7px 7px 3px;background:none;cursor:pointer;scroll-snap-align:start;transition:transform .25s cubic-bezier(.2,.8,.2,1);text-align:center;color:#F3E6C8}
+.book .cover{position:absolute;inset:0;border-radius:inherit;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px 14px 16px;
+  background:
+   linear-gradient(90deg,rgba(0,0,0,.38) 0,rgba(0,0,0,.12) 5px,rgba(255,255,255,.10) 7px,rgba(0,0,0,0) 12px),
+   repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),repeating-linear-gradient(-45deg,rgba(0,0,0,.05) 0 1px,transparent 1px 3px),
+   linear-gradient(165deg,color-mix(in srgb,var(--c) 82%,#fff 0%),color-mix(in srgb,var(--c) 62%,#000));
+  box-shadow:inset -2px 0 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.25),2px 3px 0 -1px light-dark(#E9E1D2,#2A2620),4px 6px 14px -6px rgba(25,15,5,.6)}
+.book .kick{font:700 7.5px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:#E2C17A;opacity:.9}
+.book .ttl{font:600 15.5px/1.1 var(--serif);letter-spacing:.01em;color:#F6E7C1;text-wrap:balance;text-shadow:0 1px 0 rgba(0,0,0,.35);max-width:100%;overflow-wrap:anywhere}
+.book .orn{width:34px;height:7px;background:radial-gradient(circle,#D9B66E 1.6px,transparent 2px) center/7px 7px no-repeat,linear-gradient(#D9B66E,#D9B66E) left center/12px 1px no-repeat,linear-gradient(#D9B66E,#D9B66E) right center/12px 1px no-repeat;opacity:.9}
+.book .bcnt{white-space:nowrap;font:600 9.5px/1 var(--sans);letter-spacing:.08em;color:rgba(243,230,200,.75);text-transform:uppercase}
+.book .foil-top,.book .foil-bot{position:absolute;left:16px;right:8px;height:0;border-top:1px solid rgba(217,182,110,.75)}
+.book .foil-top{top:10px}.book .foil-bot{bottom:9px}
+.book .mono{font:600 30px/1 var(--serif);color:#E2C17A;letter-spacing:.04em;margin-bottom:2px;text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.book.v-bands .foil-top{top:18px;border-top:3px double rgba(217,182,110,.8)}.book.v-bands .foil-bot{bottom:16px;border-top:3px double rgba(217,182,110,.8)}
+.book.v-frame .cover::after{content:"";position:absolute;inset:9px 7px 9px 15px;border:1px solid rgba(217,182,110,.7);outline:1px solid rgba(217,182,110,.35);outline-offset:-4px;border-radius:2px;pointer-events:none}
+.book.v-frame .foil-top,.book.v-frame .foil-bot{display:none}
+.book.v-spine .cover{padding-left:24px}
+.book.v-spine .cover::before{content:"";position:absolute;top:0;bottom:0;left:12px;width:7px;background:linear-gradient(90deg,rgba(217,182,110,.0),rgba(217,182,110,.55) 30%,rgba(217,182,110,.55) 70%,rgba(217,182,110,0));opacity:.6}
+.book.v-mono .ttl{font-size:13px}
+.book.v-all .cover{background:
+   linear-gradient(90deg,rgba(0,0,0,.45) 0,rgba(0,0,0,.15) 5px,rgba(255,255,255,.08) 7px,rgba(0,0,0,0) 12px),
+   radial-gradient(120% 80% at 70% 0%,rgba(255,255,255,.08),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 2px),linear-gradient(170deg,#3A342E,#1C1916)}
+.book.v-all .ttl{font-size:17px}
+.book[aria-pressed=true]{transform:translateY(-10px);outline:none}
+.book[aria-pressed=true]::after{content:"";position:absolute;left:30%;right:30%;bottom:-17px;height:3px;border-radius:2px;background:var(--yolk)}
+.book:not([aria-pressed=true]):hover{transform:translateY(-4px)}
+.book:focus-visible{outline:2px solid var(--yolk);outline-offset:3px}
+.book.add{--w:84px;--h:150px;color:var(--mute)}
+.book.add .cover{background:transparent;border:1.5px dashed light-dark(#CDBFA8,#4A433A);box-shadow:none;padding:10px}
+.book.add .plus{font:300 26px/1 var(--sans);color:var(--greend)}
+.book.add .bcnt{color:var(--mute);letter-spacing:.06em}
+.wd.past{opacity:.45}
+
+/* constrained pickers (replace native selects / datalists) */
+.pickrow{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none;scroll-snap-type:x proximity}
+.pickrow::-webkit-scrollbar{display:none}
+.pickrow button{flex:none;min-height:38px;padding:0 13px;border-radius:99px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:600 13px var(--sans);white-space:nowrap;cursor:pointer;scroll-snap-align:start}
+.pickrow button[aria-checked=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;max-height:92px;overflow:hidden}
+.sugg button{min-height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--paper);font:600 13px var(--sans);color:var(--ink);cursor:pointer}
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 </head>

@@ -25,6 +25,13 @@ jobs:
           path: web
       - id: pages
         uses: actions/deploy-pages@v5
+        continue-on-error: true
+      - name: Wait before retrying the deploy
+        if: steps.pages.outcome == 'failure'
+        run: sleep 25
+      - name: Retry deploy
+        if: steps.pages.outcome == 'failure'
+        uses: actions/deploy-pages@v5
   apk:
     runs-on: ubuntu-latest
     steps:

@@ -551,6 +551,7 @@ const I = {
   pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>', search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   cart: '<path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>',
   sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>', moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
   home: '<path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v10.5h13V9"/><path d="M10 19.5v-5h4v5"/>',
   cal: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3"/>', fire: '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-7 1.5 1 2 2 2 3 0-2 0-4 1-6z"/>'
 };
@@ -1415,14 +1416,58 @@ function bookEditor(id) {
 }
 function addRecipeMenu() {
   sheet(`<h2>Add a recipe</h2><div class="card flat" style="padding:4px 14px">
-  ${[['type', 'pen', 'Type it in', 'Write out ingredients and steps'], ['photo', 'camera', 'Snap a recipe card', 'Handwritten cards, cookbook pages or screenshots'], ['link', 'link', 'Save from a website', 'Paste a link to any recipe page'], ['chef', 'spark', 'Ask the chef', 'Get ideas from what\'s in your pantry']].map(([k, ic, t, d]) => `<button data-add="${k}" style="all:unset;display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:center;width:100%;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer"><span class="tool${k === 'photo' || k === 'chef' ? ' f' : ''}" style="padding:0;border:0;box-shadow:none;background:none"><span class="ico">${svg(ic)}</span></span><span><span class="iname">${t}</span><span class="imeta" style="display:block">${d}</span></span></button>`).join('')}</div>`, (el) => {
+  ${[['voice', 'mic', 'Describe it out loud', 'Talk through the dish and what’s in it, and we’ll write it up'], ['type', 'pen', 'Type it in', 'Write out ingredients and steps'], ['photo', 'camera', 'Snap a recipe card', 'Handwritten cards, cookbook pages or screenshots'], ['link', 'link', 'Save from a website', 'Paste a link to any recipe page'], ['chef', 'spark', 'Ask the chef', 'Get ideas from what\'s in your pantry']].map(([k, ic, t, d]) => `<button data-add="${k}" style="all:unset;display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:center;width:100%;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer"><span class="tool${k === 'photo' || k === 'chef' ? ' f' : ''}" style="padding:0;border:0;box-shadow:none;background:none"><span class="ico">${svg(ic)}</span></span><span><span class="iname">${t}</span><span class="imeta" style="display:block">${d}</span></span></button>`).join('')}</div>`, (el) => {
     el.addEventListener('click', e => { const b = e.target.closest('[data-add]'); if (!b) return; el.remove(); const k = b.dataset.add;
+      if (k === 'voice') voiceRecipe();
       if (k === 'type') recipeEditor(null); if (k === 'photo') captureImage('Snap a recipe', 'Fill the frame with the recipe card or page', recipeFromPhoto); if (k === 'link') recipeFromLink(); if (k === 'chef') chefSheet(); });
   });
 }
 function draftFromAi(x, found) {
   const ings = (x.ingredients || []).length ? x.ingredients.map(i => typeof i === 'string' ? parseIng(i) : { qty: i.qty ?? null, unit: normUnit(i.unit || ''), name: i.name }) : (x.ingredients_text || []).map(parseIng).filter(Boolean);
   return { title: x.title || '', servings: x.servings || 4, time_min: x.time_min || '', tags: x.tags || [], ingredients: ings, steps: x.steps || [], notes: x.notes || '', source_url: x.source_url || '', category: RCATS[x.category] ? x.category : '', kind: x.kind === 'component' ? 'component' : 'meal', found_in: found, books: S.book ? [S.book] : [] };
+}
+// ---------- describe a recipe out loud ----------
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const canNativeVoice = () => { try { return !!(window.Android && window.Android.startVoice && window.Android.canVoice()); } catch (_) { return false; } };
+function voiceRecipe() {
+  const native = canNativeVoice(), web = !native && !!SpeechRec;
+  let rec = null, listening = false, finalText = '', interim = '';
+  const html = `<h2>Describe your recipe</h2>
+    <p class="lede">Say what it’s called, what goes in it (amounts if you know them) and how you make it. Ramble, it’s fine. Pause any time and tap the mic again to keep going.</p>
+    <div class="vbox"><button type="button" class="vmic" id="vmic" aria-label="Start talking">${svg('mic')}</button><p class="vstat" id="vstat">${native || web ? 'Tap to start talking' : 'Tap the 🎤 on your keyboard to dictate, or type it out'}</p></div>
+    <label for="vtx">What we heard <span class="imeta">(fix anything it got wrong)</span></label>
+    <textarea id="vtx" rows="7" placeholder="“My mama’s chicken spaghetti. You boil a whole chicken, shred it, then a can of Rotel, a block of Velveeta, a can of cream of chicken, a pound of spaghetti… bake it at 350 till it’s bubbly.”"></textarea>
+    <div class="row" style="margin-top:14px;gap:8px"><button class="btn" id="vgo">${svg('spark')} Write up the recipe</button><button class="btn ghost" type="button" data-close>Cancel</button></div>`;
+  sheet(html, (el, close) => {
+    const tx = el.querySelector('#vtx'), stat = el.querySelector('#vstat'), mic = el.querySelector('#vmic');
+    const show = () => { tx.value = (finalText + (interim ? ' ' + interim : '')).trim(); };
+    const setListening = on => { listening = on; mic.classList.toggle('on', on); mic.setAttribute('aria-label', on ? 'Stop' : (finalText ? 'Keep talking' : 'Start talking')); stat.textContent = on ? 'Listening… tap to stop' : (finalText ? 'Tap the mic to keep talking' : 'Tap to start talking'); };
+    tx.addEventListener('input', () => { finalText = tx.value; interim = ''; });
+    window.__voiceResult = (text, err) => { setListening(false); if (err === 'unavailable') { stat.textContent = 'Voice isn’t available on this phone. Type it, or use your keyboard’s mic.'; return; } if (text) { finalText = (finalText + ' ' + text).trim(); show(); } };
+    mic.onclick = () => {
+      if (native) { setListening(true); window.Android.startVoice('Describe your recipe'); return; }
+      if (!web) { tx.focus(); return; }
+      if (listening) { rec?.stop(); return; }
+      rec = new SpeechRec(); rec.lang = navigator.language || 'en-US'; rec.continuous = true; rec.interimResults = true;
+      rec.onresult = e => { interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) finalText = (finalText + ' ' + t).trim(); else interim += t; } show(); };
+      rec.onerror = e => { setListening(false); if (e.error === 'not-allowed') stat.textContent = 'Allow microphone access to talk, or type it out.'; };
+      rec.onend = () => { interim = ''; show(); setListening(false); };
+      try { rec.start(); setListening(true); } catch (_) { setListening(false); }
+    };
+    el.querySelector('#vgo').onclick = async () => {
+      try { rec?.stop(); } catch (_) { }
+      const t = tx.value.trim(); if (t.length < 8) { stat.textContent = 'Say or type a little more about the dish first.'; return; }
+      busy(el, 'Writing up your recipe…');
+      try {
+        const out = await ai('recipe_voice', { transcript: t });
+        const d = draftFromAi(out.recipe || {}, 'Described out loud');
+        const est = (out.estimated || []).filter(Boolean);
+        d.notes = [est.length ? `Filled in by the chef, check these: ${est.join(', ')}.` : '', d.notes || ''].filter(Boolean).join('\n\n');
+        if (est.length && !(d.tags || []).includes('to personalize')) d.tags = [...(d.tags || []), 'to personalize'];
+        window.__voiceResult = null; el.remove(); recipeEditor(null, d);
+      } catch (er) { el.remove(); fail(er); }
+    };
+  }, { onClose: () => { try { rec?.stop(); } catch (_) { } window.__voiceResult = null; } });
 }
 async function recipeFromPhoto(file) {
   const el = sheet('', null); busy(el, 'Reading the recipe…');

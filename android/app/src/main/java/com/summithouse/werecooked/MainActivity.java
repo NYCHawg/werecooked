@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import java.util.ArrayList;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
@@ -28,6 +30,7 @@ public class MainActivity extends Activity {
     private static final int LOC_REQ = 7;
     private static final int CAM_REQ = 8;
     private static final int FILE_REQ = 9;
+    private static final int VOICE_REQ = 11;
     private PermissionRequest pendingCam;
     private ValueCallback<Uri[]> fileCallback;
     private WebView web;
@@ -138,6 +141,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int code, int result, Intent data) {
         super.onActivityResult(code, result, data);
+        if (code == VOICE_REQ) {
+            String text = null;
+            if (result == RESULT_OK && data != null) {
+                ArrayList<String> r = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                if (r != null && !r.isEmpty()) text = r.get(0);
+            }
+            final String js = "window.__voiceResult && window.__voiceResult(" + (text == null ? "null" : JSONObject.quote(text)) + ")";
+            web.post(() -> web.evaluateJavascript(js, null));
+            return;
+        }
         if (code == FILE_REQ && fileCallback != null) {
             Uri[] out = null;
             if (result == RESULT_OK && data != null && data.getData() != null) out = new Uri[]{data.getData()};
@@ -190,6 +203,26 @@ public class MainActivity extends Activity {
     }
 
     private class Bridge {
+        @JavascriptInterface
+        public boolean canVoice() {
+            return new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).resolveActivity(getPackageManager()) != null;
+        }
+        @JavascriptInterface
+        public void startVoice(final String prompt) {
+            runOnUiThread(() -> {
+                try {
+                    Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    i.putExtra(RecognizerIntent.EXTRA_PROMPT, prompt == null || prompt.isEmpty() ? "Describe your recipe" : prompt);
+                    i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 5000L);
+                    i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 4000L);
+                    i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 15000L);
+                    startActivityForResult(i, VOICE_REQ);
+                } catch (Exception e) {
+                    web.evaluateJavascript("window.__voiceResult && window.__voiceResult(null, 'unavailable')", null);
+                }
+            });
+        }
         @JavascriptInterface
         public void openExternal(final String url) {
             runOnUiThread(() -> MainActivity.this.openExternal(url));

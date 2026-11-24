@@ -5,6 +5,7 @@
 //   recipe_photo  {image, media_type}            -> {recipe:{...}}
 //   recipe_url    {url}                          -> {recipe:{...}}  (schema.org first, AI fallback)
 //   generate      {pantry:[...], dislikes, servings, wish} -> {recipes:[...]}
+//   recipe_voice  {transcript}                   -> {recipe:{...}, estimated:[string]}
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const MODEL = "claude-sonnet-5-5";
@@ -100,6 +101,26 @@ Deno.serve(async (req) => {
       const text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 30000);
       const out = await claude([{ type: "text", text: `Extract the main recipe from this web page text. Return only JSON: {"recipe":${RECIPE_SHAPE}}\n\nPAGE:\n${text}` }], "You extract recipes from web pages accurately.");
       if (out.recipe) out.recipe.source_url = url;
+      return json(out);
+    }
+
+    if (mode === "recipe_voice") {
+      const t = String(b.transcript || "").trim().slice(0, 12000);
+      if (t.length < 8) return json({ error: "I didn't catch enough of that. Try describing the dish again." }, 400);
+      const out = await claude([{ type: "text", text: `Someone described a recipe out loud. This is the speech-to-text transcript, so expect filler words, run-on sentences, restarts and mis-heard words (for example "row tell" is Rotel, "vel vita" is Velveeta).
+
+TRANSCRIPT:
+"""${t}"""
+
+Turn it into a clean recipe card:
+- Use the dish name they say; if they never name it, give it a plain descriptive name.
+- Include every ingredient they mention, with the amounts they give. Keep their own measurements and words (a "stick" of butter, a "can" of Rotel, a "big spoonful") converted to standard units only where obvious (1 stick butter = 1/2 cup).
+- Where they don't give an amount, estimate a typical amount for a Southern home cook and the servings, and list that ingredient in "estimated".
+- Steps: use their method and order, rewritten as short clear steps. Keep their tips, temperatures and times. If they describe no method, write brief sensible steps and add "steps" to "estimated".
+- Don't add ingredients they didn't mention, except salt, pepper or cooking oil when the method clearly needs them (list those in "estimated").
+- Put any stories, tips or "my mama always..." asides in notes, in their words.
+Return only JSON: {"recipe":${RECIPE_SHAPE},"estimated":[string]}` }],
+        "You turn a family cook's spoken description into an accurate, faithful recipe. You never invent dishes or ingredients they didn't describe.", 4000);
       return json(out);
     }
 

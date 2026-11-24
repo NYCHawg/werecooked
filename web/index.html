@@ -536,6 +536,16 @@ details.offstock .ptile{opacity:.75}
 .course-add{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border-top:1px solid var(--line);padding-top:10px}
 .course-add .imeta{margin-right:4px}
 .t-with{margin:6px 0 0;color:rgba(246,241,231,.85);font-size:14px;line-height:1.35}
+
+/* voice recipe */
+.vbox{display:flex;flex-direction:column;align-items:center;gap:10px;margin:8px 0 14px}
+.vmic{width:84px;height:84px;border-radius:50%;border:0;background:var(--greend);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 24px -12px rgba(23,57,42,.7);transition:transform .15s}
+.vmic svg{width:34px;height:34px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.vmic:active{transform:scale(.95)}
+.vmic.on{background:var(--flame);animation:vpulse 1.4s ease-out infinite}
+@keyframes vpulse{0%{box-shadow:0 0 0 0 rgba(255,106,31,.45)}100%{box-shadow:0 0 0 22px rgba(255,106,31,0)}}
+.vstat{margin:0;font-size:13.5px;color:var(--mute);font-weight:600;text-align:center}
+@media (prefers-reduced-motion:reduce){.vmic.on{animation:none}}
 </style>
 <link rel="stylesheet" href="vendor/leaflet.css">
 </head>

@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
+import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -24,6 +26,10 @@ import org.json.JSONObject;
 public class MainActivity extends Activity {
     private static final String HOME = "https://appassets.androidplatform.net/assets/index.html";
     private static final int LOC_REQ = 7;
+    private static final int CAM_REQ = 8;
+    private static final int FILE_REQ = 9;
+    private PermissionRequest pendingCam;
+    private ValueCallback<Uri[]> fileCallback;
     private WebView web;
     private boolean loaded = false;
     private String pendingAuth = null;
@@ -33,7 +39,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.parseColor("#E4572E"));
+        getWindow().setStatusBarColor(Color.parseColor("#1F4D38"));
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
@@ -67,7 +73,41 @@ public class MainActivity extends Activity {
                 if (pendingAuth != null) { deliverAuth(pendingAuth); pendingAuth = null; }
             }
         });
+        s.setMediaPlaybackRequiresUserGesture(false);
         web.setWebChromeClient(new WebChromeClient() {
+            // Camera for the barcode scanner and pantry photos
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> {
+                    boolean wantsCam = false;
+                    for (String r : request.getResources()) if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) wantsCam = true;
+                    if (!wantsCam) { request.deny(); return; }
+                    if (Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                        request.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+                    } else {
+                        pendingCam = request;
+                        requestPermissions(new String[]{Manifest.permission.CAMERA}, CAM_REQ);
+                    }
+                });
+            }
+
+            // "Choose from photos"
+            @Override
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (fileCallback != null) fileCallback.onReceiveValue(null);
+                fileCallback = callback;
+                try {
+                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("image/*");
+                    startActivityForResult(Intent.createChooser(i, "Choose a photo"), FILE_REQ);
+                } catch (Exception e) {
+                    fileCallback = null;
+                    return false;
+                }
+                return true;
+            }
+
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
                 if (Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -86,7 +126,25 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onActivityResult(int code, int result, Intent data) {
+        super.onActivityResult(code, result, data);
+        if (code == FILE_REQ && fileCallback != null) {
+            Uri[] out = null;
+            if (result == RESULT_OK && data != null && data.getData() != null) out = new Uri[]{data.getData()};
+            fileCallback.onReceiveValue(out);
+            fileCallback = null;
+        }
+    }
+
+    @Override
     public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        if (code == CAM_REQ && pendingCam != null) {
+            if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED)
+                pendingCam.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
+            else pendingCam.deny();
+            pendingCam = null;
+            return;
+        }
         if (code == LOC_REQ && geoCallback != null) {
             boolean ok = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
             geoCallback.invoke(geoOrigin, ok, false);

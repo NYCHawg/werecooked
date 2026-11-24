@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 80 300 300" role="img" aria-label="We're Cooked: a frying pan with an egg cooking over a flaming dumpster">
+<g stroke="#1A1A1A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+<path d="M100,244 C95,205 120,190 118,165 C138,180 140,200 150,205 C150,180 165,160 170,132 C190,160 195,185 200,195 C205,170 220,150 236,128 C246,165 240,190 250,200 C258,185 270,178 284,163 C284,195 305,210 300,244 Z" fill="#FF6A1F"/>
+<path d="M132,244 C130,222 140,212 146,196 C156,210 160,220 168,222 C170,205 182,190 190,176 C200,195 205,210 212,218 C218,200 230,190 242,180 C247,205 262,222 268,244 Z" fill="#FFC531" stroke-width="0"/>
+<path d="M92,252 L308,252 L294,350 L106,350 Z" fill="#2E6B4E"/>
+<rect x="78" y="236" width="244" height="20" rx="5" fill="#2E6B4E"/>
+<line x1="150" y1="268" x2="148" y2="334" stroke-width="5" opacity="0.4"/>
+<line x1="200" y1="268" x2="200" y2="334" stroke-width="5" opacity="0.4"/>
+<line x1="250" y1="268" x2="252" y2="334" stroke-width="5" opacity="0.4"/>
+<circle cx="128" cy="360" r="13" fill="#1A1A1A"/>
+<circle cx="272" cy="360" r="13" fill="#1A1A1A"/>
+<ellipse cx="190" cy="112" rx="34" ry="9" fill="#FFFFFF"/>
+<circle cx="196" cy="106" r="9" fill="#FFC531"/>
+<path d="M258,120 L346,106 L348,118 L262,132 Z" fill="#2B2B2B"/>
+<path d="M124,118 L266,118 L254,142 L136,142 Z" fill="#2B2B2B"/>
+<line x1="124" y1="118" x2="266" y2="118" stroke-width="8"/>
+</g>
+</svg>

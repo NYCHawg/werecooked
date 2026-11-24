@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- White stock pot with butter-yellow steam, inside the adaptive-icon safe zone -->
+<!-- Pan over dumpster fire, scaled into the adaptive-icon safe zone -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#FFFFFF" android:pathData="M38,52h32v20a6,6 0 0 1 -6,6h-20a6,6 0 0 1 -6,-6z"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M35,47h38a2,2 0 0 1 2,2v3h-42v-3a2,2 0 0 1 2,-2z"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M30,56h8v5h-8zM70,56h8v5h-8zM50,43h8v4h-8z"/>
-    <path android:fillColor="#00000000" android:strokeColor="#FFD166" android:strokeWidth="2.6" android:strokeLineCap="round"
-        android:pathData="M45,40c-3,-3 3,-5 0,-9M54,40c-3,-3 3,-5 0,-9M63,40c-3,-3 3,-5 0,-9"/>
+  <group android:scaleX="0.225" android:scaleY="0.225" android:translateX="6.1" android:translateY="1.5">
+    <path android:fillColor="#FF6A1F" android:strokeColor="#1A1A1A" android:strokeWidth="6" android:strokeLineJoin="round"
+        android:pathData="M100,244 C95,205 120,190 118,165 C138,180 140,200 150,205 C150,180 165,160 170,132 C190,160 195,185 200,195 C205,170 220,150 236,128 C246,165 240,190 250,200 C258,185 270,178 284,163 C284,195 305,210 300,244 Z"/>
+    <path android:fillColor="#FFC531"
+        android:pathData="M132,244 C130,222 140,212 146,196 C156,210 160,220 168,222 C170,205 182,190 190,176 C200,195 205,210 212,218 C218,200 230,190 242,180 C247,205 262,222 268,244 Z"/>
+    <path android:fillColor="#2E6B4E" android:strokeColor="#1A1A1A" android:strokeWidth="6" android:strokeLineJoin="round"
+        android:pathData="M92,252 L308,252 L294,350 L106,350 Z"/>
+    <path android:fillColor="#2E6B4E" android:strokeColor="#1A1A1A" android:strokeWidth="6" android:strokeLineJoin="round"
+        android:pathData="M83,236 H317 A5,5 0 0 1 322,241 V251 A5,5 0 0 1 317,256 H83 A5,5 0 0 1 78,251 V241 A5,5 0 0 1 83,236 Z"/>
+    <path android:strokeColor="#661A1A1A" android:strokeWidth="5" android:strokeLineCap="round"
+        android:pathData="M150,268 L148,334 M200,268 L200,334 M250,268 L252,334"/>
+    <path android:fillColor="#1A1A1A"
+        android:pathData="M115,360 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0 M259,360 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0"/>
+    <path android:fillColor="#FFFFFF" android:strokeColor="#1A1A1A" android:strokeWidth="6"
+        android:pathData="M156,112 a34,9 0 1,0 68,0 a34,9 0 1,0 -68,0 Z"/>
+    <path android:fillColor="#FFC531" android:strokeColor="#1A1A1A" android:strokeWidth="6"
+        android:pathData="M187,106 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z"/>
+    <path android:fillColor="#2B2B2B" android:strokeColor="#1A1A1A" android:strokeWidth="6" android:strokeLineJoin="round"
+        android:pathData="M258,120 L346,106 L348,118 L262,132 Z"/>
+    <path android:fillColor="#2B2B2B" android:strokeColor="#1A1A1A" android:strokeWidth="6" android:strokeLineJoin="round"
+        android:pathData="M124,118 L266,118 L254,142 L136,142 Z"/>
+    <path android:strokeColor="#1A1A1A" android:strokeWidth="8" android:strokeLineCap="round" android:pathData="M124,118 L266,118"/>
+  </group>
 </vector>

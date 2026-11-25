@@ -10,6 +10,28 @@ android {
         versionCode 19
         versionName '2.16'
     }
+    buildFeatures { buildConfig true; resValues true }
+    flavorDimensions 'app'
+    productFlavors {
+        cooked {
+            dimension 'app'
+            applicationId 'com.summithouse.werecooked'
+            buildConfigField 'String', 'HOME', '"https://appassets.androidplatform.net/assets/index.html"'
+            resValue 'string', 'app_name', "We\'re Cooked"
+            buildConfigField 'String', 'BAR_COLOR', '"#1F4D38"'
+            manifestPlaceholders = [authScheme: 'werecooked']
+        }
+        bar {
+            dimension 'app'
+            applicationId 'com.summithouse.backhomebar'
+            versionCode 1
+            versionName '1.0'
+            buildConfigField 'String', 'HOME', '"https://appassets.androidplatform.net/assets/bar/index.html"'
+            resValue 'string', 'app_name', 'Back Home Bar'
+            buildConfigField 'String', 'BAR_COLOR', '"#121318"'
+            manifestPlaceholders = [authScheme: 'backhomebar']
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false

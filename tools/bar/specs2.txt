@@ -1,0 +1,608 @@
+# ---------- Sours & daisies ----------
+## daiquiri | Daiquiri | Sour | coupe | none | shaken | lime wheel | Cuba, 1900s
+- 2 oz @*rum-light|*rum-blended-aged
+- 0.75 oz @prep:simple-syrup
+- 1 oz @lime-juice
+> Shake hard, fine-strain into a chilled coupe.
+
+## hemingway-daiquiri | Hemingway Daiquiri (Papa Doble) | Sour | coupe | none | shaken | lime wheel | El Floridita, Havana, 1930s
+- 2 oz @*rum-light
+- 0.5 oz @*liq-maraschino
+- 0.75 oz @grapefruit-juice
+- 0.75 oz @lime-juice
+- 0.25 oz @prep:simple-syrup
+> Shake, fine-strain.
+
+## whiskey-sour | Whiskey Sour | Sour | rocks or coupe | large cube | shaken | aromatic bitters on the foam, cherry | 1860s
+- 2 oz @*whiskey-bourbon
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 0.75 oz @egg-white|aquafaba
+> Dry shake, then shake with ice. Strain over a large cube or up.
+
+## new-york-sour | New York Sour | Sour | rocks | large cube | shaken | red wine float | 1880s
+- 2 oz @*whiskey-rye|*whiskey-bourbon
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 0.5 oz @*wine-red
+> Shake, strain over ice, float the red wine over a spoon.
+
+## gold-rush | Gold Rush | Sour | rocks | large cube | shaken | lemon peel | T.J. Siegal, Milk & Honey, 2000s
+- 2 oz @*whiskey-bourbon
+- 0.75 oz @prep:honey-syrup
+- 0.75 oz @lemon-juice
+> Shake, strain over a large cube.
+
+## bees-knees | Bee's Knees | Sour | coupe | none | shaken | lemon peel | 1920s
+- 2 oz @*gin-dry
+- 0.75 oz @prep:honey-syrup
+- 0.75 oz @lemon-juice
+> Shake, fine-strain.
+
+## brown-derby | Brown Derby | Sour | coupe | none | shaken | grapefruit peel | Vendome Club, LA, 1930s
+- 2 oz @*whiskey-bourbon
+- 1 oz @grapefruit-juice
+- 0.5 oz @prep:honey-syrup
+> Shake, fine-strain.
+
+## penicillin | Penicillin | Sour | rocks | large cube | shaken | candied ginger | Sam Ross, Milk & Honey, 2005
+- 2 oz @*scotch-blend
+- 0.75 oz @prep:honey-ginger
+- 0.75 oz @lemon-juice
+- 0.25 oz @scotch-islay
+> Shake all but the Islay, strain over a large cube, float the Islay scotch.
+
+## gimlet | Gimlet | Sour | coupe | none | shaken | lime wheel | Royal Navy, 1900s
+- 2 oz @*gin-dry
+- 0.75 oz @prep:citrus-cordial|prep:lime-cordial-clear
+- 0.25 oz @lime-juice
+> Shake, fine-strain. Or 0.75 oz lime and 0.75 oz simple for a fresh-style Gimlet.
+
+## southside | Southside | Sour | coupe | none | shaken | mint leaf | Twenty-One Club, 1920s
+- 2 oz @*gin-dry
+- 0.75 oz @prep:simple-syrup
+- 1 oz @lime-juice|lemon-juice
+- 6 leaves @mint
+> Shake hard with the mint, fine-strain.
+
+## eastside | Eastside | Sour | coupe | none | shaken | cucumber wheel | George Delgado, 2004
+- 2 oz @*gin-dry
+- 0.75 oz @prep:simple-syrup
+- 1 oz @lime-juice
+- 3 slices @cucumber
+- 6 leaves @mint
+> Muddle cucumber, shake with mint, fine-strain.
+
+## gin-basil-smash | Gin Basil Smash | Sour | rocks | cubes | shaken | basil sprig | Jörg Meyer, Le Lion, 2008
+- 2 oz @*gin-dry
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 10 leaves @basil
+> Muddle basil with lemon, shake hard, double-strain over ice.
+
+## clover-club | Clover Club | Sour | coupe | none | shaken | raspberries | Bellevue-Stratford, Philadelphia, 1900s
+- 1.5 oz @*gin-dry
+- 0.5 oz @*verm-dry
+- 0.5 oz @prep:raspberry-syrup
+- 0.5 oz @lemon-juice
+- 0.75 oz @egg-white|aquafaba
+> Dry shake, shake with ice, fine-strain. Julie Reiner's spec.
+
+## white-lady | White Lady | Sour | coupe | none | shaken | lemon peel | Harry MacElhone, 1929
+- 2 oz @*gin-dry
+- 0.75 oz @*liq-orange
+- 0.75 oz @lemon-juice
+- 0.5 oz @egg-white
+> Dry shake, shake with ice, fine-strain.
+
+## pink-lady | Pink Lady | Sour | coupe | none | shaken | brandied cherry | 1910s
+- 1.5 oz @*gin-dry
+- 0.5 oz @*brandy-apple
+- 0.75 oz @lemon-juice
+- 0.5 oz @prep:grenadine
+- 0.75 oz @egg-white
+> Dry shake, shake with ice, fine-strain.
+
+## ward-eight | Ward Eight | Sour | coupe | none | shaken | orange peel | Locke-Ober, Boston, 1898
+- 2 oz @*whiskey-rye
+- 0.5 oz @lemon-juice
+- 0.5 oz @orange-juice
+- 0.25 oz @prep:grenadine
+> Shake, fine-strain.
+
+## jack-rose | Jack Rose | Sour | coupe | none | shaken | apple slice | 1900s
+- 2 oz @brandy-applejack|*brandy-apple
+- 0.75 oz @lemon-juice
+- 0.5 oz @prep:grenadine
+> Shake, fine-strain.
+
+## sidecar | Sidecar | Sour | coupe, half sugar rim | none | shaken | orange peel | Paris / London, 1920s
+- 2 oz @*brandy-cognac
+- 0.75 oz @*liq-orange
+- 0.75 oz @lemon-juice
+> Shake, fine-strain into a coupe with an optional sugar rim.
+
+## brandy-crusta | Brandy Crusta | Sour | small wine glass, sugar rim, long lemon peel | none | shaken | long lemon peel inside | Joseph Santini, New Orleans, 1850s
+- 2 oz @*brandy-cognac
+- 0.25 oz @*liq-orange
+- 1 tsp @*liq-maraschino
+- 0.5 oz @lemon-juice
+- 1 tsp @prep:simple-syrup
+- 2 dash @bitters-aromatic
+> Rim a small glass with sugar, line with a long lemon peel. Shake, strain in.
+
+## between-the-sheets | Between the Sheets | Sour | coupe | none | shaken | lemon peel | Harry MacElhone, 1930
+- 1 oz @*brandy-cognac
+- 1 oz @*rum-light
+- 1 oz @*liq-orange
+- 0.5 oz @lemon-juice
+> Shake, fine-strain.
+
+## margarita | Margarita | Sour | rocks, salt rim (half) | cubes | shaken | lime wheel | Mexico, 1940s
+- 2 oz @*tequila-blanco
+- 1 oz @*liq-orange
+- 0.75 oz @lime-juice
+- 0.25 oz @prep:agave-syrup
+> Shake, strain over fresh ice in a half-salted glass.
+
+## tommys-margarita | Tommy's Margarita | Sour | rocks | cubes | shaken | lime wheel | Julio Bermejo, Tommy's, SF, 1990s
+- 2 oz @*tequila-blanco|*tequila-reposado
+- 1 oz @lime-juice
+- 0.5 oz @prep:agave-syrup
+> Shake, strain over ice.
+
+## spicy-margarita | Spicy Margarita | Sour | rocks, chile salt rim | cubes | shaken | jalapeño slice | modern
+- 2 oz @prep:infusion-chile-tequila|*tequila-blanco
+- 0.75 oz @*liq-orange
+- 1 oz @lime-juice
+- 0.5 oz @prep:agave-syrup
+> Shake, strain over ice. If using plain tequila, muddle 2 jalapeño slices.
+
+## mezcal-margarita | Mezcal Margarita | Sour | rocks, sal de gusano or salt | cubes | shaken | orange slice | modern
+- 2 oz @*mezcal
+- 0.75 oz @*liq-orange
+- 0.75 oz @lime-juice
+- 0.25 oz @prep:agave-syrup
+> Shake, strain over ice.
+
+## pisco-sour | Pisco Sour | Sour | coupe | none | shaken | 3 drops aromatic bitters on the foam | Victor Morris, Lima, 1920s
+- 2 oz @*pisco
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lime-juice|lemon-juice
+- 0.75 oz @egg-white
+> Dry shake, shake with ice, fine-strain. Dot the foam with bitters.
+
+## amaretto-sour | Amaretto Sour | Sour | rocks | large cube | shaken | lemon peel, cherry | Jeffrey Morgenthaler, 2012
+- 1.5 oz @*liq-amaretto
+- 0.75 oz @*whiskey-bourbon
+- 1 tsp @prep:rich-simple
+- 1 oz @lemon-juice
+- 0.5 oz @egg-white
+> Dry shake, shake with ice, strain over a large cube. Cask-strength bourbon is the Morgenthaler move.
+
+## caipirinha | Caipirinha | Sour | rocks | crushed or cubes | built | lime | Brazil
+- 2 oz @*rum-cachaca
+- 1 whole @lime
+- 0.75 oz @prep:simple-syrup|sugar-white
+> Muddle half a lime cut into wedges with the sugar, add cachaça and ice, shake or stir.
+
+## ti-punch | Ti' Punch | Old Fashioned | rocks | none or one cube | built | lime disc | Martinique
+- 2 oz @*rum-agricole
+- 1 tsp @prep:cane-syrup
+- 1 coin @lime
+> Squeeze and drop a small coin of lime peel and pulp, add cane syrup, swizzle in the rhum. "Chacun prépare sa propre mort."
+
+## cosmopolitan | Cosmopolitan | Sour | coupe | none | shaken | flamed orange peel | Toby Cecchini, Odeon, NYC, 1988
+- 1.5 oz @vodka-citrus|*vodka
+- 0.75 oz @*liq-orange
+- 0.75 oz @lime-juice
+- 0.5 oz @mix-cranberry
+> Shake, fine-strain.
+
+## lemon-drop | Lemon Drop | Sour | coupe, sugar rim | none | shaken | lemon twist | Henry Africa's, SF, 1970s
+- 2 oz @vodka-citrus|*vodka
+- 0.5 oz @*liq-orange
+- 0.75 oz @lemon-juice
+- 0.5 oz @prep:simple-syrup
+> Shake, strain into a sugar-rimmed coupe.
+
+## kamikaze | Kamikaze | Sour | coupe | none | shaken | lime wedge | 1970s
+- 1.5 oz @*vodka
+- 0.75 oz @*liq-orange
+- 0.75 oz @lime-juice
+> Shake, strain.
+
+## french-martini | French Martini | Sour | coupe | none | shaken | raspberry | Keith McNally, 1980s
+- 1.5 oz @*vodka
+- 0.5 oz @liq-framboise
+- 1.5 oz @mix-pineapple|pineapple-juice-fresh
+> Shake very hard for foam, fine-strain.
+
+## pornstar-martini | Pornstar Martini | Sour | coupe | none | shaken | half passion fruit; shot of sparkling wine on the side | Douglas Ankrah, 2002
+- 1.5 oz @vodka-vanilla|*vodka
+- 0.5 oz @liq-passion
+- 1 oz @prep:passion-fruit-syrup|passion-fruit
+- 0.5 oz @lime-juice
+- 0.5 oz @prep:vanilla-syrup
+> Shake, fine-strain. Serve with 2 oz sparkling wine on the side.
+
+## espresso-martini | Espresso Martini | Sour | coupe | none | shaken | three coffee beans | Dick Bradsell, 1983
+- 1.5 oz @*vodka
+- 0.75 oz @*liq-coffee
+- 1 oz @mix-espresso
+- 0.25 oz @prep:simple-syrup
+> Shake very hard with fresh hot espresso, fine-strain.
+
+## bramble | Bramble | Sour | rocks | crushed | built | blackberry and lemon wheel | Dick Bradsell, 1984
+- 2 oz @*gin-dry
+- 0.75 oz @lemon-juice
+- 0.5 oz @prep:simple-syrup
+- 0.5 oz @liq-mure
+> Shake gin, lemon and syrup, strain over crushed ice, drizzle the crème de mûre on top.
+
+## breakfast-martini | Breakfast Martini | Sour | coupe | none | shaken | orange peel, toast | Salvatore Calabrese, 1996
+- 2 oz @*gin-dry
+- 0.5 oz @*liq-orange
+- 0.75 oz @lemon-juice
+- 1 barspoon orange marmalade
+> Shake hard, fine-strain.
+
+## enzoni | Enzoni | Sour | rocks | cubes | shaken | grapes | Vincenzo Errico, 2003
+- 1 oz @*gin-dry
+- 1 oz @*aperitivo-red
+- 0.75 oz @lemon-juice
+- 0.5 oz @prep:simple-syrup
+- 5 white grapes
+> Muddle grapes, shake, double-strain over ice.
+
+## jungle-bird | Jungle Bird | Tiki | rocks | large cube | shaken | pineapple wedge | Kuala Lumpur Hilton, 1978
+- 1.5 oz @rum-black|rum-jamaican-pot
+- 0.75 oz @*aperitivo-red
+- 1.5 oz @mix-pineapple|pineapple-juice-fresh
+- 0.5 oz @lime-juice
+- 0.5 oz @prep:demerara-syrup
+> Shake, strain over a large cube.
+
+## hotel-nacional | Hotel Nacional Special | Sour | coupe | none | shaken | lime wheel | Havana, 1930s
+- 1.5 oz @*rum-blended-aged|*rum-light
+- 0.5 oz @liq-apricot
+- 1 oz @mix-pineapple
+- 0.5 oz @lime-juice
+- 0.25 oz @prep:simple-syrup
+> Shake, fine-strain.
+
+## mary-pickford | Mary Pickford | Sour | coupe | none | shaken | brandied cherry | Havana, 1920s
+- 2 oz @*rum-light
+- 1 oz @mix-pineapple
+- 1 tsp @*liq-maraschino
+- 1 tsp @prep:grenadine
+> Shake, fine-strain.
+
+## airmail | Airmail | Champagne | coupe or flute | none | shaken | lime wheel | 1949
+- 1 oz @*rum-blended-aged
+- 0.5 oz @prep:honey-syrup
+- 0.5 oz @lime-juice
+- 2 oz @*sparkling
+> Shake, strain, top with sparkling wine.
+
+## french-75 | French 75 | Champagne | flute | none | shaken | lemon peel | Harry MacElhone, 1915
+- 1 oz @*gin-dry|*brandy-cognac
+- 0.5 oz @prep:simple-syrup
+- 0.5 oz @lemon-juice
+- 3 oz @*sparkling
+> Shake, strain into a flute, top with Champagne.
+
+## seelbach | Seelbach | Champagne | flute | none | built | orange peel | Seelbach Hotel, Louisville (1990s revival)
+- 1 oz @*whiskey-bourbon
+- 0.5 oz @*liq-orange
+- 7 dash @bitters-aromatic
+- 7 dash @bitters-peychaud
+- 4 oz @*sparkling
+> Stir bourbon, liqueur and bitters, strain into a flute, top with Champagne.
+
+## champagne-cocktail | Champagne Cocktail | Champagne | flute | none | built | lemon peel | 1860s
+- 1 cube @sugar-cubes
+- 3 dash @bitters-aromatic
+- 4 oz @*sparkling
+- 0.25 oz @*brandy-cognac
+> Soak the cube with bitters in the flute, top with Champagne, float cognac if you like.
+
+## kir-royale | Kir Royale | Champagne | flute | none | built | none | Burgundy
+- 0.5 oz @*liq-cassis
+- 4.5 oz @*sparkling
+> Build.
+
+## bellini | Bellini | Champagne | flute | none | built | none | Harry's Bar, Venice, 1948
+- 2 oz white peach purée @peach
+- 4 oz @wine-prosecco
+> Stir gently.
+
+## mimosa | Mimosa | Champagne | flute | none | built | orange slice | Ritz Paris, 1925
+- 3 oz @orange-juice
+- 3 oz @*sparkling
+> Build.
+
+## aperol-spritz | Aperol Spritz | Spritz | wine glass | cubes | built | orange slice | Veneto
+- 3 oz @wine-prosecco
+- 2 oz @*aperitivo-light
+- 1 oz @mix-soda
+> Build over ice.
+
+## campari-spritz | Campari Spritz | Spritz | wine glass | cubes | built | orange slice, olive | Veneto
+- 3 oz @wine-prosecco
+- 2 oz @*aperitivo-red
+- 1 oz @mix-soda
+> Build over ice.
+
+## hugo-spritz | Hugo Spritz | Spritz | wine glass | cubes | built | mint, lime | South Tyrol, 2005
+- 4 oz @wine-prosecco
+- 0.75 oz @*liq-elderflower
+- 1 oz @mix-soda
+- 6 leaves @mint
+> Build over ice.
+
+## white-port-tonic | White Port & Tonic | Highball | highball | cubes | built | orange or lemon | Porto
+- 2 oz @*port-white
+- 4 oz @mix-tonic
+> Build.
+
+# ---------- Fizzes, Collinses, highballs ----------
+## tom-collins | Tom Collins | Highball | Collins | cubes | shaken | lemon wheel, cherry | 1870s
+- 2 oz @*gin-old-tom|*gin-dry
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 3 oz @mix-soda
+> Shake, strain over ice, top with soda.
+
+## gin-fizz | Gin Fizz | Fizz | fizz glass (small highball) | none | shaken | lemon peel | 1880s
+- 2 oz @*gin-dry
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 2 oz @mix-soda
+> Shake hard, strain into a chilled fizz glass with no ice, top with soda.
+
+## silver-fizz | Silver Fizz | Fizz | fizz glass | none | shaken | none | 1880s
+- 2 oz @*gin-dry
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 0.75 oz @egg-white
+- 1 oz @mix-soda
+> Dry shake, shake with ice, strain, top with soda.
+
+## ramos-gin-fizz | Ramos Gin Fizz | Fizz | Collins (no ice) | none | shaken | none | Henry C. Ramos, New Orleans, 1888
+- 2 oz @*gin-old-tom|*gin-dry
+- 1 oz @prep:simple-syrup
+- 0.5 oz @lemon-juice
+- 0.5 oz @lime-juice
+- 1 oz @heavy-cream
+- 0.75 oz @egg-white
+- 3 drops orange flower water
+- 1 oz @mix-soda
+> Dry shake 30 seconds, shake with ice another 30+. Pour soda into the empty glass, strain the drink on top so the foam rises above the rim.
+
+## sloe-gin-fizz | Sloe Gin Fizz | Fizz | fizz glass | none | shaken | lemon wheel | 1900s
+- 1.5 oz @*liq-sloe
+- 0.5 oz @*gin-dry
+- 0.75 oz @lemon-juice
+- 0.5 oz @prep:simple-syrup
+- 2 oz @mix-soda
+> Shake, strain, top with soda.
+
+## morning-glory-fizz | Morning Glory Fizz | Fizz | fizz glass | none | shaken | none | 1880s
+- 2 oz @*scotch-blend
+- 0.75 oz @prep:simple-syrup
+- 0.5 oz @lemon-juice
+- 0.5 oz @lime-juice
+- 0.75 oz @egg-white
+- 1 dash @*absinthe
+- 2 oz @mix-soda
+> Dry shake, shake with ice, strain, top with soda.
+
+## gin-and-tonic | Gin & Tonic | Highball | highball or copa | cubes | built | lime wedge | British India
+- 2 oz @*gin-dry|*gin-modern
+- 4 oz @mix-tonic
+> Build over plenty of ice.
+
+## vodka-soda | Vodka Soda | Highball | highball | cubes | built | lime | —
+- 2 oz @*vodka
+- 4 oz @mix-soda
+> Build.
+
+## paloma | Paloma | Highball | Collins, salt rim (optional) | cubes | built | grapefruit wedge | Mexico
+- 2 oz @*tequila-blanco
+- 0.5 oz @lime-juice
+- 4 oz @mix-grapefruit-soda
+- 1 pinch salt @kosher-salt
+> Build over ice. For a fresh Paloma: 1.5 oz grapefruit, 0.5 oz lime, 0.5 oz simple, top with soda.
+
+## moscow-mule | Moscow Mule | Highball | copper mug | cubes | built | lime wedge | Cock 'n' Bull, LA, 1941
+- 2 oz @*vodka
+- 0.5 oz @lime-juice
+- 4 oz @mix-ginger-beer
+> Build over ice.
+
+## dark-and-stormy | Dark 'n' Stormy | Highball | highball | cubes | built | lime wedge | Bermuda
+- 2 oz @rum-black|*rum-dark
+- 0.5 oz @lime-juice
+- 4 oz @mix-ginger-beer
+> Build ginger beer and lime over ice, float the rum.
+
+## gin-gin-mule | Gin-Gin Mule | Highball | highball | cubes | shaken | mint sprig | Audrey Saunders, Pegu Club, 2000
+- 1.75 oz @*gin-dry
+- 1 oz @prep:ginger-syrup
+- 0.75 oz @lime-juice
+- 0.75 oz @prep:simple-syrup
+- 6 leaves @mint
+- 1 oz @mix-soda
+> Shake, strain over ice, top with a splash of soda.
+
+## kentucky-mule | Kentucky Buck | Highball | highball | cubes | shaken | lemon wheel | Erick Castro, 2009
+- 2 oz @*whiskey-bourbon
+- 0.75 oz @lemon-juice
+- 0.75 oz @prep:ginger-syrup
+- 1 strawberry @strawberries
+- 2 dash @bitters-aromatic
+- 2 oz @mix-soda
+> Muddle strawberry, shake, strain over ice, top with soda.
+
+## cuba-libre | Cuba Libre | Highball | highball | cubes | built | lime wedge | Havana, 1900
+- 2 oz @*rum-light|*rum-blended-aged
+- 0.5 oz @lime-juice
+- 4 oz @mix-cola
+> Squeeze lime into the glass, add rum, ice and cola.
+
+## whisky-highball | Japanese Highball | Highball | highball | spear or cubes | built | lemon peel | Japan
+- 1.5 oz @*japanese|*scotch-blend
+- 4.5 oz @mix-soda
+> Chill everything. Pour whisky over ice, stir 13 times, add cold soda, one lift.
+
+## horses-neck | Horse's Neck | Highball | highball | cubes | built | long spiral lemon peel | 1890s
+- 2 oz @*whiskey-bourbon|*brandy-cognac
+- 2 dash @bitters-aromatic
+- 4 oz @mix-ginger-ale
+> Build with a long lemon spiral draped over the rim.
+
+## presbyterian | Presbyterian | Highball | highball | cubes | built | lemon peel | Scotland
+- 2 oz @*scotch-blend
+- 2 oz @mix-ginger-ale
+- 2 oz @mix-soda
+> Build.
+
+## batanga | Batanga | Highball | highball, salt rim | cubes | built | lime wedge | Don Javier, La Capilla, Tequila
+- 2 oz @*tequila-blanco
+- 0.5 oz @lime-juice
+- 4 oz @mix-cola
+> Build in a salt-rimmed glass; stir with the knife you cut the lime with.
+
+## mojito | Mojito | Highball | highball | crushed or cubes | built | mint sprig | Havana
+- 2 oz @*rum-light
+- 0.75 oz @prep:simple-syrup
+- 1 oz @lime-juice
+- 8 leaves @mint
+- 1 oz @mix-soda
+> Gently press mint with syrup, add lime and rum, fill with ice, top with soda, stir.
+
+## queens-park-swizzle | Queen's Park Swizzle | Swizzle | Collins | crushed | swizzled | mint sprig, aromatic bitters on top | Queen's Park Hotel, Trinidad, 1920s
+- 2 oz @rum-demerara|*rum-blended-aged
+- 0.75 oz @prep:demerara-syrup
+- 1 oz @lime-juice
+- 8 leaves @mint
+- 4 dash @bitters-aromatic
+> Press mint in the glass, add rum, lime and syrup, fill with crushed ice and swizzle. Top with bitters and more ice.
+
+## pimms-cup | Pimm's Cup | Highball | highball | cubes | built | cucumber, strawberry, mint, orange | England
+- 2 oz @liq-pimms
+- 0.5 oz @lemon-juice
+- 4 oz @mix-lemon-lime|mix-ginger-ale
+> Build with sliced fruit and cucumber.
+
+## michelada | Michelada | Highball | pint glass, chile-salt rim | cubes | built | lime | Mexico
+- 12 oz @*beer
+- 1 oz @lime-juice
+- 0.5 oz @worcestershire
+- 4 dash @hot-sauce
+> Build.
+
+## bloody-mary | Bloody Mary | Highball | highball, celery salt rim | cubes | rolled | celery, lemon, olives | Fernand Petiot, 1930s
+- 2 oz @*vodka
+- 4 oz @prep:bloody-mary-mix
+> Roll between two tins to mix without frothing. Pour over ice.
+
+## red-snapper | Red Snapper | Highball | highball | cubes | rolled | celery, lemon | St. Regis, NYC, 1930s
+- 2 oz @*gin-dry
+- 4 oz @prep:bloody-mary-mix
+> Roll, pour over ice.
+
+## caesar | Caesar | Highball | highball, celery salt rim | cubes | rolled | celery, lime | Walter Chell, Calgary, 1969
+- 2 oz @*vodka
+- 4 oz @mix-clamato
+- 2 dash @worcestershire
+- 2 dash @hot-sauce
+- 0.5 oz @lime-juice
+> Roll, pour over ice.
+
+## long-island | Long Island Iced Tea | Highball | Collins | cubes | shaken | lemon wedge | Long Island, 1970s
+- 0.5 oz @*vodka
+- 0.5 oz @*gin-dry
+- 0.5 oz @*rum-light
+- 0.5 oz @*tequila-blanco
+- 0.5 oz @*liq-orange
+- 0.75 oz @lemon-juice
+- 0.5 oz @prep:simple-syrup
+- 2 oz @mix-cola
+> Shake all but cola, strain over ice, top with a splash of cola.
+
+## tequila-sunrise | Tequila Sunrise | Highball | highball | cubes | built | orange slice, cherry | 1970s
+- 2 oz @*tequila-blanco
+- 4 oz @orange-juice
+- 0.5 oz @prep:grenadine
+> Build tequila and OJ over ice, sink the grenadine.
+
+## screwdriver | Screwdriver | Highball | highball | cubes | built | orange slice | 1940s
+- 2 oz @*vodka
+- 4 oz @orange-juice
+> Build.
+
+## sea-breeze | Sea Breeze | Highball | highball | cubes | built | lime wedge | 1980s
+- 1.5 oz @*vodka
+- 3 oz @mix-cranberry
+- 1.5 oz @grapefruit-juice
+> Build.
+
+## el-diablo | El Diablo | Highball | Collins | cubes | shaken | lime wheel | Trader Vic, 1946
+- 1.5 oz @*tequila-reposado
+- 0.5 oz @*liq-cassis
+- 0.5 oz @lime-juice
+- 3 oz @mix-ginger-beer
+> Shake tequila, cassis and lime, strain over ice, top with ginger beer.
+
+## mamie-taylor | Mamie Taylor | Highball | highball | cubes | built | lime wedge | 1899
+- 2 oz @*scotch-blend
+- 0.75 oz @lime-juice
+- 4 oz @mix-ginger-beer
+> Build.
+
+## gin-rickey | Gin Rickey | Highball | highball | cubes | built | lime shell | Shoomaker's, Washington, 1880s
+- 2 oz @*gin-dry
+- 0.75 oz @lime-juice
+- 4 oz @mix-soda
+> Build; no sugar.
+
+## americano-highball | Garibaldi | Highball | highball | cubes | built | orange wedge | Dante Ferrari revival
+- 1.5 oz @*aperitivo-red
+- 4 oz fluffy orange juice @orange-juice
+> Whip the OJ in a blender or juicer for foam. Build over ice.
+
+# ---------- Juleps, smashes, cobblers ----------
+## mint-julep | Mint Julep | Julep | julep cup | crushed | built | big mint bouquet, powdered sugar | Virginia, 1800s
+- 2.5 oz @*whiskey-bourbon
+- 0.5 oz @prep:simple-syrup|prep:rich-simple
+- 10 leaves @mint
+> Gently press mint with syrup, add bourbon, pack with crushed ice, swizzle until frosted, crown with more ice and mint.
+
+## whiskey-smash | Whiskey Smash | Julep | rocks | crushed | shaken | mint sprig | Dale DeGroff revival
+- 2 oz @*whiskey-bourbon
+- 0.75 oz @prep:simple-syrup
+- 3 wedges @lemon
+- 6 leaves @mint
+> Muddle lemon wedges, shake with mint, double-strain over crushed ice.
+
+## sherry-cobbler | Sherry Cobbler | Cobbler | Collins | crushed | shaken | orange slices, berries, mint | 1830s
+- 3.5 oz @*sherry-nutty|*sherry-dry
+- 0.5 oz @prep:simple-syrup
+- 2 slices @orange
+> Shake with orange slices, strain over crushed ice, garnish lavishly.
+
+## georgia-julep | Georgia Julep | Julep | julep cup | crushed | built | mint | 1800s
+- 2 oz @*brandy-cognac
+- 0.5 oz @liq-peche
+- 0.25 oz @prep:simple-syrup
+- 10 leaves @mint
+> Build like a julep.
+
+## prescription-julep | Prescription Julep | Julep | julep cup | crushed | built | mint | Harper's, 1857
+- 1.5 oz @*brandy-cognac
+- 0.5 oz @rum-jamaican-pot
+- 0.5 oz @prep:simple-syrup
+- 10 leaves @mint
+> Build like a julep.

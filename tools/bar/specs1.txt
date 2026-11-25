@@ -1,0 +1,459 @@
+# ## id | name | family | glass | ice | method | garnish | origin
+# - amount unit @ref (alternatives with |)  ·  refs: style-id, *family, prep:id, fresh-id
+# > notes
+# ---------- Old Fashioned family ----------
+## old-fashioned | Old Fashioned | Old Fashioned | rocks | large cube | stirred | orange peel (and lemon, optional) | 1880s
+- 2 oz @*whiskey-bourbon|*whiskey-rye
+- 0.25 oz @prep:demerara-syrup|prep:rich-simple
+- 2 dash @bitters-aromatic
+- 1 dash @bitters-orange
+> Stir with ice 20–30 seconds, strain over a large cube, express the peel.
+
+## sazerac | Sazerac | Old Fashioned | rocks (chilled, no ice) | none | stirred | lemon peel, expressed and discarded | New Orleans, 1850s
+- 2 oz @*whiskey-rye|*brandy-cognac
+- 0.25 oz @prep:rich-simple|prep:gomme-syrup
+- 4 dash @bitters-peychaud
+- 1 dash @bitters-aromatic
+- 1 rinse @*absinthe
+> Rinse a chilled rocks glass with absinthe and dump. Stir the rest, strain into the glass. Express lemon over the top and discard.
+> Many bars split the base 1:1 rye and cognac.
+
+## improved-whiskey | Improved Whiskey Cocktail | Old Fashioned | rocks | large cube | stirred | lemon peel | Jerry Thomas, 1876
+- 2 oz @*whiskey-rye
+- 0.25 oz @prep:rich-simple
+- 1 tsp @*liq-maraschino
+- 2 dash @bitters-aromatic
+- 1 dash @*absinthe
+> Stir, strain over a large cube.
+
+## oaxaca-old-fashioned | Oaxaca Old Fashioned | Old Fashioned | rocks | large cube | stirred | flamed orange peel | Phil Ward, Death & Co, 2007
+- 1.5 oz @tequila-reposado
+- 0.5 oz @*mezcal
+- 1 tsp @prep:agave-syrup
+- 2 dash @bitters-aromatic
+> Stir, strain over a large cube, flame an orange peel.
+
+## rum-old-fashioned | Rum Old Fashioned | Old Fashioned | rocks | large cube | stirred | orange peel | modern classic
+- 2 oz @*rum-blended-aged|*rum-jamaican
+- 0.25 oz @prep:demerara-syrup
+- 2 dash @bitters-aromatic
+- 1 dash @bitters-orange
+> Stir, strain over a large cube.
+
+## benton-old-fashioned | Benton's Old Fashioned | Old Fashioned | rocks | large cube | stirred | orange peel | Don Lee, PDT, 2007
+- 2 oz @prep:fat-wash-bacon
+- 0.25 oz @prep:maple-syrup-cut|maple-syrup
+- 2 dash @bitters-aromatic
+> Stir, strain over a large cube.
+
+## remember-the-maine | Remember the Maine | Old Fashioned | coupe | none | stirred | brandied cherry | Charles H. Baker, 1933
+- 2 oz @*whiskey-rye
+- 0.75 oz @*verm-sweet
+- 2 tsp @*liq-cherry
+- 0.5 tsp @*absinthe
+> Stir, strain into a chilled coupe.
+
+## vieux-carre | Vieux Carré | Old Fashioned | rocks | large cube | stirred | lemon peel and cherry | Walter Bergeron, Hotel Monteleone, 1938
+- 0.75 oz @*whiskey-rye
+- 0.75 oz @*brandy-cognac
+- 0.75 oz @*verm-sweet
+- 1 tsp @*liq-benedictine
+- 2 dash @bitters-peychaud
+- 2 dash @bitters-aromatic
+> Stir, strain over a large cube.
+
+## toronto | Toronto | Old Fashioned | coupe | none | stirred | orange peel | 1922
+- 2 oz @*whiskey-rye|canadian-rye
+- 0.25 oz @*fernet
+- 0.25 oz @prep:rich-simple
+- 2 dash @bitters-aromatic
+> Stir, strain into a chilled coupe.
+
+## fancy-free | Fancy Free | Old Fashioned | coupe | none | stirred | orange peel | 1941
+- 2 oz @*whiskey-bourbon|*whiskey-rye
+- 0.5 oz @*liq-maraschino
+- 1 dash @bitters-aromatic
+- 1 dash @bitters-orange
+> Stir, strain.
+
+## old-pal | Old Pal | Old Fashioned | coupe | none | stirred | lemon peel | Harry MacElhone, 1922
+- 1.5 oz @*whiskey-rye
+- 0.75 oz @verm-dry
+- 0.75 oz @*aperitivo-red
+> Stir, strain.
+
+## boulevardier | Boulevardier | Old Fashioned | rocks | large cube | stirred | orange peel | Erskine Gwynne, Paris, 1927
+- 1.5 oz @*whiskey-bourbon|*whiskey-rye
+- 1 oz @*verm-sweet
+- 1 oz @*aperitivo-red
+> Stir, strain over a large cube (or up in a coupe).
+
+## black-manhattan | Black Manhattan | Manhattan | coupe | none | stirred | brandied cherry | Todd Smith, Bourbon & Branch, 2005
+- 2 oz @*whiskey-rye
+- 1 oz @*amaro-rich
+- 1 dash @bitters-aromatic
+- 1 dash @bitters-orange
+> Stir, strain.
+
+## rusty-nail | Rusty Nail | Old Fashioned | rocks | large cube | built | lemon peel | 1937
+- 2 oz @*scotch-blend
+- 0.5 oz @*liq-honey-whisky
+> Build over a large cube, stir.
+
+## godfather | Godfather | Old Fashioned | rocks | large cube | built | none | 1970s
+- 2 oz @*scotch-blend|*whiskey-bourbon
+- 0.5 oz @*liq-amaretto
+> Build and stir.
+
+## stinger | Stinger | Duo | coupe or rocks | crushed (optional) | stirred | mint sprig | 1890s
+- 2 oz @*brandy-cognac
+- 0.75 oz @liq-menthe-white
+> Stir and strain up, or serve over crushed ice.
+
+## white-russian | White Russian | Duo | rocks | large cube | built | none | 1965
+- 2 oz @*vodka
+- 1 oz @*liq-coffee
+- 1 oz @heavy-cream|half-half
+> Build vodka and coffee liqueur over ice, float the cream.
+
+## black-russian | Black Russian | Duo | rocks | large cube | built | none | 1949
+- 2 oz @*vodka
+- 1 oz @*liq-coffee
+> Build and stir.
+
+## carajillo | Carajillo | Duo | rocks | large cube | shaken | coffee beans | Spain / Mexico
+- 1.5 oz @liq-licor-43
+- 1.5 oz @mix-espresso
+> Shake hard with ice and strain over fresh ice (or build and stir).
+
+# ---------- Martini / Manhattan family ----------
+## manhattan | Manhattan | Manhattan | coupe | none | stirred | brandied cherry | 1880s
+- 2 oz @*whiskey-rye|*whiskey-bourbon
+- 1 oz @*verm-sweet
+- 2 dash @bitters-aromatic
+> Stir 30 seconds with ice, strain into a chilled coupe.
+
+## perfect-manhattan | Perfect Manhattan | Manhattan | coupe | none | stirred | lemon peel | 1900s
+- 2 oz @*whiskey-rye
+- 0.5 oz @*verm-sweet
+- 0.5 oz @*verm-dry
+- 2 dash @bitters-aromatic
+> Stir, strain.
+
+## rob-roy | Rob Roy | Manhattan | coupe | none | stirred | brandied cherry or lemon peel | Waldorf-Astoria, 1894
+- 2 oz @*scotch-blend
+- 1 oz @*verm-sweet
+- 2 dash @bitters-aromatic
+> Stir, strain.
+
+## bobby-burns | Bobby Burns | Manhattan | coupe | none | stirred | lemon peel | 1900s
+- 2 oz @*scotch-blend
+- 0.75 oz @*verm-sweet
+- 0.25 oz @*liq-benedictine
+> Stir, strain.
+
+## brooklyn | Brooklyn | Manhattan | coupe | none | stirred | brandied cherry | 1908
+- 2 oz @*whiskey-rye
+- 1 oz @*verm-dry
+- 0.25 oz @*liq-maraschino
+- 0.25 oz @*amaro-china
+> Stir, strain. Amer Picon is the original; Bigallet China-China or Amaro CioCiaro stand in.
+
+## red-hook | Red Hook | Manhattan | coupe | none | stirred | none | Enzo Errico, Milk & Honey, 2004
+- 2 oz @*whiskey-rye
+- 0.5 oz @verm-sweet-bitter
+- 0.25 oz @*liq-maraschino
+> Stir, strain.
+
+## greenpoint | Greenpoint | Manhattan | coupe | none | stirred | lemon peel | Michael McIlroy, Milk & Honey, 2006
+- 2 oz @*whiskey-rye
+- 0.5 oz @*liq-chartreuse-yellow
+- 0.5 oz @*verm-sweet
+- 1 dash @bitters-aromatic
+- 1 dash @bitters-orange
+> Stir, strain.
+
+## little-italy | Little Italy | Manhattan | coupe | none | stirred | brandied cherries | Audrey Saunders, Pegu Club, 2005
+- 2 oz @*whiskey-rye
+- 0.75 oz @*verm-sweet
+- 0.5 oz @*amaro-carciofo
+> Stir, strain.
+
+## martinez | Martinez | Martini | coupe | none | stirred | orange peel | 1880s
+- 1.5 oz @*gin-old-tom
+- 1.5 oz @*verm-sweet
+- 0.25 oz @*liq-maraschino
+- 2 dash @bitters-orange
+> Stir, strain.
+
+## martini | Dry Martini | Martini | coupe or Nick & Nora | none | stirred | lemon peel or olive | 1900s
+- 2.5 oz @*gin-dry
+- 0.5 oz @*verm-dry
+- 1 dash @bitters-orange
+> Stir until very cold, strain into a frozen glass. 5:1 is a modern standard; 2:1 is the classic 50/50 direction.
+
+## fifty-fifty | Fifty-Fifty Martini | Martini | Nick & Nora | none | stirred | lemon peel | 1900s / Audrey Saunders revival
+- 1.5 oz @*gin-dry
+- 1.5 oz @*verm-dry
+- 2 dash @bitters-orange
+> Stir, strain.
+
+## dirty-martini | Dirty Martini | Martini | coupe | none | stirred | olives | 1900s
+- 2.5 oz @*gin-dry|*vodka
+- 0.25 oz @*verm-dry
+- 0.5 oz @prep:brine-olive|olive-brine
+> Stir, strain.
+
+## gibson | Gibson | Martini | Nick & Nora | none | stirred | cocktail onions | 1900s
+- 2.5 oz @*gin-dry
+- 0.5 oz @*verm-dry
+> Stir, strain.
+
+## vodka-martini | Vodka Martini | Martini | coupe | none | stirred | lemon peel | 1950s
+- 2.5 oz @*vodka
+- 0.5 oz @*verm-dry
+> Stir, strain.
+
+## vesper | Vesper | Martini | coupe | none | shaken | lemon peel | Ian Fleming, 1953
+- 2 oz @*gin-dry
+- 0.75 oz @*vodka
+- 0.5 oz @*verm-quinquina
+> Shaken, as written. Cocchi Americano is the closest to the original Kina Lillet.
+
+## tuxedo | Tuxedo No. 2 | Martini | coupe | none | stirred | lemon peel and cherry | 1900
+- 2 oz @*gin-dry
+- 1 oz @*verm-dry
+- 0.25 oz @*liq-maraschino
+- 2 dash @bitters-orange
+- 1 rinse @*absinthe
+> Rinse the glass with absinthe, stir the rest, strain.
+
+## turf-club | Turf Club | Martini | coupe | none | stirred | lemon peel | 1880s
+- 1.5 oz @*gin-dry|gin-genever-oude
+- 1.5 oz @*verm-dry
+- 1 tsp @*liq-maraschino
+- 2 dash @bitters-orange
+- 1 dash @*absinthe
+> Stir, strain.
+
+## hanky-panky | Hanky Panky | Martini | coupe | none | stirred | orange peel | Ada Coleman, Savoy, 1903
+- 1.5 oz @*gin-dry
+- 1.5 oz @*verm-sweet
+- 2 dash @*fernet
+> Stir, strain.
+
+## bijou | Bijou | Martini | coupe | none | stirred | lemon peel and cherry | Harry Johnson, 1900
+- 1 oz @*gin-dry
+- 1 oz @*verm-sweet
+- 1 oz @*liq-chartreuse-green
+- 1 dash @bitters-orange
+> Stir, strain.
+
+## negroni | Negroni | Martini | rocks | large cube | stirred | orange peel | Florence, c. 1919
+- 1 oz @*gin-dry
+- 1 oz @*verm-sweet
+- 1 oz @*aperitivo-red
+> Stir, strain over a large cube.
+
+## negroni-sbagliato | Negroni Sbagliato | Spritz | rocks | large cube | built | orange slice | Bar Basso, Milan, 1972
+- 1 oz @*verm-sweet
+- 1 oz @*aperitivo-red
+- 2 oz @*sparkling
+> Build, top with sparkling wine.
+
+## americano | Americano | Highball | highball | cubes | built | orange slice | 1860s
+- 1.5 oz @*aperitivo-red
+- 1.5 oz @*verm-sweet
+- 3 oz @mix-soda
+> Build over ice, top with soda.
+
+## white-negroni | White Negroni | Martini | rocks | large cube | stirred | lemon peel | Wayne Collins, 2001
+- 1.5 oz @*gin-dry
+- 1 oz @*verm-quinquina
+- 0.75 oz @*gentian
+> Stir, strain over a large cube.
+
+## mezcal-negroni | Mezcal Negroni | Martini | rocks | large cube | stirred | orange peel | modern
+- 1 oz @*mezcal
+- 1 oz @*verm-sweet
+- 1 oz @*aperitivo-red
+> Stir, strain over a large cube.
+
+## kingston-negroni | Kingston Negroni | Martini | rocks | large cube | stirred | orange peel | Joaquín Simó, 2009
+- 1 oz @rum-jamaican-pot
+- 1 oz @*verm-sweet
+- 1 oz @*aperitivo-red
+> Stir, strain over a large cube.
+
+## bamboo | Bamboo | Martini | coupe | none | stirred | lemon peel | Louis Eppinger, Yokohama, 1890s
+- 1.5 oz @*sherry-dry
+- 1.5 oz @*verm-dry
+- 2 dash @bitters-orange
+- 1 dash @bitters-aromatic
+> Stir, strain. Low-proof perfection.
+
+## adonis | Adonis | Martini | coupe | none | stirred | orange peel | 1884
+- 1.5 oz @*sherry-dry|*sherry-nutty
+- 1.5 oz @*verm-sweet
+- 2 dash @bitters-orange
+> Stir, strain.
+
+## coronation | Coronation No. 1 | Martini | coupe | none | stirred | lemon peel | 1930
+- 1.5 oz @*sherry-dry
+- 1.5 oz @*verm-dry
+- 1 dash @*liq-maraschino
+- 2 dash @bitters-orange
+> Stir, strain.
+
+## martini-reverse | Reverse Martini | Martini | Nick & Nora | none | stirred | lemon peel | modern
+- 2 oz @*verm-dry
+- 1 oz @*gin-dry
+- 1 dash @bitters-orange
+> Stir, strain.
+
+## el-presidente | El Presidente | Manhattan | coupe | none | stirred | orange peel | Havana, 1920s
+- 1.5 oz @*rum-blended-aged|rum-spanish-aged
+- 0.75 oz @verm-blanc
+- 0.25 oz @*liq-orange
+- 1 barspoon @prep:grenadine
+> Stir, strain.
+
+## metropole | Metropole | Manhattan | coupe | none | stirred | brandied cherry | Hotel Metropole, NYC, 1900
+- 1.5 oz @*brandy-cognac
+- 1.5 oz @*verm-dry
+- 2 dash @bitters-peychaud
+- 1 dash @bitters-orange
+> Stir, strain.
+
+## harvard | Harvard | Manhattan | coupe | none | stirred | lemon peel | 1895
+- 1.5 oz @*brandy-cognac
+- 1.5 oz @*verm-sweet
+- 2 dash @bitters-aromatic
+- 1 oz @mix-soda
+> Stir, strain, top with a splash of soda.
+
+## widows-kiss | Widow's Kiss | Manhattan | coupe | none | stirred | brandied cherry | George Kappeler, 1895
+- 1.5 oz @*brandy-apple
+- 0.75 oz @*liq-chartreuse-yellow
+- 0.75 oz @*liq-benedictine
+- 2 dash @bitters-aromatic
+> Stir, strain.
+
+## diamondback | Diamondback | Manhattan | coupe | none | stirred | none | Ted Saucier, 1951
+- 1.5 oz @*whiskey-rye
+- 0.75 oz @*brandy-apple
+- 0.75 oz @*liq-chartreuse-yellow
+> Stir, strain.
+
+## creole | Creole | Manhattan | coupe | none | stirred | lemon peel | 1910s
+- 1.5 oz @*whiskey-rye
+- 1.5 oz @*verm-sweet
+- 2 barspoon @*liq-benedictine
+- 2 barspoon @*amaro-china
+> Stir, strain.
+
+## blood-and-sand | Blood and Sand | Sour | coupe | none | shaken | orange peel | Savoy, 1930
+- 1 oz @*scotch-blend
+- 0.75 oz @*verm-sweet
+- 0.75 oz @*liq-cherry
+- 0.75 oz @orange-juice|blood-orange-juice
+> Shake, fine-strain.
+
+## twentieth-century | 20th Century | Sour | coupe | none | shaken | lemon peel | C.A. Tuck, 1937
+- 1.5 oz @*gin-dry
+- 0.75 oz @*verm-quinquina
+- 0.5 oz @liq-cacao-white
+- 0.75 oz @lemon-juice
+> Shake, fine-strain.
+
+## corpse-reviver-2 | Corpse Reviver No. 2 | Sour | coupe | none | shaken | absinthe rinse, lemon peel | Savoy, 1930
+- 0.75 oz @*gin-dry
+- 0.75 oz @*verm-quinquina
+- 0.75 oz @*liq-orange
+- 0.75 oz @lemon-juice
+- 1 rinse @*absinthe
+> Rinse the glass with absinthe. Shake the rest, fine-strain.
+
+## corpse-reviver-1 | Corpse Reviver No. 1 | Manhattan | coupe | none | stirred | none | Savoy, 1930
+- 1 oz @*brandy-cognac
+- 1 oz @*brandy-apple
+- 1 oz @*verm-sweet
+> Stir, strain.
+
+## last-word | Last Word | Sour | coupe | none | shaken | brandied cherry (optional) | Detroit Athletic Club, 1916; revived by Murray Stenson
+- 0.75 oz @*gin-dry
+- 0.75 oz @*liq-chartreuse-green
+- 0.75 oz @*liq-maraschino
+- 0.75 oz @lime-juice
+> Shake, fine-strain.
+
+## final-ward | Final Ward | Sour | coupe | none | shaken | none | Phil Ward, Death & Co, 2007
+- 0.75 oz @*whiskey-rye
+- 0.75 oz @*liq-chartreuse-green
+- 0.75 oz @*liq-maraschino
+- 0.75 oz @lemon-juice
+> Shake, fine-strain.
+
+## naked-and-famous | Naked and Famous | Sour | coupe | none | shaken | none | Joaquín Simó, Death & Co, 2011
+- 0.75 oz @*mezcal
+- 0.75 oz @*liq-chartreuse-yellow
+- 0.75 oz @*aperitivo-light
+- 0.75 oz @lime-juice
+> Shake, fine-strain.
+
+## paper-plane | Paper Plane | Sour | coupe | none | shaken | mini paper plane | Sam Ross, 2008
+- 0.75 oz @*whiskey-bourbon
+- 0.75 oz @*aperitivo-light
+- 0.75 oz @*amaro-medium
+- 0.75 oz @lemon-juice
+> Shake, fine-strain. Amaro Nonino is the original amaro.
+
+## division-bell | Division Bell | Sour | coupe | none | shaken | grapefruit peel | Phil Ward, Mayahuel, 2009
+- 1 oz @*mezcal
+- 0.75 oz @*aperitivo-light
+- 0.5 oz @*liq-maraschino
+- 0.75 oz @lime-juice
+> Shake, fine-strain.
+
+## aviation | Aviation | Sour | coupe | none | shaken | brandied cherry | Hugo Ensslin, 1916
+- 2 oz @*gin-dry
+- 0.5 oz @*liq-maraschino
+- 0.25 oz @*liq-violette
+- 0.75 oz @lemon-juice
+> Shake, fine-strain.
+
+## casino | Casino | Sour | coupe | none | shaken | brandied cherry | 1916
+- 2 oz @*gin-old-tom|*gin-dry
+- 0.25 oz @*liq-maraschino
+- 0.25 oz @lemon-juice
+- 2 dash @bitters-orange
+> Shake, fine-strain.
+
+## pegu-club | Pegu Club | Sour | coupe | none | shaken | lime wheel | Pegu Club, Rangoon, 1920s
+- 2 oz @*gin-dry
+- 0.75 oz @*liq-orange
+- 0.75 oz @lime-juice
+- 1 dash @bitters-aromatic
+- 1 dash @bitters-orange
+> Shake, fine-strain.
+
+## jasmine | Jasmine | Sour | coupe | none | shaken | lemon peel | Paul Harrington, 1990
+- 1.5 oz @*gin-dry
+- 0.25 oz @*aperitivo-red
+- 0.25 oz @*liq-orange
+- 0.75 oz @lemon-juice
+> Shake, fine-strain. Tastes like grapefruit.
+
+## bitter-giuseppe | Bitter Giuseppe | Manhattan | rocks | large cube | stirred | lemon peel | Stephen Cole, 2006
+- 2 oz @*amaro-carciofo
+- 1 oz @*verm-sweet
+- 0.25 oz @lemon-juice
+- 6 dash @bitters-orange
+> Stir, strain over a large cube. Low-proof bitter Manhattan.
+
+## trinidad-sour | Trinidad Sour | Sour | coupe | none | shaken | none | Giuseppe González, 2009
+- 1.5 oz @bitters-aromatic
+- 1 oz @prep:orgeat
+- 0.75 oz @lemon-juice
+- 0.5 oz @*whiskey-rye
+> Yes, 1.5 oz of Angostura. Shake, fine-strain.

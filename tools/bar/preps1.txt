@@ -1,0 +1,491 @@
+# ## id | name | kind | keeps (days) | yield (ml)
+# - amount unit ingredient [@fresh-id]
+# > method / note lines
+# kinds: syrup, shrub, acid, tincture, oleo, cordial, infusion, fat-wash, clarified, foam, bitters, liqueur, juice, other
+
+## simple-syrup | Simple syrup (1:1) | syrup | 30 | 650
+- 400 g white sugar @sugar-white
+- 400 g water
+> Stir the sugar into hot (not boiling) water until fully dissolved. Cool, bottle and refrigerate.
+> By weight, not volume. 1:1 is the default for shaken sours if the spec doesn't say rich.
+
+## rich-simple | Rich simple syrup (2:1) | syrup | 90 | 625
+- 600 g white sugar @sugar-white
+- 300 g water
+> Warm gently and stir until clear. Cool and bottle.
+> Use ¾ as much as 1:1 for the same sweetness, with less dilution. Lasts longer: the sugar is a preservative.
+
+## demerara-syrup | Demerara syrup (2:1) | syrup | 90 | 625
+- 600 g demerara or turbinado sugar @sugar-demerara
+- 300 g water
+> Warm and stir until dissolved. Cool, strain off any grit, bottle.
+> The Old Fashioned and tiki workhorse; molasses depth without heaviness.
+
+## demerara-simple | Demerara syrup (1:1) | syrup | 30 | 650
+- 400 g demerara sugar @sugar-demerara
+- 400 g water
+> Same as above at 1:1, for sours and swizzles.
+
+## brown-sugar-syrup | Brown sugar syrup | syrup | 45 | 625
+- 400 g light or dark brown sugar @sugar-brown
+- 250 g water
+> Warm and stir until dissolved. Cool and bottle.
+
+## muscovado-syrup | Muscovado syrup (2:1) | syrup | 60 | 600
+- 500 g dark muscovado sugar
+- 250 g water
+> Warm, stir to dissolve, strain. Intense molasses; great in stirred rum and whiskey drinks.
+
+## cane-syrup | Cane syrup (sirop de canne) | syrup | 90 | 600
+- 500 g raw cane sugar (rapadura or panela) @sugar-demerara
+- 250 g water
+> Dissolve over low heat, strain. The Ti' Punch syrup; store-bought Petite Canne is the classic.
+
+## gomme-syrup | Gomme (gum) syrup | syrup | 60 | 800
+- 60 g gum arabic @gum-arabic
+- 120 g water (for the gum)
+- 600 g white sugar @sugar-white
+- 300 g water (for the syrup)
+> Soak the gum arabic in 120 g warm water overnight until fully hydrated.
+> Make a 2:1 syrup, cool slightly, and whisk in the gum solution. Strain.
+> Silky texture for stirred drinks: Pisco Punch, Sazerac, Japanese Cocktail.
+
+## honey-syrup | Honey syrup (3:1) | syrup | 60 | 500
+- 375 g honey @honey
+- 125 g warm water
+> Stir together until loose and uniform. Bottle.
+> Flows like simple syrup but rich. Bee's Knees, Gold Rush. Many bars use 1:1; 3:1 keeps it honey-forward.
+
+## honey-syrup-1-1 | Honey syrup (1:1) | syrup | 30 | 500
+- 250 g honey @honey
+- 250 g warm water
+> Stir until uniform. Lighter honey syrup for highballs and punches.
+
+## honey-ginger | Honey-ginger syrup (Penicillin) | syrup | 21 | 500
+- 200 g fresh ginger, unpeeled, chopped @ginger-root
+- 250 g honey @honey
+- 125 g water
+> Juice the ginger (or blend with the water and strain hard).
+> Combine 1 part ginger juice to 1 part honey syrup (3:1 honey). Shake before use.
+> The Penicillin syrup.
+
+## agave-syrup | Agave syrup (2:1) | syrup | 90 | 500
+- 330 g agave nectar @agave-nectar
+- 165 g water
+> Stir together. The Tommy's Margarita sweetener.
+
+## maple-syrup-cut | Maple syrup (cut) | syrup | 60 | 500
+- 400 g maple syrup @maple-syrup
+- 100 g water
+> Stir together. Loosened maple for stirred drinks; use straight maple for punches.
+
+## orgeat | Orgeat | syrup | 21 | 700
+- 250 g blanched almonds @orgeat-almonds
+- 500 g water
+- 450 g white sugar @sugar-white
+- 15 g orange flower water
+- 30 g brandy or vodka
+- 1 drop bitter almond extract (optional)
+> Toast the almonds lightly at 350°F for 5 minutes. Blend with the water until fine and let sit 1 hour.
+> Strain through a nut-milk bag, squeezing hard. Weigh the almond milk and add sugar 1:1 by weight; stir to dissolve without heat.
+> Add the orange flower water and spirit. Shake before use.
+> Mai Tai, Japanese Cocktail, Army & Navy.
+
+## orgeat-quick | Orgeat (quick, almond milk) | syrup | 14 | 500
+- 250 g unsweetened almond milk
+- 250 g white sugar @sugar-white
+- 5 g orange flower water
+- 10 g vodka
+> Blend until the sugar dissolves. Add orange flower water and vodka. A fast stand-in.
+
+## pistachio-orgeat | Pistachio orgeat | syrup | 14 | 600
+- 200 g raw shelled pistachios
+- 450 g water
+- 400 g white sugar @sugar-white
+- 3 g kosher salt @kosher-salt
+- 15 g vodka
+> Blend nuts and water, rest 1 hour, strain hard. Add sugar 1:1 by weight with the salt and vodka.
+
+## falernum | Falernum (non-alcoholic syrup) | syrup | 30 | 600
+- 6 limes, zest only @lime
+- 40 g fresh ginger, sliced @ginger-root
+- 20 whole cloves @cloves
+- 1 tsp allspice berries @allspice-berries
+- 50 g blanched almonds, toasted @orgeat-almonds
+- 400 g white sugar @sugar-white
+- 300 g water
+- 60 g lime juice @lime-juice
+> Toast the cloves, allspice and almonds. Simmer everything except the lime juice for 10 minutes.
+> Steep 1 hour off heat, strain, add lime juice. Corn 'n' Oil, Zombie, Royal Bermuda.
+
+## falernum-velvet | Falernum (rum-based, house liqueur) | liqueur | 180 | 750
+- 250 ml overproof white rum @*rum-overproof
+- 9 limes, zest only @lime
+- 40 cloves @cloves
+- 60 g fresh ginger, julienned @ginger-root
+- 1/4 tsp almond extract
+- 450 ml rich simple syrup @prep:rich-simple
+- 120 ml lime juice @lime-juice
+> Toast the cloves. Steep zest, cloves and ginger in the rum for 24 hours. Strain.
+> Add the rich syrup, lime juice and almond extract. Rest 1 day before using. Paul Clarke's method.
+
+## grenadine | Grenadine | syrup | 30 | 600
+- 500 ml pomegranate juice (100%, POM)
+- 500 g white sugar @sugar-white
+- 15 ml pomegranate molasses
+- 3 ml orange flower water
+- 15 ml vodka (optional, to preserve)
+> Warm the juice just enough to dissolve the sugar (don't boil). Stir in molasses, flower water and vodka.
+> Jack Rose, Ward Eight, El Presidente, Tequila Sunrise.
+
+## cinnamon-syrup | Cinnamon syrup | syrup | 30 | 600
+- 6 cinnamon sticks (cassia), broken @cinnamon-stick
+- 500 g white sugar @sugar-white
+- 500 g water
+> Simmer the cinnamon in the water 5 minutes, add sugar, stir to dissolve, steep overnight. Strain.
+> Zombie, Jet Pilot, Three Dots and a Dash.
+
+## vanilla-syrup | Vanilla syrup | syrup | 30 | 600
+- 2 vanilla beans, split and scraped @vanilla-bean
+- 500 g white sugar @sugar-white
+- 500 g water
+> Dissolve sugar in hot water, add pod and seeds, steep overnight. Strain or leave the pod in.
+> Pornstar Martini, Port of Call riffs.
+
+## ginger-syrup | Ginger syrup (fresh juice) | syrup | 14 | 500
+- 300 g fresh ginger, unpeeled @ginger-root
+- 250 g white sugar @sugar-white
+> Juice the ginger. Weigh the juice and add an equal weight of sugar; shake until dissolved (no heat, to keep the bite).
+> Moscow Mule from scratch, Gin-Gin Mule, Kentucky Buck.
+
+## ginger-syrup-cooked | Ginger syrup (cooked) | syrup | 30 | 600
+- 150 g fresh ginger, sliced thin @ginger-root
+- 400 g white sugar @sugar-white
+- 400 g water
+> Simmer ginger in water 20 minutes, add sugar, steep 1 hour, strain. Softer, sweeter heat.
+
+## mint-syrup | Mint syrup | syrup | 7 | 500
+- 30 g fresh mint leaves @mint
+- 300 g simple syrup (1:1) @prep:simple-syrup
+> Blanch mint 10 seconds, shock in ice water, blend with cold syrup, strain fine. Keeps it bright green.
+
+## basil-syrup | Basil syrup | syrup | 5 | 500
+- 30 g basil leaves @basil
+- 300 g simple syrup (1:1) @prep:simple-syrup
+> Same method as mint: blanch, shock, blend, strain.
+
+## rosemary-syrup | Rosemary syrup | syrup | 21 | 500
+- 4 sprigs rosemary @rosemary
+- 300 g white sugar @sugar-white
+- 300 g water
+> Steep rosemary in hot syrup 30 minutes. Strain.
+
+## thyme-syrup | Thyme syrup | syrup | 21 | 500
+- 10 sprigs thyme @thyme
+- 300 g white sugar @sugar-white
+- 300 g water
+> Steep in hot syrup 30 minutes. Strain.
+
+## sage-syrup | Sage syrup | syrup | 14 | 500
+- 15 sage leaves @sage
+- 300 g white sugar @sugar-white
+- 300 g water
+> Steep in hot syrup 30 minutes. Strain.
+
+## lavender-syrup | Lavender syrup | syrup | 30 | 500
+- 2 tbsp dried culinary lavender @lavender
+- 300 g white sugar @sugar-white
+- 300 g water
+> Steep in hot syrup 15 minutes (any longer turns soapy). Strain fine.
+
+## hibiscus-syrup | Hibiscus syrup | syrup | 30 | 600
+- 30 g dried hibiscus @hibiscus-dried
+- 400 g water
+- 400 g white sugar @sugar-white
+> Steep hibiscus in just-boiled water 10 minutes, strain, add sugar and stir. Deep magenta, tart.
+
+## earl-grey-syrup | Earl Grey syrup | syrup | 21 | 500
+- 4 tbsp Earl Grey tea @tea-earl-grey
+- 300 g water
+- 300 g white sugar @sugar-white
+> Steep tea in water just off the boil for 4 minutes, strain, add sugar.
+
+## chamomile-syrup | Chamomile syrup | syrup | 21 | 500
+- 4 tbsp chamomile @chamomile
+- 300 g water
+- 300 g white sugar @sugar-white
+> Steep 5 minutes in just-boiled water, strain, add sugar.
+
+## black-tea-syrup | Black tea syrup | syrup | 21 | 500
+- 4 tbsp black tea @tea-black
+- 300 g water
+- 300 g white sugar @sugar-white
+> Steep 4 minutes, strain, add sugar. Punches and Long Island Iced Tea riffs.
+
+## matcha-syrup | Matcha syrup | syrup | 5 | 400
+- 10 g matcha @tea-green
+- 300 g simple syrup (1:1) @prep:simple-syrup
+> Whisk matcha into a little warm water to a paste, then blend into cold syrup.
+
+## coffee-syrup | Coffee syrup | syrup | 21 | 500
+- 300 g strong brewed coffee or cold brew @mix-coffee
+- 300 g demerara sugar @sugar-demerara
+> Dissolve the sugar into hot coffee. Cool and bottle.
+
+## cardamom-syrup | Cardamom syrup | syrup | 30 | 500
+- 2 tbsp green cardamom pods, cracked @cardamom
+- 300 g white sugar @sugar-white
+- 300 g water
+> Simmer 5 minutes, steep 1 hour, strain.
+
+## allspice-syrup | Allspice syrup | syrup | 30 | 500
+- 2 tbsp allspice berries, cracked @allspice-berries
+- 300 g demerara sugar @sugar-demerara
+- 300 g water
+> Simmer 5 minutes, steep 1 hour, strain.
+
+## spiced-syrup | Winter spice syrup | syrup | 30 | 600
+- 2 cinnamon sticks @cinnamon-stick
+- 6 cloves @cloves
+- 4 allspice berries @allspice-berries
+- 2 star anise @star-anise
+- 1 orange, peel only @orange
+- 400 g demerara sugar @sugar-demerara
+- 400 g water
+> Toast the spices, simmer with the peel and water 10 minutes, add sugar, steep 1 hour, strain.
+> Hot toddies, mulled punches, holiday Old Fashioneds.
+
+## jalapeno-syrup | Jalapeño syrup | syrup | 14 | 500
+- 2 jalapeños, sliced (seeds for more heat) @jalapeno
+- 300 g white sugar @sugar-white
+- 300 g water
+> Steep jalapeño in hot syrup 20 minutes; taste and strain when hot enough.
+
+## chile-syrup | Dried chile syrup (ancho/guajillo) | syrup | 30 | 500
+- 2 ancho chiles, seeded and toasted
+- 1 guajillo chile, seeded and toasted
+- 300 g demerara sugar @sugar-demerara
+- 300 g water
+> Simmer toasted chiles 10 minutes, steep 1 hour, strain. Smoky heat for agave drinks.
+
+## raspberry-syrup | Raspberry syrup | syrup | 14 | 600
+- 300 g raspberries @raspberries
+- 300 g white sugar @sugar-white
+- 200 g water
+> Macerate berries in sugar 1 hour, add water, warm gently 5 minutes, strain fine. Clover Club, Bramble riffs.
+
+## strawberry-syrup | Strawberry syrup | syrup | 10 | 600
+- 400 g strawberries, hulled @strawberries
+- 300 g white sugar @sugar-white
+> Toss and macerate 4–12 hours cold until the juice runs. Strain without pressing; add 20 ml vodka to extend.
+
+## blackberry-syrup | Blackberry syrup | syrup | 14 | 600
+- 300 g blackberries @blackberries
+- 300 g white sugar @sugar-white
+- 200 g water
+> Macerate, warm gently, strain fine.
+
+## passion-fruit-syrup | Passion fruit syrup | syrup | 21 | 600
+- 250 g passion fruit purée (unsweetened) @passion-fruit
+- 250 g white sugar @sugar-white
+- 125 g water
+> Dissolve sugar in water, cool, blend with purée. Hurricane, Saturn, Pornstar Martini.
+
+## pineapple-syrup | Pineapple syrup (Pisco Punch) | syrup | 14 | 600
+- 1/2 pineapple, cubed @pineapple
+- 400 g white sugar @sugar-white
+- 300 g water
+> Toss pineapple in sugar, rest overnight in the fridge, add water, stir to dissolve and strain. Pisco Punch, Algonquin riffs.
+
+## cherry-syrup | Cherry syrup | syrup | 14 | 600
+- 300 g sweet cherries, pitted @cherries-fresh
+- 300 g white sugar @sugar-white
+- 200 g water
+> Simmer 5 minutes, steep 30 minutes, strain.
+
+## blueberry-syrup | Blueberry syrup | syrup | 14 | 600
+- 300 g blueberries @blueberries
+- 300 g white sugar @sugar-white
+- 200 g water
+> Simmer until berries burst, steep 30 minutes, strain fine.
+
+## peach-syrup | Peach syrup | syrup | 10 | 600
+- 3 ripe peaches, sliced @peach
+- 300 g white sugar @sugar-white
+- 200 g water
+> Simmer 10 minutes, steep 1 hour, strain.
+
+## watermelon-syrup | Watermelon syrup | syrup | 5 | 600
+- 400 g watermelon juice @watermelon
+- 300 g white sugar @sugar-white
+> Shake to dissolve, no heat.
+
+## cranberry-syrup | Cranberry syrup | syrup | 21 | 600
+- 300 g fresh cranberries
+- 300 g white sugar @sugar-white
+- 300 g water
+> Simmer until the berries pop, 10 minutes. Steep and strain.
+
+## pomegranate-syrup | Pomegranate syrup (no-cook) | syrup | 14 | 600
+- 500 g pomegranate juice
+- 500 g white sugar @sugar-white
+> Shake to dissolve. Brighter than cooked grenadine.
+
+## coconut-syrup | Coconut syrup (from coconut milk) | syrup | 7 | 600
+- 400 g canned coconut milk @coconut-milk
+- 300 g white sugar @sugar-white
+- 1 pinch salt @kosher-salt
+> Warm gently and whisk until dissolved. Cool, shake before use. Stand-in for cream of coconut.
+
+## cream-of-coconut | Cream of coconut (house Coco López) | syrup | 7 | 700
+- 400 g coconut cream @coconut-milk
+- 300 g white sugar @sugar-white
+- 1 pinch salt @kosher-salt
+> Blend until smooth and silky. Piña Colada, Painkiller.
+
+## horchata-syrup | Horchata syrup | syrup | 5 | 600
+- 100 g long-grain rice
+- 50 g blanched almonds @orgeat-almonds
+- 1 cinnamon stick @cinnamon-stick
+- 500 g water
+- 300 g white sugar @sugar-white
+> Soak rice, almonds and cinnamon in the water overnight. Blend, strain hard, add sugar.
+
+## corn-syrup-house | Sweet corn syrup | syrup | 5 | 500
+- 2 ears sweet corn, kernels and scraped cobs
+- 300 g water
+- 300 g white sugar @sugar-white
+> Simmer corn and cobs 20 minutes, blend, strain hard, add sugar. Summer corn whiskey sours.
+
+## celery-syrup | Celery syrup | syrup | 7 | 500
+- 300 g celery juice @celery
+- 250 g white sugar @sugar-white
+- 1 pinch salt @kosher-salt
+> Shake to dissolve. Savory gin sours.
+
+## cucumber-syrup | Cucumber syrup | syrup | 5 | 500
+- 300 g cucumber juice @cucumber
+- 250 g white sugar @sugar-white
+> Shake to dissolve, no heat.
+
+## beet-syrup | Beet syrup | syrup | 7 | 500
+- 300 g beet juice
+- 250 g white sugar @sugar-white
+> Shake to dissolve. Earthy and vivid.
+
+## carrot-syrup | Carrot-ginger syrup | syrup | 7 | 500
+- 250 g carrot juice
+- 50 g ginger juice @ginger-root
+- 250 g white sugar @sugar-white
+> Shake to dissolve.
+
+## sesame-syrup | Toasted sesame syrup | syrup | 21 | 500
+- 60 g sesame seeds, toasted
+- 300 g water
+- 300 g demerara sugar @sugar-demerara
+> Blend seeds and hot water, steep 30 minutes, strain fine, add sugar.
+
+## pecan-syrup | Toasted pecan syrup | syrup | 21 | 500
+- 150 g pecans, toasted
+- 400 g water
+- 300 g demerara sugar @sugar-demerara
+> Blend nuts and hot water, steep 1 hour, strain hard, add sugar. Old Fashioned riffs.
+
+## popcorn-syrup | Popcorn syrup | syrup | 14 | 500
+- 40 g popped popcorn (butter optional)
+- 400 g water
+- 300 g white sugar @sugar-white
+> Blend hot water and popcorn, steep 20 minutes, strain hard, add sugar.
+
+## salted-caramel | Salted caramel syrup | syrup | 30 | 500
+- 300 g white sugar @sugar-white
+- 250 g hot water
+- 3 g flaky salt @flaky-salt
+> Cook the sugar dry to deep amber. Carefully whisk in hot water, simmer until smooth, add salt.
+
+## burnt-sugar | Burnt sugar syrup | syrup | 60 | 400
+- 300 g white sugar @sugar-white
+- 200 g hot water
+> Cook sugar dark, just shy of smoking. Whisk in hot water. Bitter-sweet depth for stirred drinks.
+
+## oleo-saccharum | Oleo saccharum (lemon) | oleo | 7 | 250
+- 6 lemons, peels only, no pith @lemon
+- 200 g white sugar @sugar-white
+> Muddle peels with sugar, seal and rest 4–12 hours at room temperature until the oils pool.
+> Dissolve with an equal weight of lemon juice or warm water. The base of every proper punch.
+
+## oleo-orange | Oleo saccharum (orange) | oleo | 7 | 250
+- 4 oranges, peels only @orange
+- 200 g white sugar @sugar-white
+> Same method as lemon; great for Old Fashioned batches and orange punches.
+
+## oleo-grapefruit | Oleo saccharum (grapefruit) | oleo | 7 | 250
+- 2 grapefruit, peels only @grapefruit
+- 200 g white sugar @sugar-white
+> Same method; Paloma and Brown Derby batches.
+
+## oleo-mixed | Oleo saccharum (mixed citrus) | oleo | 7 | 300
+- 3 lemons, peels @lemon
+- 2 oranges, peels @orange
+- 2 limes, peels @lime
+- 250 g white sugar @sugar-white
+> Punch base for Philadelphia Fish House Punch and holiday bowls.
+
+## oleo-vacuum | Oleo saccharum (sous-vide quick) | oleo | 7 | 250
+- 6 lemons, peels @lemon
+- 200 g white sugar @sugar-white
+> Vacuum seal peels and sugar; 2 hours at 50°C extracts in place of overnight.
+
+## citrus-cordial | Lime cordial (Gimlet) | cordial | 30 | 700
+- 4 limes, zest only @lime
+- 300 g lime juice @lime-juice
+- 300 g white sugar @sugar-white
+- 5 g citric acid @citric-acid
+- 1 g malic acid @malic-acid
+> Blend zest with sugar, rest 1 hour. Add juice and acids, stir to dissolve, strain fine.
+> 2 oz gin + 0.75–1 oz cordial = a proper Gimlet.
+
+## lime-cordial-clear | Lime cordial (clarified, shelf-stable) | cordial | 60 | 700
+- 4 limes, zest only @lime
+- 400 g water
+- 400 g white sugar @sugar-white
+- 20 g citric acid @citric-acid
+- 6 g malic acid @malic-acid
+- 0.5 g salt @kosher-salt
+> Make a sherbet with zest and sugar, add water and acids, stir to dissolve, strain. No fresh juice: crystal clear and lasts.
+
+## grapefruit-cordial | Grapefruit cordial | cordial | 21 | 700
+- 2 grapefruit, zest @grapefruit
+- 300 g grapefruit juice @grapefruit-juice
+- 300 g white sugar @sugar-white
+- 4 g citric acid @citric-acid
+> Same method as lime cordial.
+
+## raspberry-cordial | Raspberry cordial | cordial | 14 | 600
+- 300 g raspberries @raspberries
+- 300 g white sugar @sugar-white
+- 200 g water
+- 8 g citric acid @citric-acid
+> Simmer, strain fine, add acid.
+
+## elderflower-cordial | Elderflower cordial | cordial | 60 | 1500
+- 20 elderflower heads (fresh) or 30 g dried
+- 2 lemons, zest and slices @lemon
+- 1000 g white sugar @sugar-white
+- 1000 g water
+- 30 g citric acid @citric-acid
+> Pour hot syrup over flowers, lemons and acid. Cover and steep 24–48 hours, strain fine.
+
+## rose-cordial | Rose cordial | cordial | 30 | 600
+- 15 g dried rose petals
+- 400 g water
+- 400 g white sugar @sugar-white
+- 5 g citric acid @citric-acid
+- 3 ml rose water
+> Steep petals in hot water 10 minutes, strain, add sugar, acid and rose water.
+
+## ginger-cordial | Ginger cordial | cordial | 30 | 700
+- 300 g ginger juice @ginger-root
+- 400 g white sugar @sugar-white
+- 8 g citric acid @citric-acid
+> Shake to dissolve. Sharper and longer-lasting than ginger syrup.

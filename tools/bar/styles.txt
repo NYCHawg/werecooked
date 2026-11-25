@@ -1,0 +1,332 @@
+# id | category | family (what can stand in for it) | style | origin | abv % | notes
+# ---------- Gin ----------
+gin-london-dry | Gin | gin-dry | London Dry gin | England / worldwide | 40-47 | Juniper-led, dry, no sweetening after distillation. The default for Martinis, Negronis, G&Ts.
+gin-plymouth | Gin | gin-dry | Plymouth gin | Plymouth, England | 41-41.2 | Softer, earthier, rooty; less juniper bite than London Dry.
+gin-navy | Gin | gin-dry | Navy Strength gin | England / worldwide | 57-58 | London Dry at 57%; holds up in Gimlets and punches.
+gin-contemporary | Gin | gin-modern | Contemporary / New Western gin | worldwide | 40-47 | Juniper steps back for citrus, floral or botanical notes.
+gin-citrus | Gin | gin-modern | Citrus-forward gin | worldwide | 40-45 | Bright lemon, grapefruit or yuzu; great in Southsides and Collinses.
+gin-mediterranean | Gin | gin-modern | Mediterranean gin | Spain, Italy | 40-45 | Olive, rosemary, basil, citrus; savory.
+gin-japanese | Gin | gin-modern | Japanese gin | Japan | 40-47 | Yuzu, sansho, sakura, sencha.
+gin-old-tom | Gin | gin-old-tom | Old Tom gin | England / US | 40-47 | Lightly sweetened or richer malt base; Tom Collins, Martinez.
+gin-barrel | Gin | gin-old-tom | Barrel-aged gin | worldwide | 40-50 | Rested in oak; vanilla and spice. Martinez, Negroni riffs.
+gin-sloe | Gin | liq-sloe | Sloe gin | England | 25-30 | Gin steeped with sloe berries and sweetened; tart plum. Sloe Gin Fizz.
+gin-pink | Gin | gin-modern | Pink / flavored gin | worldwide | 37.5-40 | Berry or rhubarb flavored, often sweetened.
+gin-genever-oude | Genever | genever | Oude genever | Netherlands, Belgium | 35-42 | Higher malt wine, richer, whiskey-like. Improved Holland Cocktail.
+gin-genever-jonge | Genever | genever | Jonge genever | Netherlands, Belgium | 35-40 | Lighter, cleaner, more neutral; modern style.
+gin-genever-korenwijn | Genever | genever | Korenwijn | Netherlands | 38-40 | 51%+ malt wine, often aged; the most whiskey-like.
+gin-malt | Genever | genever | Malt-forward gin (Holland style) | worldwide | 40-45 | Malty "new" genever styles.
+# ---------- Vodka ----------
+vodka-wheat | Vodka | vodka | Wheat vodka | worldwide | 40 | Soft, slightly sweet, creamy.
+vodka-rye | Vodka | vodka | Rye vodka | Poland, worldwide | 40 | Peppery, spicy, more body.
+vodka-potato | Vodka | vodka | Potato vodka | Poland, Idaho | 40 | Round, earthy, oily texture.
+vodka-corn | Vodka | vodka | Corn vodka | US | 40 | Clean, faintly sweet; gluten-free.
+vodka-grape | Vodka | vodka | Grape vodka | France | 40 | Fruity, bright.
+vodka-neutral | Vodka | vodka | Neutral / multi-grain vodka | worldwide | 40 | As clean as it gets.
+vodka-citrus | Vodka | vodka-flavored | Citrus vodka | worldwide | 35-40 | Lemon, orange or grapefruit; Cosmopolitan (Citron).
+vodka-vanilla | Vodka | vodka-flavored | Vanilla vodka | worldwide | 35-40 | Pornstar Martini.
+vodka-bison | Vodka | vodka-flavored | Bison grass vodka | Poland | 37.5-40 | Coumarin, vanilla, hay; Szarlotka with apple juice.
+vodka-pepper | Vodka | vodka-flavored | Pepper vodka | worldwide | 40 | For Bloody Marys.
+# ---------- Rum ----------
+rum-jamaican-pot | Rum | rum-jamaican | Jamaican pot still rum (high ester) | Jamaica | 40-63 | Dunder funk, overripe banana, pineapple. Mai Tai, Jungle Bird, daiquiri.
+rum-jamaican-aged | Rum | rum-jamaican | Jamaican aged blended rum | Jamaica | 40-46 | Pot/column blend, rounder funk.
+rum-jamaican-overproof | Rum | rum-overproof | Jamaican white overproof | Jamaica | 63 | Unaged, fiery, intensely funky.
+rum-demerara | Rum | rum-demerara | Demerara rum | Guyana | 40-46 | Wooden-still character; burnt sugar, smoke, dark fruit.
+rum-demerara-overproof | Rum | rum-overproof | Demerara overproof (151) | Guyana | 69-75.5 | Zombie floats, Lei Lani; rich, smoky.
+rum-barbados | Rum | rum-blended-aged | Barbados rum | Barbados | 40-46 | Pot/column blend; balanced, vanilla, baking spice. The great all-rounder.
+rum-trinidad | Rum | rum-light | Trinidad rum | Trinidad | 40-46 | Light column-still rum; dry, clean.
+rum-spanish-white | Rum | rum-light | Spanish-style white rum | Cuba, Puerto Rico, DR | 37.5-40 | Light, clean, column-distilled, filtered. Classic Daiquiri, Mojito.
+rum-spanish-aged | Rum | rum-blended-aged | Spanish-style aged rum (añejo) | Cuba, Puerto Rico | 40 | Light-bodied, oaky, dry.
+rum-central-aged | Rum | rum-sweet-aged | Central American / Venezuelan aged rum | Guatemala, Venezuela, Nicaragua, Panama | 40-43 | Often solera, softer, sometimes sweetened; dessert-y.
+rum-blended-aged | Rum | rum-blended-aged | Multi-island blended aged rum | Caribbean | 40-46 | Bartender blends built for cocktails.
+rum-blended-light | Rum | rum-light | Blended lightly aged rum | Caribbean | 40-46 | Filtered 1–3 year blends with some character.
+rum-navy | Rum | rum-dark | Navy rum | Caribbean blend | 46-57 | Demerara-heavy blend; rich, full.
+rum-black | Rum | rum-dark | Black / blackstrap rum | Caribbean | 40-46 | Molasses, caramel color; Dark 'n' Stormy, floats.
+rum-spiced | Rum | rum-spiced | Spiced rum | worldwide | 35-46 | Vanilla, cinnamon, clove; usually sweetened.
+rum-agricole-blanc | Rum | rum-agricole | Rhum agricole blanc | Martinique | 40-55 | Fresh cane juice; grassy, vegetal, peppery. Ti' Punch.
+rum-agricole-vieux | Rum | rum-agricole-aged | Rhum agricole vieux | Martinique | 40-45 | Aged cane-juice rhum; dried fruit, oak, grass.
+rum-guadeloupe | Rum | rum-agricole | Guadeloupe / Marie-Galante rhum | Guadeloupe | 40-59 | Cane juice (and molasses); full, funky.
+rum-clairin | Rum | rum-agricole | Haitian clairin | Haiti | 48-55 | Wild-fermented cane juice, unaged, untamed.
+rum-cane-juice | Rum | rum-agricole | Cane juice rum (other origins) | worldwide | 40-55 | Agricole-style outside the AOC.
+rum-cachaca-branca | Rum | rum-cachaca | Cachaça (unaged, branca) | Brazil | 38-48 | Fresh cane juice, fruity and vegetal. Caipirinha.
+rum-cachaca-aged | Rum | rum-cachaca | Cachaça (aged, amarela) | Brazil | 38-48 | Rested in native woods like amburana or oak.
+rum-overproof-white | Rum | rum-overproof | White overproof rum | Caribbean | 60-75 | High proof floats and punches.
+rum-pot-unaged | Rum | rum-jamaican | Unaged pot still rum (non-Jamaican) | worldwide | 40-60 | Heavy, flavorful white rum.
+rum-batavia-arrack | Rum | arrack | Batavia arrack | Indonesia | 48-50 | Red-rice fermented, sugar cane spirit; smoky, funky. The classic punch spirit.
+rum-coconut | Rum | liq-coconut | Coconut rum | Caribbean | 21-35 | Sweetened, coconut flavored.
+# ---------- Agave ----------
+tequila-blanco | Tequila | tequila-blanco | Tequila blanco | Jalisco, Mexico | 38-40 | Bright cooked agave, pepper, citrus. Margarita, Paloma.
+tequila-blanco-highland | Tequila | tequila-blanco | Highland (Los Altos) blanco | Jalisco highlands | 40-46 | Floral, fruity, sweeter agave.
+tequila-blanco-still | Tequila | tequila-blanco | Still-strength blanco | Jalisco | 46-55 | High proof, more texture and agave.
+tequila-reposado | Tequila | tequila-reposado | Tequila reposado | Jalisco | 38-40 | 2–12 months in oak; vanilla meets agave.
+tequila-anejo | Tequila | tequila-aged | Tequila añejo | Jalisco | 38-40 | 1–3 years in oak; caramel, spice.
+tequila-extra-anejo | Tequila | tequila-aged | Tequila extra añejo | Jalisco | 40 | 3+ years; sipping.
+tequila-cristalino | Tequila | tequila-reposado | Cristalino | Jalisco | 40 | Aged then filtered clear.
+mezcal-espadin | Mezcal | mezcal | Mezcal joven (espadín) | Oaxaca | 40-48 | Roasted agave, smoke, fruit. The cocktail mezcal.
+mezcal-ensamble | Mezcal | mezcal | Mezcal ensamble | Oaxaca, Durango, Guerrero | 45-50 | Blend of agave species; layered.
+mezcal-wild | Mezcal | mezcal-wild | Wild agave mezcal (tobalá, tepeztate, madrecuixe) | Oaxaca and beyond | 45-52 | Expressive, floral or vegetal; usually for sipping.
+mezcal-ancestral | Mezcal | mezcal-wild | Mezcal ancestral | Mexico | 45-55 | Clay-pot distilled; earthy, mineral.
+mezcal-reposado | Mezcal | mezcal | Mezcal reposado / añejo | Mexico | 40-45 | Oak-rested mezcal.
+mezcal-pechuga | Mezcal | mezcal-wild | Mezcal pechuga | Oaxaca, Puebla | 45-52 | Third distillation with fruit, spice and a breast of poultry hung in the still.
+agave-raicilla | Mezcal | agave-other | Raicilla | Jalisco | 40-50 | Wild agave; tropical fruit, funky, lightly smoky.
+agave-sotol | Mezcal | agave-other | Sotol | Chihuahua, Durango | 38-45 | Desert spoon (dasylirion); green, mineral, herbal.
+agave-bacanora | Mezcal | agave-other | Bacanora | Sonora | 40-47 | Agave pacifica; sweet, light smoke.
+agave-spirit | Mezcal | agave-other | Agave spirit (destilado de agave) | Mexico | 40-50 | Agave spirits outside a DO.
+# ---------- American whiskey ----------
+whiskey-bourbon | Whiskey | whiskey-bourbon | Bourbon | US | 40-50 | Corn-led; caramel, vanilla, baking spice. Old Fashioned, Whiskey Sour.
+whiskey-bourbon-wheated | Whiskey | whiskey-bourbon | Wheated bourbon | US | 40-50 | Wheat instead of rye; soft, sweet.
+whiskey-bourbon-highrye | Whiskey | whiskey-bourbon | High-rye bourbon | US | 40-50 | Spicier, drier bourbon; great in Manhattans.
+whiskey-bourbon-bib | Whiskey | whiskey-bourbon | Bottled-in-bond bourbon | US | 50 | 100 proof, 4+ years; the bartender's workhorse.
+whiskey-bourbon-cask | Whiskey | whiskey-bourbon | Barrel-proof bourbon | US | 55-70 | Uncut; dilute in stirred drinks.
+whiskey-rye | Whiskey | whiskey-rye | Rye whiskey | US | 40-50 | Peppery, dry, herbal. Manhattan, Sazerac, Vieux Carré.
+whiskey-rye-bib | Whiskey | whiskey-rye | Bottled-in-bond rye | US | 50 | 100 proof rye; classic cocktail backbone.
+whiskey-rye-high | Whiskey | whiskey-rye | High-rye (95%) rye | Indiana (MGP) and others | 45-55 | Dill, mint, intense spice.
+whiskey-rye-cask | Whiskey | whiskey-rye | Barrel-proof rye | US | 55-70 | Uncut rye.
+whiskey-tennessee | Whiskey | whiskey-bourbon | Tennessee whiskey | Tennessee | 40-50 | Charcoal-mellowed (Lincoln County process).
+whiskey-wheat | Whiskey | whiskey-bourbon | Wheat whiskey | US | 40-50 | 51%+ wheat; light, bready.
+whiskey-corn | Whiskey | whiskey-corn | Corn whiskey / white dog | US | 40-62.5 | Unaged or lightly aged; sweet corn.
+whiskey-american-malt | Whiskey | whiskey-malt | American single malt | US | 40-55 | Malted barley, often new oak; bold.
+whiskey-american-blend | Whiskey | whiskey-bourbon | American blended whiskey | US | 40 | Light, mixable.
+# ---------- Scotch ----------
+scotch-blended | Whiskey | scotch-blend | Blended Scotch | Scotland | 40-43 | Malt and grain blend; the Highball and Rob Roy standard.
+scotch-blended-malt | Whiskey | scotch-blend | Blended malt Scotch | Scotland | 40-46 | Malts only, no grain whisky.
+scotch-speyside | Whiskey | scotch-malt | Speyside single malt | Speyside | 40-46 | Orchard fruit, honey, malt.
+scotch-highland | Whiskey | scotch-malt | Highland single malt | Highlands | 40-46 | Broad range: heather, honey, light smoke.
+scotch-lowland | Whiskey | scotch-malt | Lowland single malt | Lowlands | 40-46 | Light, grassy, floral.
+scotch-campbeltown | Whiskey | scotch-malt | Campbeltown single malt | Campbeltown | 46 | Briny, oily, light smoke.
+scotch-sherry | Whiskey | scotch-malt | Sherry-cask single malt | Scotland | 40-60 | Dried fruit, nuts, Christmas cake.
+scotch-island | Whiskey | scotch-peated | Island single malt | Skye, Orkney, Mull, Jura | 40-46 | Maritime, peppery, light peat.
+scotch-islay | Whiskey | scotch-peated | Islay peated single malt | Islay | 40-46 | Peat smoke, iodine, sea. Penicillin float, rinses.
+scotch-islay-unpeated | Whiskey | scotch-malt | Islay unpeated malt | Islay | 40-46 | Coastal without the smoke.
+scotch-grain | Whiskey | scotch-blend | Single grain Scotch | Scotland | 40-46 | Light, sweet, vanilla.
+# ---------- Irish ----------
+irish-blended | Whiskey | irish | Blended Irish whiskey | Ireland | 40 | Light and smooth; Irish Coffee.
+irish-pot-still | Whiskey | irish | Single pot still Irish | Ireland | 40-58 | Malted and unmalted barley; creamy, spicy.
+irish-malt | Whiskey | irish | Irish single malt | Ireland | 40-46 | Fruity, honeyed.
+irish-grain | Whiskey | irish | Irish single grain | Ireland | 40-46 | Light, sweet.
+# ---------- Rest of the world ----------
+japanese-blended | Whiskey | japanese | Japanese blended whisky | Japan | 40-43 | Delicate; the Highball whisky.
+japanese-malt | Whiskey | japanese | Japanese single malt | Japan | 40-48 | Precise; mizunara, fruit, light smoke.
+canadian-blended | Whiskey | canadian | Canadian blended whisky | Canada | 40 | Light, smooth, often rye-accented.
+canadian-rye | Whiskey | whiskey-rye | Canadian rye (high rye) | Canada | 40-45 | 90–100% rye; can stand in for American rye.
+world-malt | Whiskey | whiskey-malt | World single malt (Taiwan, India, etc.) | worldwide | 40-58 | Tropical, fast-maturing malts.
+# ---------- Brandy ----------
+brandy-cognac-vs | Brandy | brandy-cognac | Cognac VS | Cognac, France | 40 | 2+ years; bright fruit, oak. Sidecar, French 75.
+brandy-cognac-vsop | Brandy | brandy-cognac | Cognac VSOP | Cognac, France | 40-45 | 4+ years; richer. The cocktail cognac.
+brandy-cognac-xo | Brandy | brandy-cognac | Cognac XO | Cognac, France | 40 | 10+ years; sipping.
+brandy-armagnac | Brandy | brandy-cognac | Armagnac | Gascony, France | 40-48 | Single column; rustic, prune, more character than cognac.
+brandy-armagnac-blanche | Brandy | eau-de-vie | Blanche Armagnac | Gascony, France | 40-48 | Unaged grape brandy; floral.
+brandy-calvados | Brandy | brandy-apple | Calvados | Normandy, France | 40-45 | Apple (and pear) brandy; Pays d'Auge is double-distilled.
+brandy-applejack | Brandy | brandy-apple | American apple brandy / applejack | US | 40-50 | Laird's bonded is the Jack Rose standard.
+brandy-american | Brandy | brandy-grape | American brandy | California | 40-45 | Pot-still grape brandy; fruity.
+brandy-spanish | Brandy | brandy-grape | Brandy de Jerez | Spain | 36-40 | Solera-aged in sherry casks; sweet, raisin.
+brandy-metaxa | Brandy | brandy-grape | Greek brandy (Metaxa) | Greece | 38-40 | Brandy with muscat wine; sweet, floral.
+brandy-pisco-quebranta | Brandy | pisco | Pisco puro (quebranta) | Peru | 38-48 | Non-aromatic grape; earthy, banana. Pisco Sour.
+brandy-pisco-acholado | Brandy | pisco | Pisco acholado | Peru | 38-48 | Blend of grapes; balanced.
+brandy-pisco-aromatic | Brandy | pisco | Aromatic pisco (Italia, torontel) | Peru | 38-48 | Floral, muscat-like.
+brandy-pisco-chile | Brandy | pisco | Chilean pisco | Chile | 35-45 | Often lightly aged.
+brandy-singani | Brandy | pisco | Singani | Bolivia | 40 | Muscat of Alexandria; floral.
+brandy-grappa | Brandy | eau-de-vie | Grappa | Italy | 40-50 | Pomace brandy; grapey, rustic.
+brandy-kirsch | Brandy | eau-de-vie | Kirsch (cherry eau de vie) | Germany, Switzerland, France | 40-45 | Bone-dry cherry pit and almond.
+brandy-poire | Brandy | eau-de-vie | Poire Williams | France, Switzerland | 40-43 | Ripe pear essence.
+brandy-mirabelle | Brandy | eau-de-vie | Mirabelle / plum eau de vie | Lorraine, Central Europe | 40-45 | Yellow plum.
+brandy-slivovitz | Brandy | eau-de-vie | Slivovitz | Central Europe, Balkans | 40-52 | Plum brandy, often aged.
+brandy-framboise | Brandy | eau-de-vie | Framboise | Alsace | 40-45 | Raspberry eau de vie.
+brandy-apricot | Brandy | eau-de-vie | Apricot eau de vie (Barack) | Hungary, Austria | 40-45 | Dry apricot.
+brandy-palinka | Brandy | eau-de-vie | Pálinka | Hungary | 40-70 | Fruit brandy (plum, apricot, pear, quince).
+# ---------- Orange & citrus liqueurs ----------
+liq-triple-sec | Liqueur | liq-orange | Triple sec (premium, e.g. Cointreau) | France | 30-40 | Clean, bright orange; Margarita, Sidecar, Cosmopolitan.
+liq-dry-curacao | Liqueur | liq-orange | Dry curaçao | France / Caribbean | 30-40 | Orange peel on a brandy base, spiced; Mai Tai, Corpse Reviver.
+liq-grand-marnier | Liqueur | liq-orange | Cognac-orange liqueur (Grand Marnier) | France | 40 | Heavier, cognac base.
+liq-blue-curacao | Liqueur | liq-orange | Blue curaçao | worldwide | 20-25 | Orange liqueur colored blue; Blue Hawaii.
+liq-orange-cheap | Liqueur | liq-orange | Triple sec (standard) | worldwide | 15-30 | Sweeter, less complex.
+liq-limoncello | Liqueur | liq-citrus | Limoncello | Southern Italy | 26-32 | Lemon peel liqueur.
+liq-pamplemousse | Liqueur | liq-citrus | Grapefruit liqueur | France | 18-25 | Pink grapefruit.
+liq-yuzu | Liqueur | liq-citrus | Yuzu liqueur | Japan | 8-20 | Tart, floral citrus.
+liq-mandarine | Liqueur | liq-orange | Mandarin liqueur (Mandarine Napoléon) | Belgium | 38 | Mandarin and tangerine on cognac.
+# ---------- Herbal liqueurs ----------
+liq-green-chartreuse | Liqueur | liq-chartreuse-green | Green Chartreuse | Voiron, France | 55 | 130 herbs; intense, minty, hot. Last Word, Bijou.
+liq-yellow-chartreuse | Liqueur | liq-chartreuse-yellow | Yellow Chartreuse | Voiron, France | 40-43 | Softer, honeyed, saffron. Naked & Famous.
+liq-chartreuse-alt | Liqueur | liq-chartreuse-green | Alpine herbal liqueur (Chartreuse alternative) | France, Italy, US | 40-55 | Génépi-style blends that can stand in.
+liq-genepy | Liqueur | liq-alpine | Génépy | French & Italian Alps | 35-45 | Artemisia; light, grassy.
+liq-benedictine | Liqueur | liq-benedictine | Bénédictine | Normandy, France | 40 | Honey, baking spice, herbs. Vieux Carré, Bobby Burns.
+liq-strega | Liqueur | liq-herbal-sweet | Strega | Benevento, Italy | 40 | Saffron yellow; mint, fennel, sweet.
+liq-galliano | Liqueur | liq-herbal-sweet | Galliano | Italy | 30-42.3 | Vanilla, anise; Harvey Wallbanger, Golden Cadillac.
+liq-drambuie | Liqueur | liq-honey-whisky | Drambuie | Scotland | 40 | Scotch, heather honey, herbs. Rusty Nail.
+liq-herbal-other | Liqueur | liq-herbal-sweet | Herbal liqueur (other) | worldwide | 30-45 | Various.
+liq-kummel | Liqueur | liq-kummel | Kümmel | Germany, Netherlands | 35-40 | Caraway, cumin, fennel.
+liq-izarra | Liqueur | liq-herbal-sweet | Izarra | Basque France | 40-48 | Basque herbal, green or yellow.
+liq-licor-43 | Liqueur | liq-vanilla | Licor 43 | Spain | 31 | Vanilla, citrus; Carajillo.
+liq-tuaca | Liqueur | liq-vanilla | Vanilla citrus liqueur (Tuaca) | Italy | 35 | Vanilla brandy liqueur.
+liq-vanilla | Liqueur | liq-vanilla | Vanilla liqueur | worldwide | 20-40 | Pure vanilla.
+# ---------- Anise ----------
+anise-absinthe | Anise | absinthe | Absinthe verte | France, Switzerland, US | 45-74 | Grand wormwood, anise, fennel. Rinse for Sazerac; Corpse Reviver No. 2.
+anise-absinthe-blanche | Anise | absinthe | Absinthe blanche (la bleue) | Switzerland | 50-60 | Clear absinthe, softer.
+anise-pastis | Anise | pastis | Pastis | Marseille, France | 40-45 | Star anise, licorice root.
+anise-herbsaint | Anise | absinthe | Herbsaint | New Orleans | 45-50 | Absinthe substitute; Sazerac rinse.
+anise-pernod | Anise | pastis | Pernod (anise) | France | 40 | Sweet anise.
+anise-sambuca | Anise | anise-sweet | Sambuca | Italy | 38-42 | Sweet star anise.
+anise-ouzo | Anise | anise-sweet | Ouzo | Greece | 37.5-40 | Anise, mastic.
+anise-arak | Anise | anise-dry | Arak | Lebanon, Levant | 40-63 | Dry grape-based anise.
+anise-raki | Anise | anise-dry | Rakı | Turkey | 40-50 | Grape spirit and anise.
+anise-anisette | Anise | anise-sweet | Anisette | France, Spain | 25-30 | Sweet anise liqueur.
+# ---------- Nut, coffee, chocolate, cream ----------
+liq-amaretto | Liqueur | liq-amaretto | Amaretto | Italy | 21-28 | Apricot kernel, almond, marzipan. Amaretto Sour, Godfather.
+liq-hazelnut | Liqueur | liq-nut | Hazelnut liqueur | Italy | 20-24 | Toasted hazelnut.
+liq-nocino | Liqueur | liq-nut | Nocino (walnut) | Italy | 30-40 | Green walnut, spice.
+liq-noyaux | Liqueur | liq-amaretto | Crème de noyaux | France, US | 20-40 | Almond (apricot kernel), pink.
+liq-coffee | Liqueur | liq-coffee | Coffee liqueur (sweet) | Mexico, worldwide | 16-26 | Rich, sweet coffee; White Russian.
+liq-coffee-dry | Liqueur | liq-coffee | Coffee liqueur (cold brew, drier) | worldwide | 23-32 | Less sugar, more coffee; Espresso Martini.
+liq-cacao-white | Liqueur | liq-cacao-white | Crème de cacao (white) | worldwide | 20-25 | Clear chocolate; Grasshopper, 20th Century.
+liq-cacao-dark | Liqueur | liq-cacao-dark | Crème de cacao (dark) | worldwide | 20-25 | Brown, richer chocolate; Brandy Alexander.
+liq-irish-cream | Liqueur | liq-cream | Irish cream | Ireland | 15-17 | Cream, whiskey, cocoa.
+liq-cream-other | Liqueur | liq-cream | Cream liqueur (other) | worldwide | 15-20 | Rum cream, tequila cream, etc.
+liq-advocaat | Liqueur | liq-cream | Advocaat | Netherlands | 14-20 | Egg, sugar and brandy; Snowball.
+liq-coconut | Liqueur | liq-coconut | Coconut liqueur | worldwide | 20-30 | Sweet coconut.
+# ---------- Fruit & floral liqueurs ----------
+liq-maraschino | Liqueur | liq-maraschino | Maraschino liqueur | Italy, Croatia | 32 | Distilled marasca cherry; funky, floral, dry-ish. Aviation, Last Word, Hemingway.
+liq-cherry | Liqueur | liq-cherry | Cherry liqueur (Cherry Heering style) | Denmark, worldwide | 24-30 | Rich, dark cherry. Blood & Sand, Singapore Sling.
+liq-cassis | Liqueur | liq-cassis | Crème de cassis | Burgundy, France | 15-20 | Blackcurrant; Kir, El Diablo.
+liq-mure | Liqueur | liq-berry | Crème de mûre | France | 15-20 | Blackberry; Bramble.
+liq-framboise | Liqueur | liq-berry | Raspberry liqueur (Chambord style) | France | 16-20 | Black raspberry; French Martini.
+liq-fraise | Liqueur | liq-berry | Strawberry liqueur | France, Italy | 15-25 | Crème de fraise.
+liq-peche | Liqueur | liq-peach | Peach liqueur / crème de pêche | France, worldwide | 15-25 | Bellini riffs, Fish House Punch.
+liq-apricot | Liqueur | liq-apricot | Apricot liqueur | France, Austria | 20-30 | Apricot brandy liqueur; Hotel Nacional, Charlie Chaplin.
+liq-banane | Liqueur | liq-banana | Crème de banane | France, worldwide | 17-25 | Banana; Banana Daiquiri, tiki.
+liq-pineapple | Liqueur | liq-tropical | Pineapple liqueur | worldwide | 20-40 | Pineapple-rum style or crème.
+liq-passion | Liqueur | liq-tropical | Passion fruit liqueur | worldwide | 17-20 | Tart tropical.
+liq-lychee | Liqueur | liq-tropical | Lychee liqueur | France, Asia | 20-24 | Floral lychee.
+liq-melon | Liqueur | liq-tropical | Melon liqueur | Japan, worldwide | 20-21 | Bright green honeydew.
+liq-pear | Liqueur | liq-pear | Pear liqueur | France, Austria | 18-25 | Ripe pear on brandy.
+liq-apple | Liqueur | liq-apple | Apple liqueur | worldwide | 18-30 | Sour or sweet apple.
+liq-elderflower | Liqueur | liq-elderflower | Elderflower liqueur | France, worldwide | 20 | Lychee, pear, floral.
+liq-violette | Liqueur | liq-violette | Crème de violette | France, Austria | 16-20 | Violet; the Aviation's color.
+liq-rose | Liqueur | liq-floral | Rose liqueur | worldwide | 15-25 | Rose petal.
+liq-hibiscus | Liqueur | liq-floral | Hibiscus liqueur | worldwide | 15-25 | Tart, floral.
+liq-ginger | Liqueur | liq-ginger | Ginger liqueur | worldwide | 20-30 | Candied ginger.
+liq-allspice | Liqueur | liq-allspice | Allspice dram (pimento dram) | Jamaica | 22-30 | Allspice berry on Jamaican rum; tiki, winter drinks.
+liq-falernum | Liqueur | liq-falernum | Falernum (liqueur) | Barbados | 11-18 | Lime, clove, ginger, almond; Corn 'n' Oil, Zombie.
+liq-menthe-green | Liqueur | liq-menthe | Crème de menthe (green) | worldwide | 20-25 | Grasshopper.
+liq-menthe-white | Liqueur | liq-menthe | Crème de menthe (white) | worldwide | 20-25 | Stinger.
+liq-cinnamon | Liqueur | liq-spice | Cinnamon liqueur | worldwide | 30-50 | Cinnamon schnapps.
+liq-honey | Liqueur | liq-honey-whisky | Honey liqueur | worldwide | 30-40 | Honey on whiskey or spirit (Bärenjäger).
+liq-sloe-other | Liqueur | liq-sloe | Fruit cordial / gin liqueur | England | 20-30 | Damson, blackberry and other fruit gins.
+liq-pimms | Liqueur | liq-pimms | Pimm's No. 1 (gin cup) | England | 25 | Gin-based fruit cup; Pimm's Cup.
+liq-mastiha | Liqueur | liq-herbal-sweet | Mastiha | Chios, Greece | 24-30 | Mastic resin; pine, cucumber.
+liq-chile | Liqueur | liq-spice | Chile liqueur (Ancho Reyes) | Mexico | 40 | Ancho chile; smoky, sweet heat.
+liq-sesame | Liqueur | liq-nut | Sesame / other specialty | worldwide | 20-40 | Toasted seed, specialty flavors.
+# ---------- Bitter: aperitivo & amaro ----------
+amaro-red-bitter | Amaro | aperitivo-red | Red bitter aperitivo (Campari style) | Milan, worldwide | 20.5-28.5 | Bittersweet, orange, rhubarb. Negroni, Boulevardier.
+amaro-aperol | Amaro | aperitivo-light | Light aperitivo (Aperol style) | Padua, worldwide | 11-15 | Lower proof, sweeter, orange. Spritz, Paper Plane.
+amaro-gentian | Amaro | gentian | Gentian liqueur / aperitif | France, US | 15-20 | Earthy bitter gentian root; White Negroni.
+amaro-alpine | Amaro | amaro-alpine | Alpine amaro | Italian Alps | 21-35 | Pine, mint, alpine herbs.
+amaro-carciofo | Amaro | amaro-carciofo | Carciofo (artichoke) amaro | Italy | 16.5-35 | Vegetal, bittersweet. Cynar.
+amaro-rabarbaro | Amaro | amaro-rabarbaro | Rabarbaro (rhubarb) amaro | Italy | 16-30 | Smoky rhubarb root.
+amaro-fernet | Amaro | fernet | Fernet | Italy, worldwide | 39-45 | Bracingly bitter, menthol, saffron. Toronto, Hanky Panky.
+amaro-menta | Amaro | fernet | Fernet menta | Italy | 28-30 | Mint-forward fernet.
+amaro-medium | Amaro | amaro-medium | Medium amaro (Montenegro, Ramazzotti, Nonino) | Italy | 16-35 | Balanced bittersweet, orange, spice. Paper Plane (Nonino).
+amaro-rich | Amaro | amaro-rich | Rich amaro (Averna, Lucano, Meletti) | Sicily, southern Italy | 28-32 | Cola, caramel, licorice; Black Manhattan.
+amaro-china | Amaro | amaro-china | China / cinchona amaro (China-China, Amer) | France, Italy | 30-40 | Bitter orange and cinchona.
+amaro-amer | Amaro | amaro-china | Amer (Picon style) | France | 18-39 | Bitter orange, gentian; Brooklyn cocktail.
+amaro-bitter-orange | Amaro | aperitivo-red | Bitter orange aperitivo (Gran Classico style) | Switzerland, Italy | 25-28 | Darker, more complex than Campari.
+amaro-krauter | Amaro | amaro-krauter | Kräuterlikör | Germany, Central Europe | 30-38 | Jägermeister, Becherovka, Unicum.
+amaro-malort | Amaro | amaro-malort | Malört | Chicago | 35 | Wormwood; brutal.
+amaro-sfumato | Amaro | amaro-rabarbaro | Sfumato (smoky rabarbaro) | Italy | 20 | Smoky rhubarb.
+amaro-zucca | Amaro | amaro-rabarbaro | Zucca rabarbaro | Milan | 16 | Light smoke, rhubarb.
+amaro-tart | Amaro | amaro-medium | American craft amaro | US | 20-35 | New American amari.
+amaro-quinquina-bitter | Amaro | aperitivo-red | Bitter aperitivo (white or rosso, Select, Contratto) | Italy | 15-25 | Other Veneto and Piedmont bitters.
+# ---------- Vermouth & aromatized wine ----------
+verm-sweet | Vermouth | verm-sweet | Sweet vermouth (Italian rosso) | Italy | 15-18 | Rich, bittersweet, vanilla, spice. Manhattan, Negroni.
+verm-sweet-rich | Vermouth | verm-sweet | Sweet vermouth (rich, vanilla) | Italy | 16.5-17.5 | Bigger, sweeter vanilla (Carpano Antica style).
+verm-sweet-spanish | Vermouth | verm-sweet | Spanish vermut | Spain | 15-18 | Sweet, herbal, often served on the rocks.
+verm-sweet-bitter | Vermouth | verm-sweet | Bittersweet vermouth (Punt e Mes) | Italy | 16 | Sweet vermouth plus extra bitterness.
+verm-dry | Vermouth | verm-dry | Dry vermouth (French) | France | 16-18 | Crisp, herbal, floral. Martini, Bamboo.
+verm-dry-extra | Vermouth | verm-dry | Extra-dry vermouth | Italy | 15-18 | Very dry, neutral.
+verm-blanc | Vermouth | verm-blanc | Blanc / bianco vermouth | France, Italy | 16-18 | Sweetish, floral, pale.
+verm-rose | Vermouth | verm-blanc | Rosé vermouth | worldwide | 15-17 | Fruity, floral.
+verm-americano | Vermouth | verm-quinquina | Americano (bianco or rosso) | Italy | 16.5-18 | Gentian and wormwood aromatized wine; Vesper, Corpse Reviver No. 2.
+verm-quinquina-blanc | Vermouth | verm-quinquina | Quinquina blanc (Lillet-style) | France | 17 | Honeyed, orange, light quinine.
+verm-quinquina-rouge | Vermouth | verm-quinquina-red | Quinquina rouge (Byrrh, Dubonnet) | France | 15-18 | Red, quinine, dark fruit.
+verm-chinato | Vermouth | verm-quinquina-red | Barolo chinato | Piedmont, Italy | 16-17 | Barolo wine, cinchona, spice; sipping or stirred.
+verm-ambre | Vermouth | verm-blanc | Amber / ambrato vermouth | Italy, France | 16-18 | Between blanc and rosso.
+# ---------- Fortified wine ----------
+fort-fino | Fortified wine | sherry-dry | Fino sherry | Jerez, Spain | 15 | Bone-dry, yeasty, almond; flor-aged. Bamboo, Adonis riffs.
+fort-manzanilla | Fortified wine | sherry-dry | Manzanilla sherry | Sanlúcar, Spain | 15 | Salty, delicate fino.
+fort-amontillado | Fortified wine | sherry-nutty | Amontillado sherry | Jerez, Spain | 16-18 | Dry, nutty; flor then oxidative.
+fort-oloroso | Fortified wine | sherry-nutty | Oloroso sherry | Jerez, Spain | 17-22 | Dry, rich, walnut; oxidative.
+fort-palo-cortado | Fortified wine | sherry-nutty | Palo cortado sherry | Jerez, Spain | 17-22 | Between amontillado and oloroso.
+fort-px | Fortified wine | sherry-sweet | Pedro Ximénez sherry | Jerez, Spain | 15-17 | Syrupy raisin, fig.
+fort-cream | Fortified wine | sherry-sweet | Cream sherry | Jerez, Spain | 15.5-22 | Oloroso sweetened with PX.
+fort-ruby | Fortified wine | port-red | Ruby port | Douro, Portugal | 19-20 | Young, fruity, sweet.
+fort-lbv | Fortified wine | port-red | Late Bottled Vintage port | Douro, Portugal | 19-20 | Richer ruby.
+fort-tawny | Fortified wine | port-tawny | Tawny port | Douro, Portugal | 19-20 | Oxidative, nutty, caramel.
+fort-white-port | Fortified wine | port-white | White port | Douro, Portugal | 19-20 | Dry or sweet; White Port & Tonic.
+fort-madeira-dry | Fortified wine | madeira | Madeira (Sercial, Verdelho, Rainwater) | Madeira | 18-20 | Drier styles; high acid, nutty.
+fort-madeira-sweet | Fortified wine | madeira | Madeira (Bual, Malmsey) | Madeira | 18-20 | Sweeter, caramel, acid.
+fort-marsala | Fortified wine | madeira | Marsala | Sicily | 15-20 | Dry or sweet, nutty.
+fort-vdn | Fortified wine | port-red | Vin doux naturel (Banyuls, Maury, Muscat) | Southern France | 15-18 | Fortified sweet wines.
+# ---------- Bitters ----------
+bitters-aromatic | Bitters | bitters-aromatic | Aromatic bitters (Angostura style) | Trinidad, worldwide | 35-45 | Gentian, clove, cinnamon. The default dash.
+bitters-peychaud | Bitters | bitters-peychaud | Peychaud's-style bitters | New Orleans | 35 | Anise, cherry, gentian; Sazerac, Vieux Carré.
+bitters-orange | Bitters | bitters-orange | Orange bitters | worldwide | 28-45 | Martini, Martinez, Bamboo.
+bitters-celery | Bitters | bitters-other | Celery bitters | worldwide | 40-50 | Savory; Bloody Mary, gin drinks.
+bitters-grapefruit | Bitters | bitters-other | Grapefruit bitters | worldwide | 40-50 | Bright citrus.
+bitters-mole | Bitters | bitters-other | Mole / chocolate bitters | worldwide | 40-50 | Cacao, chile, cinnamon; agave and rum drinks.
+bitters-tiki | Bitters | bitters-other | Tiki / allspice bitters | worldwide | 40-50 | Cinnamon, allspice.
+bitters-cherry | Bitters | bitters-other | Cherry / bark bitters | worldwide | 40-50 | Cherry, vanilla.
+bitters-cardamom | Bitters | bitters-other | Cardamom bitters | worldwide | 40-50 | Floral spice.
+bitters-lavender | Bitters | bitters-other | Lavender / floral bitters | worldwide | 40-50 | Floral.
+bitters-walnut | Bitters | bitters-other | Black walnut bitters | worldwide | 40-50 | Old Fashioned twist.
+bitters-boker | Bitters | bitters-aromatic | Boker's / historic aromatic bitters | worldwide | 40-50 | Cardamom, coffee; 19th-century recipes.
+bitters-creole | Bitters | bitters-peychaud | Creole bitters | worldwide | 40-50 | Peychaud's-style alternative.
+bitters-specialty | Bitters | bitters-other | Specialty bitters (other flavors) | worldwide | 35-50 | Bergamot, licorice, chile, lemon and more.
+bitters-saline | Bitters | bitters-other | Salt / saline tincture (store bought) | worldwide | 0-40 | Lifts flavor; a few drops.
+# ---------- Other spirits ----------
+other-aquavit | Other spirits | aquavit | Aquavit | Scandinavia | 40-45 | Caraway or dill-led; sometimes aged. Aquavit Gimlet, Trinidad sour riffs.
+other-baijiu-strong | Other spirits | baijiu | Baijiu (strong aroma) | Sichuan, China | 38-60 | Pineapple, anise, funk.
+other-baijiu-light | Other spirits | baijiu | Baijiu (light aroma) | Northern China | 40-60 | Floral, cleaner.
+other-baijiu-sauce | Other spirits | baijiu | Baijiu (sauce aroma) | Guizhou, China | 43-53 | Soy, umami, deep funk.
+other-shochu-imo | Other spirits | shochu | Imo shochu (sweet potato) | Japan | 25 | Earthy, sweet.
+other-shochu-mugi | Other spirits | shochu | Mugi shochu (barley) | Japan | 25 | Clean, malty.
+other-shochu-kome | Other spirits | shochu | Kome shochu (rice) | Japan | 25 | Clean, rice-sweet.
+other-awamori | Other spirits | shochu | Awamori | Okinawa | 30-43 | Long-grain rice, black koji.
+other-soju | Other spirits | soju | Soju | Korea | 16-25 | Light, neutral.
+other-sake-junmai | Other spirits | sake | Sake (junmai) | Japan | 14-17 | Rich, savory.
+other-sake-ginjo | Other spirits | sake | Sake (ginjo / daiginjo) | Japan | 14-17 | Fruity, floral, delicate.
+other-sake-nigori | Other spirits | sake | Sake (nigori) | Japan | 12-17 | Cloudy, sweet.
+other-mead | Other spirits | sake | Mead | worldwide | 8-18 | Honey wine.
+other-genepi-eau | Other spirits | eau-de-vie | Herbal eau de vie (gentian, etc.) | Alps | 40-45 | Dry herbal spirits.
+other-moonshine | Other spirits | whiskey-corn | Moonshine / unaged grain spirit | US | 40-62.5 | Sugar or grain white spirits.
+other-neutral | Other spirits | vodka | Neutral grain spirit (Everclear) | US | 75.5-95 | For tinctures and infusions only.
+# ---------- Wine & beer ----------
+wine-champagne | Wine & beer | sparkling | Champagne | Champagne, France | 12 | French 75, Champagne Cocktail, Seelbach.
+wine-sparkling | Wine & beer | sparkling | Dry sparkling wine (crémant, cava) | worldwide | 11.5-12.5 | Stands in for Champagne.
+wine-prosecco | Wine & beer | sparkling | Prosecco | Veneto, Italy | 11 | Fruity, softer bubbles; Spritz, Bellini.
+wine-lambrusco | Wine & beer | sparkling | Lambrusco | Emilia-Romagna | 8-12 | Red sparkling.
+wine-red | Wine & beer | wine-red | Dry red wine | worldwide | 12-15 | New York Sour float, sangria, mulled wine.
+wine-white | Wine & beer | wine-white | Dry white wine | worldwide | 11-13 | Spritzers, sangria, Kir.
+wine-rose | Wine & beer | wine-white | Rosé wine | worldwide | 11-13 | Frosé, spritzes.
+beer-lager | Wine & beer | beer | Lager / pilsner | worldwide | 4-5.5 | Michelada, shandy.
+beer-stout | Wine & beer | beer-dark | Stout / porter | worldwide | 4-8 | Black Velvet, Guinness floats.
+beer-wheat | Wine & beer | beer | Wheat beer | worldwide | 4-5.5 | Radler.
+beer-cider | Wine & beer | cider | Hard cider | worldwide | 4-8 | Snakebite, cider punches.
+beer-ginger | Wine & beer | beer | Ginger beer (alcoholic) | worldwide | 4-5 | Brewed ginger beer.
+# ---------- Mixers ----------
+mix-soda | Mixers | mix-soda | Club soda / sparkling water | — | 0 | Collinses, Highballs, Fizzes.
+mix-tonic | Mixers | mix-tonic | Tonic water | — | 0 | G&T, Spritz riffs.
+mix-ginger-beer | Mixers | mix-ginger-beer | Ginger beer | — | 0 | Moscow Mule, Dark 'n' Stormy.
+mix-ginger-ale | Mixers | mix-ginger-ale | Ginger ale | — | 0 | Horse's Neck, Presbyterian.
+mix-cola | Mixers | mix-cola | Cola | — | 0 | Cuba Libre, Batanga.
+mix-lemon-lime | Mixers | mix-lemon-lime | Lemon-lime soda | — | 0 | 7&7.
+mix-grapefruit-soda | Mixers | mix-grapefruit-soda | Grapefruit soda | — | 0 | Paloma.
+mix-cream-soda | Mixers | mix-other | Cream soda / root beer / specialty | — | 0 | Floats and highballs.
+mix-espresso | Mixers | mix-coffee | Espresso / cold brew | — | 0 | Espresso Martini, Carajillo.
+mix-coffee | Mixers | mix-coffee | Hot coffee | — | 0 | Irish Coffee.
+mix-tea | Mixers | mix-tea | Tea | — | 0 | Punches, hot toddies.
+mix-tomato | Mixers | mix-juice | Tomato juice | — | 0 | Bloody Mary.
+mix-cranberry | Mixers | mix-juice | Cranberry juice | — | 0 | Cosmopolitan, Sea Breeze.
+mix-pineapple | Mixers | mix-juice | Pineapple juice | — | 0 | Piña Colada, Jungle Bird.
+mix-orange | Mixers | mix-juice | Orange juice | — | 0 | Screwdriver, Mimosa.
+mix-apple | Mixers | mix-juice | Apple juice / cider | — | 0 | Szarlotka, punches.
+mix-coconut-cream | Mixers | mix-other | Cream of coconut | — | 0 | Piña Colada, Painkiller.
+mix-coconut-water | Mixers | mix-other | Coconut water | — | 0 | Light tropical highballs.
+mix-clamato | Mixers | mix-juice | Clamato | — | 0 | Caesar.

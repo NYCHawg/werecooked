@@ -1,0 +1,360 @@
+# Nut, coffee, chocolate, cream
+Disaronno | liq-amaretto | 28
+Lazzaroni Amaretto | liq-amaretto | 24
+Luxardo Amaretto di Saschira | liq-amaretto | 24
+Gozio Amaretto | liq-amaretto | 24
+Frangelico | liq-hazelnut | 20
+Nocino della Cristina | liq-nocino | 40
+Nux Alpina Walnut | liq-nocino | 30
+Tempus Fugit Crème de Noyaux | liq-noyaux | 30
+Kahlúa | liq-coffee | 20
+Tia Maria | liq-coffee | 20
+Mr Black Cold Brew Coffee Liqueur | liq-coffee-dry | 23
+St. George NOLA Coffee Liqueur | liq-coffee-dry | 25
+Galliano Ristretto | liq-coffee-dry | 25
+Borghetti Caffè Espresso | liq-coffee | 25
+Firelit Coffee Liqueur | liq-coffee-dry | 30
+Caffè Lolita | liq-coffee | 20
+Tempus Fugit Crème de Cacao à la Vanille | liq-cacao-dark | 24
+Giffard Crème de Cacao (White) | liq-cacao-white | 25
+Giffard Crème de Cacao (Brown) | liq-cacao-dark | 25
+Marie Brizard White Crème de Cacao | liq-cacao-white | 25
+Bols Crème de Cacao White | liq-cacao-white | 24
+Bols Crème de Cacao Brown | liq-cacao-dark | 24
+Mozart Dark Chocolate | liq-cream-other | 17
+Godiva Chocolate | liq-cream-other | 15
+Baileys Original Irish Cream | liq-irish-cream | 17
+Carolans Irish Cream | liq-irish-cream | 17
+Five Farms Irish Cream | liq-irish-cream | 17
+RumChata | liq-cream-other | 13.75
+Warninks Advocaat | liq-advocaat | 17.2
+Bols Advocaat | liq-advocaat | 15
+Kalani Coconut | liq-coconut | 30
+Giffard Coconut | liq-coconut | 25
+# Fruit & floral liqueurs
+Luxardo Maraschino Originale | liq-maraschino | 32
+Maraska Maraschino | liq-maraschino | 32
+Lazzaroni Maraschino | liq-maraschino | 32
+Leopold Bros Maraschino | liq-maraschino | 32
+Cherry Heering | liq-cherry | 24
+Luxardo Sangue Morlacco | liq-cherry | 30
+Leopold Bros Michigan Tart Cherry | liq-cherry | 28
+Rothman & Winter Orchard Cherry | liq-cherry | 24
+Lejay Crème de Cassis | liq-cassis | 20
+Giffard Crème de Cassis | liq-cassis | 20
+Mathilde Cassis | liq-cassis | 18
+Massenez Crème de Cassis | liq-cassis | 20
+Giffard Crème de Mûre | liq-mure | 16
+Massenez Crème de Mûre | liq-mure | 18
+Chambord | liq-framboise | 16.5
+Giffard Framboise | liq-framboise | 16
+Giffard Fraise des Bois | liq-fraise | 16
+Giffard Crème de Pêche | liq-peche | 16
+Rothman & Winter Orchard Peach | liq-peche | 24
+Mathilde Pêche | liq-peche | 18
+Rothman & Winter Orchard Apricot | liq-apricot | 24
+Giffard Abricot du Roussillon | liq-apricot | 25
+Marie Brizard Apry | liq-apricot | 20.5
+Tempus Fugit Crème de Banane | liq-banane | 25
+Giffard Banane du Brésil | liq-banane | 25
+Bols Crème de Banane | liq-banane | 17
+Giffard Caribbean Pineapple | liq-pineapple | 20
+Passoã | liq-passion | 17
+Giffard Passion | liq-passion | 18
+Chinola Passion Fruit | liq-passion | 21
+Giffard Lichi-Li | liq-lychee | 20
+Soho Lychee | liq-lychee | 24
+Midori | liq-melon | 20
+Rothman & Winter Orchard Pear | liq-pear | 24
+Belle de Brillet | liq-pear | 30
+Mathilde Poire | liq-pear | 18
+Berentzen Apfelkorn | liq-apple | 18
+Pommeau de Normandie (Drouin) | liq-apple | 17
+St-Germain | liq-elderflower | 20
+St. Elder | liq-elderflower | 20
+Giffard Fleur de Sureau | liq-elderflower | 20
+Drillaud Elderflower | liq-elderflower | 20
+Rothman & Winter Crème de Violette | liq-violette | 16
+Giffard Crème de Violette | liq-violette | 16
+Tempus Fugit Liqueur de Violettes | liq-violette | 22
+Golden Moon Crème de Violette | liq-violette | 20
+Combier Liqueur de Rose | liq-rose | 20
+Giffard Rose | liq-rose | 20
+Giffard Hibiscus | liq-hibiscus | 20
+Domaine de Canton | liq-ginger | 28
+The King's Ginger | liq-ginger | 41
+Giffard Ginger of the Indies | liq-ginger | 25
+Barrow's Intense Ginger | liq-ginger | 28
+St. Elizabeth Allspice Dram | liq-allspice | 22.5
+Hamilton Pimento Dram | liq-allspice | 30
+John D. Taylor's Velvet Falernum | liq-falernum | 11
+Giffard Menthe Pastille (white) | liq-menthe-white | 24
+Tempus Fugit Crème de Menthe | liq-menthe-green | 28
+Bols Crème de Menthe Green | liq-menthe-green | 24
+DeKuyper Crème de Menthe Green | liq-menthe-green | 15
+Fireball | liq-cinnamon | 33
+Goldschläger | liq-cinnamon | 43.5
+Pimm's No. 1 | liq-pimms | 25
+# Aperitivo & amaro
+Campari | amaro-red-bitter | 24
+Aperol | amaro-aperol | 11
+Select Aperitivo | amaro-quinquina-bitter | 17.5
+Contratto Bitter | amaro-quinquina-bitter | 22
+Contratto Aperitif | amaro-aperol | 13.5
+Cappelletti Aperitivo Americano Rosso | amaro-aperol | 11
+Luxardo Bitter Bianco | amaro-quinquina-bitter | 30
+Luxardo Bitter Rosso | amaro-red-bitter | 25
+Leopold Bros Aperitivo | amaro-red-bitter | 24
+St. George Bruto Americano | amaro-red-bitter | 24
+Forthave Red | amaro-red-bitter | 24
+Gran Classico Bitter | amaro-bitter-orange | 28
+Martini Riserva Speciale Bitter | amaro-red-bitter | 28.5
+Suze | amaro-gentian | 15
+Salers Gentiane | amaro-gentian | 16
+Avèze Gentiane | amaro-gentian | 15
+Bonal Gentiane-Quina | verm-quinquina-rouge | 16
+Braulio | amaro-alpine | 21
+Amaro Alta Verde | amaro-alpine | 30
+Cynar | amaro-carciofo | 16.5
+Cynar 70 | amaro-carciofo | 35
+Zucca Rabarbaro | amaro-zucca | 16
+Cappelletti Amaro Sfumato Rabarbaro | amaro-sfumato | 20
+Fernet-Branca | amaro-fernet | 39
+Branca Menta | amaro-menta | 28
+Fernet Vallet | amaro-fernet | 45
+Letherbee Fernet | amaro-fernet | 40
+Amaro Montenegro | amaro-medium | 23
+Amaro Nonino Quintessentia | amaro-medium | 35
+Ramazzotti | amaro-medium | 30
+Amaro dell'Etna | amaro-medium | 29
+Amaro Ciociaro | amaro-medium | 30
+Amaro Meletti | amaro-rich | 32
+Averna | amaro-rich | 29
+Amaro Lucano | amaro-rich | 28
+Amaro Nardini | amaro-medium | 29
+Amaro Sibilla | amaro-rich | 34
+Amaro Pasubio | amaro-alpine | 17
+Amaro di Angostura | amaro-rich | 35
+Bigallet China-China Amer | amaro-china | 40
+Amer Picon | amaro-amer | 18
+Amaro Abano | amaro-medium | 30
+Amaro Santoni | amaro-medium | 24.5
+Amaro Lo-Fi Gentian | amaro-gentian | 17.5
+Lo-Fi Sweet Vermouth | verm-sweet | 17.5
+Lo-Fi Dry Vermouth | verm-dry | 17.5
+Amaro Averna Don Salvatore | amaro-rich | 34
+Amaro Bràulio Riserva | amaro-alpine | 24.7
+Amaro Tosolini | amaro-medium | 30
+Elisir Novasalus | amaro-medium | 16.5
+Amaro Cardamaro | amaro-medium | 17
+Amaro Lazzaroni | amaro-medium | 30
+Amaro Foro | amaro-medium | 30
+Amaro Sacro Cuore | amaro-medium | 30
+Amaro Jefferson | amaro-medium | 30
+# Vermouth & aromatized wine
+Carpano Antica Formula | verm-sweet-rich | 16.5
+Cocchi Vermouth di Torino | verm-sweet | 16
+Cocchi Storico Vermouth di Torino | verm-sweet | 16
+Cocchi Dopo Teatro | verm-sweet-bitter | 16
+Punt e Mes | verm-sweet-bitter | 16
+Martini & Rossi Rosso | verm-sweet | 15
+Martini Riserva Speciale Rubino | verm-sweet | 18
+Cinzano Rosso | verm-sweet | 15
+Dolin Rouge | verm-sweet | 16
+Dolin Dry | verm-dry | 17.5
+Dolin Blanc | verm-blanc | 16
+Noilly Prat Extra Dry | verm-dry | 18
+Noilly Prat Original Dry | verm-dry | 16
+Noilly Prat Rouge | verm-sweet | 16
+Noilly Prat Ambré | verm-ambre | 16
+Martini & Rossi Extra Dry | verm-dry-extra | 15
+Martini Bianco | verm-blanc | 15
+Martini Riserva Speciale Ambrato | verm-ambre | 18
+Cinzano Bianco | verm-blanc | 15
+Cinzano Extra Dry | verm-dry-extra | 18
+Carpano Dry | verm-dry-extra | 18
+Carpano Bianco | verm-blanc | 15
+Mancino Rosso Amaranto | verm-sweet | 16
+Mancino Secco | verm-dry | 18
+Mancino Bianco Ambrato | verm-blanc | 16
+La Quintinye Rouge | verm-sweet | 16.5
+La Quintinye Extra Dry | verm-dry | 17
+La Quintinye Blanc | verm-blanc | 16.5
+Contratto Vermouth Rosso | verm-sweet | 17
+Contratto Bianco | verm-blanc | 17
+Cocchi Americano | verm-americano | 16.5
+Cocchi Americano Rosa | verm-americano | 16.5
+Lillet Blanc | verm-quinquina-blanc | 17
+Lillet Rosé | verm-quinquina-blanc | 17
+Lillet Rouge | verm-quinquina-rouge | 17
+Byrrh Grand Quinquina | verm-quinquina-rouge | 18
+Dubonnet Rouge | verm-quinquina-rouge | 15
+Bonal | verm-quinquina-rouge | 16
+Cocchi Barolo Chinato | verm-chinato | 16
+Mauro Vergano Chinato | verm-chinato | 16
+Atxa Vermouth Rojo | verm-sweet-spanish | 15
+Lustau Vermut Rojo | verm-sweet-spanish | 15
+Lustau Vermut Blanco | verm-blanc | 15
+Yzaguirre Rojo Reserva | verm-sweet-spanish | 15
+Belsazar Red | verm-sweet | 18
+Belsazar Rosé | verm-rose | 17.5
+Ransom Dry Vermouth | verm-dry | 17.8
+Imbue Bittersweet Vermouth | verm-sweet | 16.5
+Uncouth Vermouth | verm-sweet | 16
+Haus Alpenz Alessio Vermouth di Torino | verm-sweet | 17
+Alessio Vermouth Chinato | verm-chinato | 17
+Martini & Rossi Rosato | verm-rose | 15
+# Fortified wine
+Tio Pepe Fino | fort-fino | 15
+Lustau Puerto Fino | fort-fino | 15
+La Gitana Manzanilla | fort-manzanilla | 15
+Hidalgo La Gitana | fort-manzanilla | 15
+Barbadillo Solear Manzanilla | fort-manzanilla | 15
+Lustau Los Arcos Amontillado | fort-amontillado | 18.5
+Bodegas Hidalgo Napoleon Amontillado | fort-amontillado | 17.5
+Lustau East India Solera | fort-cream | 20
+Lustau Don Nuño Oloroso | fort-oloroso | 20
+Lustau Península Palo Cortado | fort-palo-cortado | 19
+Lustau San Emilio Pedro Ximénez | fort-px | 17
+Alvear PX 1927 Solera | fort-px | 16
+Harveys Bristol Cream | fort-cream | 17.5
+Gonzalez Byass Leonor Palo Cortado | fort-palo-cortado | 20
+Graham's Six Grapes | fort-ruby | 19.5
+Graham's 10 Year Tawny | fort-tawny | 20
+Taylor Fladgate 10 Year Tawny | fort-tawny | 20
+Taylor Fladgate LBV | fort-lbv | 20
+Taylor Fladgate Chip Dry White | fort-white-port | 20
+Fonseca Bin 27 | fort-ruby | 20
+Sandeman Fine Ruby | fort-ruby | 19.5
+Dow's Fine White | fort-white-port | 19
+Warre's Otima 10 Tawny | fort-tawny | 20
+Blandy's 5 Year Sercial | fort-madeira-dry | 19
+Blandy's 5 Year Malmsey | fort-madeira-sweet | 19
+Broadbent Rainwater | fort-madeira-dry | 19
+Rare Wine Co. Charleston Sercial | fort-madeira-dry | 19.5
+Rare Wine Co. Boston Bual | fort-madeira-sweet | 19.5
+Cossart Gordon 5 Year Bual | fort-madeira-sweet | 19
+Florio Marsala Superiore | fort-marsala | 18
+Pellegrino Marsala Fine | fort-marsala | 17
+Banyuls (M. Chapoutier) | fort-vdn | 16
+# Bitters
+Angostura Aromatic Bitters | bitters-aromatic | 44.7
+Angostura Orange Bitters | bitters-orange | 28
+Angostura Cocoa Bitters | bitters-mole | 48
+Peychaud's Bitters | bitters-peychaud | 35
+Regans' Orange Bitters No. 6 | bitters-orange | 45
+Fee Brothers West Indian Orange | bitters-orange | 9
+Fee Brothers Old Fashion Aromatic | bitters-aromatic | 17.5
+Fee Brothers Celery | bitters-celery | 1.7
+Fee Brothers Peach | bitters-cherry | 1.7
+Fee Brothers Black Walnut | bitters-walnut | 6.4
+Fee Brothers Whiskey Barrel-Aged | bitters-aromatic | 17.5
+Bitter Truth Orange | bitters-orange | 39
+Bitter Truth Old Time Aromatic | bitters-aromatic | 39
+Bitter Truth Celery | bitters-celery | 44
+Bitter Truth Creole | bitters-creole | 39
+Bitter Truth Jerry Thomas' Own Decanter | bitters-boker | 30
+Bittermens Xocolatl Mole | bitters-mole | 53
+Bittermens Elemakule Tiki | bitters-tiki | 45
+Bittermens Hopped Grapefruit | bitters-grapefruit | 45
+Bittermens Boston Bittahs | bitters-orange | 45
+Bittermens Burlesque | bitters-specialty | 44
+Scrappy's Lavender | bitters-lavender | 50
+Scrappy's Cardamom | bitters-cardamom | 50
+Scrappy's Celery | bitters-celery | 50
+Scrappy's Firewater | bitters-specialty | 50
+Scrappy's Orleans | bitters-peychaud | 50
+Bob's Cardamom | bitters-cardamom | 40
+Bob's Licorice | bitters-specialty | 40
+Dr. Adam Elmegirab's Boker's Bitters | bitters-boker | 31
+Miracle Mile Forbidden Bitters | bitters-aromatic | 44
+Miracle Mile Bergamot | bitters-specialty | 44
+Hella Smoked Chili | bitters-specialty | 44
+Hella Aromatic | bitters-aromatic | 44
+Dashfire Lemon | bitters-specialty | 39
+Bittercube Bolivar | bitters-aromatic | 40
+Bittercube Jamaican No. 2 | bitters-tiki | 40
+Embitterment Kale | bitters-specialty | 40
+# Other spirits
+Linie Aquavit | other-aquavit | 41.5
+Aalborg Taffel | other-aquavit | 45
+Aalborg Jubilæums | other-aquavit | 40
+Krogstad Festlig | other-aquavit | 40
+Brennivín | other-aquavit | 37.5
+North Shore Aquavit | other-aquavit | 45
+O.P. Anderson Aquavit | other-aquavit | 40
+Kweichow Moutai | other-baijiu-sauce | 53
+Ming River Sichuan Baijiu | other-baijiu-strong | 45
+Wuliangye | other-baijiu-strong | 52
+Luzhou Laojiao | other-baijiu-strong | 52
+Fenjiu | other-baijiu-light | 53
+HKB Baijiu | other-baijiu-strong | 42
+Iichiko Silhouette | other-shochu-mugi | 25
+Iichiko Saiten | other-shochu-mugi | 43
+Mizu Shochu | other-shochu-mugi | 35
+Kurokirishima | other-shochu-imo | 25
+Kuro Kame (Black Turtle) | other-shochu-imo | 25
+Hakutake Shiro | other-shochu-kome | 25
+Zuisen Awamori | other-awamori | 30
+Jinro Chamisul | other-soju | 16.9
+Hwayo 41 | other-soju | 41
+Tokki Soju | other-soju | 23
+Dassai 45 | other-sake-ginjo | 16
+Hakkaisan Tokubetsu Junmai | other-sake-junmai | 15.5
+Kikusui Junmai Ginjo | other-sake-ginjo | 15
+Gekkeikan Junmai | other-sake-junmai | 15
+Sho Chiku Bai Nigori | other-sake-nigori | 15
+Momokawa Organic Nigori | other-sake-nigori | 18
+# Wine & beer
+Moët & Chandon Impérial | wine-champagne | 12
+Veuve Clicquot Brut | wine-champagne | 12
+Taittinger Brut La Française | wine-champagne | 12.5
+Pol Roger Brut Réserve | wine-champagne | 12.5
+Billecart-Salmon Brut Réserve | wine-champagne | 12
+Segura Viudas Brut Cava | wine-sparkling | 12
+Freixenet Cordon Negro | wine-sparkling | 11.5
+Gruet Brut | wine-sparkling | 12
+Crémant de Bourgogne (any) | wine-sparkling | 12
+La Marca Prosecco | wine-prosecco | 11
+Mionetto Prosecco Brut | wine-prosecco | 11
+Bisol Crede | wine-prosecco | 11.5
+Cleto Chiarli Lambrusco | wine-lambrusco | 11
+Côtes du Rhône (dry red) | wine-red | 13.5
+Malbec (dry red) | wine-red | 13.5
+Sauvignon Blanc (dry white) | wine-white | 12.5
+Pinot Grigio (dry white) | wine-white | 12
+Provence Rosé | wine-rose | 12.5
+Modelo Especial | beer-lager | 4.4
+Tecate | beer-lager | 4.5
+Pacifico | beer-lager | 4.4
+Guinness Draught | beer-stout | 4.2
+Allagash White | beer-wheat | 5.2
+Angry Orchard Crisp Apple | beer-cider | 5
+# Mixers
+Fever-Tree Indian Tonic | mix-tonic | 0
+Fever-Tree Mediterranean Tonic | mix-tonic | 0
+Fever-Tree Ginger Beer | mix-ginger-beer | 0
+Fever-Tree Ginger Ale | mix-ginger-ale | 0
+Fever-Tree Club Soda | mix-soda | 0
+Q Tonic | mix-tonic | 0
+Q Ginger Beer | mix-ginger-beer | 0
+Q Club Soda | mix-soda | 0
+Schweppes Tonic | mix-tonic | 0
+Canada Dry Ginger Ale | mix-ginger-ale | 0
+Topo Chico | mix-soda | 0
+Perrier | mix-soda | 0
+Gosling's Ginger Beer | mix-ginger-beer | 0
+Bundaberg Ginger Beer | mix-ginger-beer | 0
+Reed's Extra Ginger | mix-ginger-beer | 0
+Jarritos Toronja | mix-grapefruit-soda | 0
+Squirt | mix-grapefruit-soda | 0
+Fresca | mix-grapefruit-soda | 0
+Mexican Coca-Cola | mix-cola | 0
+Coca-Cola | mix-cola | 0
+Sprite | mix-lemon-lime | 0
+Coco López Cream of Coconut | mix-coconut-cream | 0
+Goya Coco Real | mix-coconut-cream | 0
+Dole Pineapple Juice | mix-pineapple | 0
+Ocean Spray Cranberry | mix-cranberry | 0
+Sacramento Tomato Juice | mix-tomato | 0
+Mott's Clamato | mix-clamato | 0

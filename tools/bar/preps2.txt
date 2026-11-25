@@ -1,0 +1,551 @@
+## shrub-strawberry | Strawberry–balsamic shrub | shrub | 180 | 700
+- 400 g strawberries, sliced @strawberries
+- 300 g white sugar @sugar-white
+- 200 g white balsamic or red wine vinegar
+- 50 g balsamic vinegar
+> Cold process: toss fruit and sugar, rest 1–2 days in the fridge until syrupy. Strain, add vinegars, shake.
+> Rest a week to mellow. With soda, or 0.75 oz in a gin or bourbon sour.
+
+## shrub-raspberry | Raspberry shrub | shrub | 180 | 700
+- 400 g raspberries @raspberries
+- 300 g white sugar @sugar-white
+- 250 g apple cider vinegar
+> Cold process: macerate 1–2 days, strain, add vinegar.
+
+## shrub-blackberry | Blackberry–sage shrub | shrub | 180 | 700
+- 400 g blackberries @blackberries
+- 6 sage leaves @sage
+- 300 g demerara sugar @sugar-demerara
+- 250 g apple cider vinegar
+> Macerate fruit, sage and sugar 1–2 days, strain, add vinegar.
+
+## shrub-peach | Peach–ginger shrub | shrub | 120 | 700
+- 4 ripe peaches, chopped @peach
+- 30 g fresh ginger, sliced @ginger-root
+- 300 g white sugar @sugar-white
+- 250 g champagne vinegar
+> Macerate 2 days, strain, add vinegar.
+
+## shrub-pineapple | Pineapple shrub | shrub | 120 | 700
+- 500 g pineapple, chopped @pineapple
+- 300 g demerara sugar @sugar-demerara
+- 250 g apple cider vinegar
+> Macerate 2 days, strain, add vinegar. Rum highballs.
+
+## shrub-apple | Apple cider shrub | shrub | 180 | 700
+- 2 tart apples, grated @apple-fresh
+- 1 cinnamon stick @cinnamon-stick
+- 300 g brown sugar @sugar-brown
+- 250 g apple cider vinegar
+> Macerate 2 days, strain, add vinegar. Fall whiskey drinks.
+
+## shrub-cranberry | Cranberry shrub (hot process) | shrub | 180 | 700
+- 300 g cranberries
+- 300 g white sugar @sugar-white
+- 200 g water
+- 250 g red wine vinegar
+> Simmer berries, sugar and water until they burst. Strain, cool, add vinegar.
+
+## shrub-cherry | Sour cherry shrub | shrub | 180 | 700
+- 400 g sour cherries, pitted @cherries-fresh
+- 300 g white sugar @sugar-white
+- 250 g red wine vinegar
+> Macerate 2 days, strain, add vinegar.
+
+## shrub-rhubarb | Rhubarb shrub | shrub | 180 | 700
+- 400 g rhubarb, chopped
+- 300 g white sugar @sugar-white
+- 250 g white wine vinegar
+> Macerate 2 days, strain, add vinegar.
+
+## shrub-tomato | Tomato–basil shrub | shrub | 60 | 700
+- 500 g ripe tomatoes, chopped
+- 10 basil leaves @basil
+- 250 g white sugar @sugar-white
+- 250 g white balsamic vinegar
+- 5 g salt @kosher-salt
+> Macerate 1 day, strain, add vinegar and salt. Savory gin and mezcal drinks.
+
+## shrub-ginger | Ginger–lime shrub | shrub | 180 | 600
+- 150 g ginger juice @ginger-root
+- 2 limes, zest @lime
+- 300 g white sugar @sugar-white
+- 250 g rice vinegar
+> Dissolve sugar into ginger juice with zest, strain, add vinegar.
+
+## acid-citric-solution | Citric acid solution (10%) | acid | 180 | 500
+- 50 g citric acid @citric-acid
+- 450 g water
+> Dissolve completely. A few drops brighten a stirred drink; the building block for acid-adjusting.
+
+## acid-malic-solution | Malic acid solution (10%) | acid | 180 | 500
+- 50 g malic acid @malic-acid
+- 450 g water
+> Green-apple sharpness.
+
+## acid-lactic-solution | Lactic acid solution (10%) | acid | 180 | 500
+- 57 g lactic acid, 88% liquid @lactic-acid
+- 443 g water
+> Soft, creamy, yogurt-like acidity; good in clear stirred "sours."
+
+## acid-tartaric-solution | Tartaric acid solution (10%) | acid | 180 | 500
+- 50 g tartaric acid @tartaric-acid
+- 450 g water
+> Grape-like acidity; pairs with wine-based drinks.
+
+## acid-phosphate | Acid phosphate | acid | 365 | 250
+- 25 g phosphoric acid (75%) @phosphoric-acid
+- 225 g water
+> Soda-fountain sour without citrus flavor. A few dashes in a highball. Handle concentrated acid with care.
+
+## acid-lime-blend | Lime acid blend | acid | 180 | 500
+- 30 g citric acid @citric-acid
+- 15 g malic acid @malic-acid
+- 455 g water
+> Roughly lime's acid profile (about 6%). Use with a lime cordial or sugar when there's no fresh lime.
+
+## acid-lemon-blend | Lemon acid blend | acid | 180 | 500
+- 30 g citric acid @citric-acid
+- 455 g water
+- 1 g malic acid @malic-acid
+> Roughly lemon's acid profile.
+
+## acid-adjusted-orange | Acid-adjusted orange juice ("lime strength") | juice | 2 | 500
+- 500 g fresh orange juice @orange-juice
+- 16 g citric acid @citric-acid
+- 10 g malic acid @malic-acid
+> Dissolve acids into juice. Brings OJ up to lime-level acidity so it can replace lime in sours; Dave Arnold's method.
+
+## acid-adjusted-grapefruit | Acid-adjusted grapefruit juice | juice | 2 | 500
+- 500 g grapefruit juice @grapefruit-juice
+- 15 g citric acid @citric-acid
+- 5 g malic acid @malic-acid
+> Grapefruit at lime strength; makes a sharper Paloma or Brown Derby.
+
+## acid-adjusted-pineapple | Acid-adjusted pineapple juice | juice | 2 | 500
+- 500 g pineapple juice @pineapple-juice-fresh
+- 15 g citric acid @citric-acid
+- 5 g malic acid @malic-acid
+> Pineapple that drinks like a sour mix.
+
+## super-juice-lime | Super juice (lime) | juice | 7 | 1000
+- 50 g lime peels (about 10 limes) @lime
+- 50 g citric acid @citric-acid
+- 10 g malic acid @malic-acid
+- 1000 g water
+> Blend peels and acids into a sherbet, rest 1 hour, blend with the water 30 seconds, strain fine.
+> Use 1:1 for fresh lime juice. 10 limes make a liter; keeps a week.
+
+## super-juice-lemon | Super juice (lemon) | juice | 7 | 1000
+- 50 g lemon peels (about 8 lemons) @lemon
+- 60 g citric acid @citric-acid
+- 1000 g water
+> Same method as lime super juice. Use 1:1 for lemon juice.
+
+## clarified-lime | Clarified lime juice (centrifuge-free) | juice | 3 | 400
+- 500 g fresh lime juice @lime-juice
+- 2 g agar @agar
+- 125 g water
+> Bloom agar in water, boil 1 minute, whisk into room-temperature juice, chill until set. Break up and strain through cloth. Crystal-clear juice for carbonated or clear drinks.
+
+## clarified-grapefruit | Clarified grapefruit (Pectinex) | juice | 3 | 450
+- 500 g grapefruit juice @grapefruit-juice
+- 1 g Pectinex Ultra SP-L @pectinex
+> Stir enzyme into juice, rest 15 minutes, then filter through a coffee filter. Clear juice for highballs and carbonated drinks.
+
+## ginger-juice | Fresh ginger juice | juice | 3 | 200
+- 300 g ginger, unpeeled @ginger-root
+> Juice in a press or blend with a splash of water and strain hard. Let the starch settle and pour off.
+
+## pineapple-juice-house | Fresh pineapple juice | juice | 2 | 600
+- 1 pineapple, peeled and cut @pineapple
+> Juice, skim the foam if you want it clean (or keep it for texture). Strain.
+
+## celery-juice | Celery juice | juice | 2 | 300
+- 1 head celery @celery
+> Juice and strain.
+
+## saline-20 | Saline solution (20%) | tincture | 365 | 250
+- 50 g kosher salt @kosher-salt
+- 200 g warm water
+> Dissolve. 2–4 drops brightens almost any sour; 1–2 drops in stirred drinks.
+
+## saline-msg | Savory saline (salt and MSG) | tincture | 365 | 250
+- 40 g kosher salt @kosher-salt
+- 10 g MSG @msg
+- 200 g warm water
+> Dissolve. For Bloody Marys, Martinis and savory stirred drinks.
+
+## tincture-chile | Chile tincture | tincture | 365 | 200
+- 3 habaneros or bird's eye chiles, sliced
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 24 hours, taste, strain. A few drops adds clean heat.
+
+## tincture-cinnamon | Cinnamon tincture | tincture | 365 | 200
+- 4 cinnamon sticks, broken @cinnamon-stick
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 1 week, strain.
+
+## tincture-vanilla | Vanilla tincture | tincture | 730 | 200
+- 3 vanilla beans, split @vanilla-bean
+- 200 ml high-proof rum or vodka @*vodka
+> Steep 3–4 weeks, strain (or leave pods in).
+
+## tincture-coffee | Coffee tincture | tincture | 365 | 200
+- 50 g coffee beans, cracked @coffee-beans
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 24 hours, strain.
+
+## tincture-cacao | Cacao nib tincture | tincture | 365 | 200
+- 40 g cacao nibs
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 1 week, strain. Chocolate notes with no sugar.
+
+## tincture-orange | Bitter orange peel tincture | tincture | 365 | 200
+- 30 g dried bitter orange peel
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 1 week, strain. A base for house orange bitters.
+
+## tincture-gentian | Gentian tincture | tincture | 730 | 200
+- 10 g gentian root
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 5 days, strain. Very bitter: a building block for house bitters.
+
+## tincture-wormwood | Wormwood tincture | tincture | 730 | 200
+- 5 g dried wormwood
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 2 days, strain. Absinthe-rinse alternative.
+
+## tincture-hops | Hop tincture | tincture | 365 | 200
+- 10 g whole-leaf hops (Citra, Cascade)
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 24 hours, strain. Piney, grapefruit bitterness.
+
+## tincture-smoke | Smoked tea tincture (lapsang) | tincture | 365 | 200
+- 10 g lapsang souchong tea
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 1 hour, strain. A drop of smoke without a peated scotch.
+
+## tincture-cardamom | Cardamom tincture | tincture | 365 | 200
+- 20 g green cardamom, cracked @cardamom
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 1 week, strain.
+
+## tincture-black-pepper | Black pepper tincture | tincture | 365 | 200
+- 20 g black peppercorns, cracked @black-pepper
+- 200 ml overproof neutral spirit @other-neutral
+> Steep 2 days, strain.
+
+## bitters-house-orange | House orange bitters | bitters | 730 | 500
+- 60 g dried bitter orange peel
+- 2 oranges, fresh zest @orange
+- 4 cardamom pods @cardamom
+- 1 tsp coriander seed
+- 1/2 tsp caraway
+- 3 g gentian root
+- 350 ml overproof neutral spirit @other-neutral
+- 100 g water
+- 30 g rich simple syrup @prep:rich-simple
+> Steep peel, spice and gentian in spirit 2 weeks, shaking daily. Strain, add water and syrup, rest 3 days, fine-strain.
+
+## bitters-house-aromatic | House aromatic bitters | bitters | 730 | 500
+- 5 g gentian root
+- 2 cinnamon sticks @cinnamon-stick
+- 8 cloves @cloves
+- 6 allspice berries @allspice-berries
+- 4 cardamom pods @cardamom
+- 1 orange, dried peel @orange
+- 1 tsp dried cherry bark (optional)
+- 350 ml overproof neutral spirit @other-neutral
+- 100 g water
+- 40 g demerara syrup @prep:demerara-syrup
+> Steep 2 weeks, strain, add water and syrup, rest, strain again.
+
+## bitters-house-celery | House celery bitters | bitters | 730 | 300
+- 2 tbsp celery seed
+- 1 celery stalk, chopped @celery
+- 1 lemon, zest @lemon
+- 3 g gentian root
+- 250 ml overproof neutral spirit @other-neutral
+> Steep 1 week, strain.
+
+## bitters-house-mole | House mole bitters | bitters | 730 | 300
+- 30 g cacao nibs
+- 2 ancho chiles, toasted
+- 1 cinnamon stick @cinnamon-stick
+- 3 g gentian root
+- 250 ml overproof neutral spirit @other-neutral
+> Steep 10 days, strain.
+
+## infusion-chile-tequila | Jalapeño-infused tequila | infusion | 180 | 750
+- 750 ml blanco tequila @*tequila-blanco
+- 2 jalapeños, sliced @jalapeno
+> Steep 30 minutes to 2 hours, tasting every 30 minutes; strain when the heat is right. Spicy Margarita.
+
+## infusion-cacao-rum | Cacao nib rum | infusion | 365 | 750
+- 750 ml aged rum @*rum-blended-aged
+- 60 g cacao nibs
+> Steep 3–5 days, strain.
+
+## infusion-coffee-bourbon | Coffee bourbon | infusion | 365 | 750
+- 750 ml bourbon @*whiskey-bourbon
+- 60 g whole coffee beans @coffee-beans
+> Steep 24 hours, strain. Coffee Old Fashioned.
+
+## infusion-vanilla-bourbon | Vanilla bourbon | infusion | 365 | 750
+- 750 ml bourbon @*whiskey-bourbon
+- 2 vanilla beans, split @vanilla-bean
+> Steep 3–5 days.
+
+## infusion-cinnamon-whiskey | Cinnamon whiskey (house) | infusion | 365 | 750
+- 750 ml bourbon or rye @*whiskey-bourbon
+- 4 cinnamon sticks @cinnamon-stick
+> Steep 2–4 days.
+
+## infusion-tea-gin | Earl Grey gin | infusion | 365 | 750
+- 750 ml London Dry gin @*gin-dry
+- 4 tbsp Earl Grey tea @tea-earl-grey
+> Steep 2 hours at room temperature, strain. Earl Grey MarTEAni.
+
+## infusion-chamomile-gin | Chamomile gin | infusion | 365 | 750
+- 750 ml gin @*gin-dry
+- 3 tbsp chamomile @chamomile
+> Steep 2 hours, strain.
+
+## infusion-pineapple-rum | Pineapple rum (Stiggins-style) | infusion | 365 | 750
+- 750 ml aged rum @*rum-blended-aged
+- 1 pineapple, rind and core, roasted @pineapple
+> Roast pineapple pieces with a little demerara, steep in the rum 1 week, strain.
+
+## infusion-strawberry-tequila | Strawberry tequila | infusion | 60 | 750
+- 750 ml blanco tequila @*tequila-blanco
+- 300 g strawberries, sliced @strawberries
+> Steep 2–3 days in the fridge, strain.
+
+## infusion-cucumber-gin | Cucumber gin | infusion | 30 | 750
+- 750 ml gin @*gin-dry
+- 1 cucumber, sliced @cucumber
+> Steep 24 hours, strain.
+
+## infusion-hibiscus-mezcal | Hibiscus mezcal | infusion | 365 | 750
+- 750 ml mezcal @*mezcal
+- 15 g dried hibiscus @hibiscus-dried
+> Steep 1 hour, strain.
+
+## infusion-cherry-bourbon | Sour cherry bourbon | infusion | 365 | 750
+- 750 ml bourbon @*whiskey-bourbon
+- 200 g dried sour cherries
+> Steep 1 week, strain.
+
+## infusion-fig-bourbon | Fig bourbon | infusion | 365 | 750
+- 750 ml bourbon @*whiskey-bourbon
+- 200 g dried figs, halved
+> Steep 1 week, strain.
+
+## infusion-apple-brandy | Spiced apple brandy | infusion | 365 | 750
+- 750 ml apple brandy @*brandy-apple
+- 1 apple, sliced and dried @apple-fresh
+- 1 cinnamon stick @cinnamon-stick
+> Steep 5 days, strain.
+
+## infusion-rosemary-vodka | Rosemary vodka | infusion | 365 | 750
+- 750 ml vodka @*vodka
+- 4 sprigs rosemary @rosemary
+> Steep 24 hours, strain.
+
+## infusion-butterfly-gin | Butterfly pea gin (color-changing) | infusion | 365 | 750
+- 750 ml gin @*gin-dry
+- 2 tbsp dried butterfly pea flowers
+> Steep 1–2 hours until deep blue, strain. Turns pink when citrus is added.
+
+## fat-wash-brown-butter | Brown butter bourbon (fat wash) | fat-wash | 180 | 700
+- 750 ml bourbon @*whiskey-bourbon
+- 115 g butter, browned
+> Brown the butter, pour into the bourbon while warm, stir. Rest 4 hours at room temperature, then freeze overnight. Lift off the fat, strain through a coffee filter.
+
+## fat-wash-bacon | Bacon bourbon (Benton's Old Fashioned) | fat-wash | 180 | 700
+- 750 ml bourbon @*whiskey-bourbon
+- 45 g rendered bacon fat (smoky)
+> Warm fat into bourbon, rest 4 hours, freeze, lift fat, strain. Don Lee's Benton's Old Fashioned base.
+
+## fat-wash-coconut | Coconut oil rum | fat-wash | 180 | 700
+- 750 ml aged rum @*rum-blended-aged
+- 100 g virgin coconut oil, melted
+> Stir in melted oil, rest 4 hours, freeze, lift solid oil, strain.
+
+## fat-wash-olive | Olive oil gin | fat-wash | 180 | 700
+- 750 ml gin @*gin-dry
+- 100 ml extra-virgin olive oil
+> Shake, rest 6 hours, freeze, lift solidified oil, strain. Silky Martinis.
+
+## fat-wash-sesame | Sesame oil whiskey | fat-wash | 180 | 700
+- 750 ml Japanese or blended whisky @*japanese
+- 30 ml toasted sesame oil
+> Stir, rest 4 hours, freeze, strain fine.
+
+## fat-wash-peanut | Peanut butter bourbon | fat-wash | 180 | 700
+- 750 ml bourbon @*whiskey-bourbon
+- 100 g natural peanut butter
+> Blend, rest 6 hours, freeze, strain through a coffee filter.
+
+## clarified-milk-punch | Clarified milk punch (English style) | clarified | 180 | 1200
+- 250 ml cognac @*brandy-cognac
+- 250 ml aged rum @*rum-blended-aged
+- 125 ml Batavia arrack @*arrack
+- 200 g oleo saccharum (lemon) @prep:oleo-saccharum
+- 175 ml lemon juice @lemon-juice
+- 250 ml strong black tea, warm @tea-black
+- 1 pinch grated nutmeg @nutmeg
+- 350 ml whole milk, warm @whole-milk
+> Combine everything but the milk. Pour the punch INTO the warm milk (not the other way) and let it curdle 30 minutes.
+> Strain through a coffee filter, re-pouring the first cloudy liters back through the curd bed until it runs crystal clear. Bottle; keeps months cold.
+
+## clarified-milk-punch-rum | Clarified pineapple–rum milk punch | clarified | 180 | 1200
+- 500 ml aged rum @*rum-blended-aged
+- 250 ml pineapple juice @pineapple-juice-fresh
+- 125 ml lemon juice @lemon-juice
+- 150 ml demerara syrup (2:1) @prep:demerara-syrup
+- 1 cinnamon stick @cinnamon-stick
+- 300 ml whole milk @whole-milk
+> Steep cinnamon in the punch 1 hour, remove. Pour into milk, rest 30 minutes, filter until clear.
+
+## clarified-agar | Agar-clarified juice or cocktail (general) | clarified | 3 | 500
+- 500 g juice or batched drink
+- 1 g agar per 500 g @agar
+- 100 g water
+> Boil agar in the water 1 minute, whisk into the room-temperature liquid, chill until set, break up and strain through cloth.
+
+## foam-egg-white | Egg white foam (batch) | foam | 2 | 300
+- 6 egg whites @egg-white
+- 30 g simple syrup @prep:simple-syrup
+- 15 g lemon juice @lemon-juice
+> Whisk or iSi-charge for topping. For a single drink just dry-shake 0.75 oz egg white with the cocktail.
+
+## foam-aquafaba | Aquafaba (vegan foamer) | foam | 3 | 250
+- 250 g liquid from a can of chickpeas @aquafaba
+> Reduce by one third over low heat for more foaming power; cool. Use 0.5–0.75 oz per drink in place of egg white.
+
+## foam-ginger | Ginger foam (iSi) | foam | 3 | 400
+- 200 g ginger syrup @prep:ginger-syrup
+- 150 g water
+- 60 g lime juice @lime-juice
+- 2 egg whites @egg-white
+> Combine, strain into an iSi siphon, charge with two N2O chargers, shake hard, chill. Dispense over drinks.
+
+## whipped-cream-cocktail | Lightly whipped cream (Irish Coffee float) | foam | 2 | 250
+- 250 ml heavy cream @heavy-cream
+- 10 ml simple syrup (optional) @prep:simple-syrup
+> Shake in a sealed container or whisk only until it thickens but still pours. It should float, not stand.
+
+## cold-foam | Sweet cold foam | foam | 2 | 300
+- 200 ml heavy cream @heavy-cream
+- 100 ml whole milk @whole-milk
+- 30 ml vanilla syrup @prep:vanilla-syrup
+> Froth with a handheld frother until thick and pourable.
+
+## brine-olive | Olive brine (house, for Dirty Martinis) | other | 90 | 500
+- 450 g water
+- 30 g kosher salt @kosher-salt
+- 30 g dry vermouth @*verm-dry
+- 2 g citric acid @citric-acid
+> Dissolve. Cleaner and more consistent than jar brine.
+
+## brine-pickle | Pickle brine (Pickleback) | other | 90 | 500
+- 300 g cider vinegar
+- 200 g water
+- 25 g kosher salt @kosher-salt
+- 20 g white sugar @sugar-white
+- 1 tbsp dill seed and garlic
+> Bring to a simmer, cool, steep 2 days, strain.
+
+## bloody-mary-mix | Bloody Mary mix | other | 7 | 1200
+- 1000 ml tomato juice @mix-tomato
+- 90 ml lemon juice @lemon-juice
+- 45 ml Worcestershire @worcestershire
+- 30 g prepared horseradish @horseradish
+- 15 ml hot sauce @hot-sauce
+- 2 tsp celery salt @celery-salt
+- 2 tsp black pepper @black-pepper
+- 15 ml olive brine @olive-brine
+> Whisk together. Rests well overnight. 4 oz mix to 2 oz vodka.
+
+## sour-mix | Fresh sour mix (house) | other | 3 | 900
+- 300 ml lemon juice @lemon-juice
+- 150 ml lime juice @lime-juice
+- 450 ml simple syrup @prep:simple-syrup
+> Stir together. For parties only; fresh shaken sours are better.
+
+## coconut-cream-batched | Coconut–lime batch (Painkiller/Colada base) | other | 3 | 900
+- 300 g cream of coconut @prep:cream-of-coconut
+- 500 ml pineapple juice @mix-pineapple
+- 100 ml orange juice @orange-juice
+> Whisk until smooth. 4 oz batch to 2 oz rum.
+
+## house-coffee-liqueur | House coffee liqueur | liqueur | 365 | 1000
+- 500 ml cold brew concentrate @mix-espresso
+- 400 g demerara sugar @sugar-demerara
+- 1 vanilla bean @vanilla-bean
+- 350 ml aged rum or vodka @*rum-blended-aged
+> Dissolve sugar into warm cold brew, add vanilla and spirit, rest 1 week.
+
+## house-limoncello | Limoncello | liqueur | 365 | 1500
+- 10 lemons, zest only (no pith) @lemon
+- 750 ml high-proof neutral spirit @other-neutral
+- 600 g white sugar @sugar-white
+- 750 g water
+> Steep zest in spirit 1–2 weeks. Strain, add cooled syrup, rest 1 week. Serve frozen.
+
+## house-nocino | Nocino (green walnut) | liqueur | 730 | 1000
+- 25 green walnuts, quartered (harvest late June)
+- 750 ml neutral spirit or vodka @*vodka
+- 1 cinnamon stick @cinnamon-stick
+- 4 cloves @cloves
+- 1 lemon, zest @lemon
+- 400 g white sugar @sugar-white
+> Steep 40 days in the sun, strain, add sugar, age 3+ months.
+
+## house-allspice-dram | Allspice dram (pimento) | liqueur | 365 | 900
+- 3 tbsp allspice berries, crushed @allspice-berries
+- 1 cinnamon stick @cinnamon-stick
+- 375 ml Jamaican rum (overproof white or pot still) @*rum-jamaican
+- 300 g demerara syrup (2:1) @prep:demerara-syrup
+> Steep allspice in rum 10 days, add cinnamon for the last 2. Strain through a coffee filter, add syrup, rest 2 days.
+
+## house-orange-liqueur | House orange liqueur (dry curaçao style) | liqueur | 365 | 900
+- 4 oranges, zest @orange
+- 1 tbsp dried bitter orange peel
+- 2 cloves @cloves
+- 500 ml cognac or brandy @*brandy-cognac
+- 300 g rich simple syrup @prep:rich-simple
+> Steep zest, peel and cloves in brandy 1 week. Strain, add syrup, rest 3 days.
+
+## house-cherry-liqueur | House cherry liqueur | liqueur | 365 | 900
+- 500 g dark cherries, pitted and crushed @cherries-fresh
+- 500 ml brandy or vodka @*brandy-grape
+- 250 g white sugar @sugar-white
+> Macerate 2 weeks, strain, add sugar, rest 1 week.
+
+## house-sloe-gin | Sloe-style gin (with plums or damsons) | liqueur | 365 | 900
+- 400 g sloes or damson plums, pricked
+- 700 ml gin @*gin-dry
+- 200 g white sugar @sugar-white
+> Combine and shake every few days for 3 months. Strain and bottle.
+
+## brandied-cherries | Brandied cherries (house) | other | 365 | 1000
+- 500 g sweet or sour cherries, pitted @cherries-fresh
+- 200 g white sugar @sugar-white
+- 120 ml water
+- 1 cinnamon stick @cinnamon-stick
+- 250 ml brandy or bourbon @*brandy-grape
+> Simmer sugar, water and cinnamon. Add cherries, simmer 5 minutes, off heat add spirit. Jar and refrigerate 1 week before using.
+
+## clear-ice | Clear ice (directional freezing) | other | 30 | 0
+- 1 small insulated cooler (lid off)
+- filtered water
+> Fill the cooler, freeze 18–24 hours (lid off) so it freezes top-down. Pull before the bottom freezes, rest 10 minutes, cut with a serrated knife and mallet.
+> Store cut cubes in a sealed bag in the freezer.
+
+## cocktail-cherry-syrup | Cherry soaking syrup (refresh) | syrup | 60 | 500
+- 300 g brandied-cherry liquid or cherry juice
+- 200 g white sugar @sugar-white
+> Top up jars of cherries; a dash in Manhattans.

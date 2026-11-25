@@ -6,6 +6,9 @@
 //   recipe_url    {url}                          -> {recipe:{...}}  (schema.org first, AI fallback)
 //   generate      {pantry:[...], dislikes, servings, wish} -> {recipes:[...]}
 //   recipe_voice  {transcript}                   -> {recipe:{...}, estimated:[string]}
+//   bar_photo     {image|images[], media_type}   -> {bottles:[{name,category,abv,size_ml,fill}]}  (Back Home Bar)
+//   spec_voice    {transcript}                   -> {spec:{...}}  (Back Home Bar)
+//   spec_photo    {image, media_type}            -> {spec:{...}}  (Back Home Bar)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const MODEL = "claude-sonnet-5-5";
@@ -15,6 +18,8 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const CATS = "Produce, Meat & Seafood, Dairy & Eggs, Bakery, Pantry, Spices, Frozen, Drinks, Snacks, Household, Other";
+const SPEC_SHAPE = `{"name":string,"family":"Sour|Old Fashioned|Manhattan|Martini|Highball|Fizz|Tiki|Champagne|Spritz|Julep|Swizzle|Cobbler|Sling|Flip|Punch|Hot|Duo|Other","glass":string,"ice":string,"method":"shaken|stirred|built|swizzled|flash-blended|blended|rolled|thrown","garnish":string,"ingredients":[{"qty":number|null,"unit":"oz|ml|dash|barspoon|tsp|drops|leaves|whole|rinse|top","name":string}],"notes":string}`;
+const BAR_CATS = "Gin, Genever, Vodka, Rum, Tequila, Mezcal, Whiskey, Brandy, Liqueur, Anise, Amaro, Vermouth, Fortified wine, Bitters, Other spirits, Wine & beer, Mixers";
 const RECIPE_SHAPE = `{"title":string,"servings":number,"time_min":number|null,"category":"breakfast|main|side|soup|salad|appetizer|dessert|bread|drink|sauce|seasoning|dressing|condiment","kind":"meal|component","tags":[string],"ingredients":[{"qty":number|null,"unit":string,"name":string}],"steps":[string],"notes":string}`;
 
 const json = (body: unknown, status = 200) =>
@@ -89,6 +94,34 @@ Deno.serve(async (req) => {
       const multi = pics.length > 1 ? `These ${pics.length} photos are consecutive parts of the same ${mode === "receipt_photo" ? "receipt, top to bottom; items may repeat where the photos overlap, so list each purchased line once" : "kitchen"}.\n` : "";
       const out = await claude([...pics.map(p => img(p, b.media_type)), { type: "text", text: `${multi}${what}\nReturn only JSON: {${mode === "receipt_photo" ? '"store":string|null,"date":"YYYY-MM-DD"|null,"total":number|null,"kind":"groceries|out|takeout",' : ""}"items":[{"name":string (short, lowercase, singular where natural),"qty":number,"unit":string ("" for countable items, or lb, oz, gal, qt, cup, bag, box, can, jar, bottle, bunch, dozen),"category":one of ${CATS},"expires_days":number|null (typical days until it should be used, for fresh food only)}]}` }],
         "You help a family keep their kitchen inventory. Be practical and don't invent items you can't see.", 8000);
+      return json(out);
+    }
+
+    if (mode === "bar_photo") {
+      const pics: string[] = (Array.isArray(b.images) && b.images.length ? b.images : [b.image]).filter(Boolean).slice(0, 4);
+      if (!pics.length) return json({ error: "No photo came through. Try again." }, 400);
+      const multi = pics.length > 1 ? `These ${pics.length} photos show different parts of the same home bar; list each bottle once.\n` : "";
+      const out = await claude([...pics.map(p => img(p, b.media_type)), { type: "text", text: `${multi}This is a home bar shelf, a liquor cabinet or bottle labels. List every bottle of spirits, liqueur, amaro, vermouth, bitters, wine or mixer you can identify. Use the brand and expression exactly as printed (e.g. "Smith & Cross Traditional Jamaica Rum", "Carpano Antica Formula", "Angostura Aromatic Bitters"). Estimate how full each bottle is from the liquid line (1 = full, 0.5 = half). Skip anything you can't read with reasonable confidence; don't guess brands.\nReturn only JSON: {"bottles":[{"name":string,"category":one of ${BAR_CATS},"abv":number|null (from the label if visible),"size_ml":number|null,"fill":number}]}` }],
+        "You are an experienced bartender cataloging a home bar. Be precise about brands and expressions and never invent bottles you can't see.", 6000);
+      return json(out);
+    }
+
+    if (mode === "spec_voice") {
+      const t = String(b.transcript || "").trim().slice(0, 8000);
+      if (t.length < 8) return json({ error: "I didn't catch enough of that. Try describing the drink again." }, 400);
+      const out = await claude([{ type: "text", text: `A professional bartender described a cocktail spec out loud. This is the speech-to-text transcript, so expect filler words and mis-heard names (e.g. "chart truce" is Chartreuse, "peh shows" is Peychaud's, "car piano" is Carpano).
+
+TRANSCRIPT:
+"""${t}"""
+
+Write it up as a clean spec card. Keep their exact amounts (convert spoken fractions: "three quarters" = 0.75 oz, "a bar spoon" = 1 barspoon). Name ingredients generically by style unless they name a specific brand that matters (e.g. "rye whiskey", "sweet vermouth", "Green Chartreuse", "lime juice", "simple syrup", "Angostura bitters"). Don't add ingredients they didn't say. Put technique tips in notes.
+Return only JSON: {"spec":${SPEC_SHAPE}}` }], "You transcribe bartenders' specs exactly. You never invent ingredients.", 2500);
+      return json(out);
+    }
+
+    if (mode === "spec_photo") {
+      const out = await claude([img(b.image, b.media_type), { type: "text", text: `Transcribe the cocktail spec in this photo (a menu, a recipe card, a book page or handwriting). Keep the quantities as written, converting cl or ml to oz only if the spec is in oz elsewhere. If several drinks are shown, take the most prominent one. Return only JSON: {"spec":${SPEC_SHAPE}}` }],
+        "You transcribe cocktail specs faithfully.", 2500);
       return json(out);
     }
 

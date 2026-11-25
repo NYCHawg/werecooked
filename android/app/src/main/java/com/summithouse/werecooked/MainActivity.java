@@ -29,7 +29,7 @@ import androidx.webkit.WebViewAssetLoader;
 import org.json.JSONObject;
 
 public class MainActivity extends Activity {
-    private static final String HOME = "https://appassets.androidplatform.net/assets/index.html";
+    private static final String HOME = BuildConfig.HOME;
     private static final int LOC_REQ = 7;
     private static final int CAM_REQ = 8;
     private static final int FILE_REQ = 9;
@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.parseColor("#1F4D38"));
+        getWindow().setStatusBarColor(Color.parseColor(BuildConfig.BAR_COLOR));
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
@@ -231,7 +231,7 @@ public class MainActivity extends Activity {
     private void handleIntent(Intent intent) {
         if (intent == null || intent.getData() == null) return;
         Uri u = intent.getData();
-        if (!"werecooked".equals(u.getScheme())) return;
+        if (!"auth-callback".equals(u.getHost())) return;
         if (loaded) deliverAuth(u.toString()); else pendingAuth = u.toString();
     }
 

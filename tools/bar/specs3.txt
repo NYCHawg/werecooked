@@ -1,0 +1,558 @@
+# ---------- Tiki ----------
+## mai-tai | Mai Tai | Tiki | rocks | crushed | shaken | mint sprig, spent lime shell | Trader Vic, 1944
+- 1 oz @rum-jamaican-aged|rum-jamaican-pot
+- 1 oz @rum-agricole-vieux|*rum-blended-aged
+- 0.5 oz @liq-dry-curacao|*liq-orange
+- 0.5 oz @prep:orgeat
+- 0.25 oz @prep:rich-simple
+- 1 oz @lime-juice
+> Shake with crushed ice, dump into a double rocks glass. Garnish with mint and the spent lime half.
+
+## zombie | Zombie | Tiki | tall tiki mug | crushed | flash-blended | mint sprig | Don the Beachcomber, 1934
+- 1.5 oz @rum-jamaican-pot
+- 1.5 oz @*rum-blended-aged|rum-spanish-aged
+- 1 oz @rum-demerara-overproof
+- 0.75 oz @lime-juice
+- 0.5 oz @prep:falernum|liq-falernum
+- 0.5 oz grapefruit-cinnamon (Don's Mix: 2 parts grapefruit, 1 part cinnamon syrup) @grapefruit-juice
+- 1 tsp @prep:grenadine
+- 1 dash @bitters-aromatic
+- 6 drops @*absinthe
+> Flash-blend 5 seconds with crushed ice (or shake hard), pour into a tall glass. Limit two per customer.
+
+## navy-grog | Navy Grog | Tiki | double rocks with ice cone | crushed | shaken | mint | Don the Beachcomber, 1941
+- 1 oz @rum-demerara
+- 1 oz @rum-jamaican-pot
+- 1 oz @*rum-blended-aged
+- 0.75 oz @lime-juice
+- 0.75 oz @grapefruit-juice
+- 1 oz @prep:honey-syrup-1-1
+- 1 oz @mix-soda
+> Shake (not the soda), strain over an ice cone or crushed ice, top with soda.
+
+## painkiller | Painkiller | Tiki | tiki mug | crushed | shaken | freshly grated nutmeg | Soggy Dollar Bar, BVI, 1970s
+- 2 oz @*rum-dark|rum-demerara
+- 4 oz @mix-pineapple
+- 1 oz @orange-juice
+- 1 oz @prep:cream-of-coconut|mix-coconut-cream
+> Shake, pour over crushed ice, grate nutmeg on top.
+
+## pina-colada | Piña Colada | Tiki | hurricane | crushed or blended | blended | pineapple wedge, cherry | Caribe Hilton, San Juan, 1954
+- 2 oz @*rum-light|*rum-blended-aged
+- 1.5 oz @prep:cream-of-coconut|mix-coconut-cream
+- 3 oz @mix-pineapple|pineapple-juice-fresh
+- 0.5 oz @lime-juice
+> Blend with a cup of ice until smooth, or shake hard and pour over crushed ice.
+
+## hurricane | Hurricane | Tiki | hurricane | crushed | shaken | orange slice, cherry | Pat O'Brien's, New Orleans, 1940s
+- 2 oz @rum-jamaican-aged|*rum-dark
+- 1 oz @prep:passion-fruit-syrup
+- 1 oz @lemon-juice
+- 0.5 oz @orange-juice
+- 1 tsp @prep:grenadine
+> Shake, strain over crushed ice.
+
+## planters-punch | Planter's Punch | Tiki | Collins | crushed | shaken | mint, lime wheel | Jamaica, 1870s
+- 3 oz @rum-jamaican-aged|*rum-jamaican
+- 1 oz @lime-juice
+- 0.75 oz @prep:demerara-syrup
+- 0.25 oz @prep:grenadine
+- 3 dash @bitters-aromatic
+> "One of sour, two of sweet, three of strong, four of weak." Shake, pour over crushed ice.
+
+## three-dots | Three Dots and a Dash | Tiki | tiki glass | crushed | flash-blended | three cherries and a pineapple spear | Don the Beachcomber, 1940s
+- 1.5 oz @rum-agricole-vieux
+- 0.5 oz @*rum-blended-aged
+- 0.5 oz @lime-juice
+- 0.5 oz @orange-juice
+- 0.5 oz @prep:honey-syrup
+- 0.25 oz @prep:falernum|liq-falernum
+- 0.25 oz @*liq-allspice
+- 1 dash @bitters-aromatic
+> Flash-blend or shake hard, pour over crushed ice. Morse code for V (victory).
+
+## jet-pilot | Jet Pilot | Tiki | double rocks | crushed | flash-blended | mint | Luau, Beverly Hills, 1958
+- 1 oz @rum-jamaican-pot
+- 0.75 oz @*rum-blended-aged
+- 0.5 oz @rum-demerara-overproof
+- 0.5 oz @lime-juice
+- 0.5 oz @grapefruit-juice
+- 0.5 oz @prep:cinnamon-syrup
+- 0.5 oz @prep:falernum|liq-falernum
+- 1 dash @bitters-aromatic
+- 6 drops @*absinthe
+> Flash-blend, pour into a double rocks glass.
+
+## saturn | Saturn | Tiki | pilsner | crushed | flash-blended | lemon peel ring, cherry | J. "Popo" Galsini, 1967
+- 1.25 oz @*gin-dry
+- 0.5 oz @prep:passion-fruit-syrup
+- 0.25 oz @prep:orgeat
+- 0.25 oz @prep:falernum|liq-falernum
+- 0.5 oz @lemon-juice
+> Flash-blend, pour over crushed ice.
+
+## fog-cutter | Fog Cutter | Tiki | tall mug | crushed | shaken | mint | Trader Vic, 1940s
+- 1.5 oz @*rum-light
+- 0.5 oz @*brandy-cognac
+- 0.5 oz @*gin-dry
+- 2 oz @orange-juice
+- 1 oz @lemon-juice
+- 0.5 oz @prep:orgeat
+- 0.5 oz @fort-oloroso|fort-amontillado
+> Shake all but the sherry, pour over crushed ice, float the sherry.
+
+## scorpion | Scorpion (single) | Tiki | tiki bowl | crushed | flash-blended | gardenia or mint | Trader Vic, 1940s
+- 1.5 oz @*rum-light
+- 0.5 oz @*brandy-cognac
+- 1.5 oz @orange-juice
+- 1 oz @lemon-juice
+- 0.5 oz @prep:orgeat
+> Flash-blend, pour over crushed ice.
+
+## missionarys-downfall | Missionary's Downfall | Tiki | coupe or hurricane | blended | blended | mint sprig | Don the Beachcomber, 1940s
+- 1 oz @*rum-light
+- 0.5 oz @liq-peche
+- 0.5 oz @prep:honey-syrup
+- 0.5 oz @lime-juice
+- 1 oz @mix-pineapple
+- 10 leaves @mint
+> Blend with a cup of crushed ice until smooth and green.
+
+## corn-n-oil | Corn 'n' Oil | Tiki | rocks | crushed | built | lime wedge | Barbados
+- 2 oz @rum-barbados|*rum-blended-aged
+- 0.5 oz @*liq-falernum
+- 0.25 oz @lime-juice
+- 2 dash @bitters-aromatic
+> Build over crushed ice; float the dark rum if you like.
+
+## test-pilot | Test Pilot | Tiki | double rocks | crushed | flash-blended | cherry | Don the Beachcomber, 1941
+- 1.5 oz @rum-jamaican-aged
+- 0.75 oz @*rum-light
+- 0.5 oz @liq-triple-sec
+- 0.5 oz @prep:falernum|liq-falernum
+- 0.5 oz @lime-juice
+- 1 dash @bitters-aromatic
+- 6 drops @*absinthe
+> Flash-blend, pour.
+
+## ancient-mariner | Ancient Mariner | Tiki | double rocks | crushed | shaken | mint, lime | Jeff "Beachbum" Berry, 1994
+- 1 oz @rum-demerara
+- 1 oz @rum-jamaican-pot
+- 0.75 oz @lime-juice
+- 0.5 oz @grapefruit-juice
+- 0.5 oz @prep:rich-simple
+- 0.25 oz @*liq-allspice
+> Shake, pour over crushed ice.
+
+## blue-hawaii | Blue Hawaii | Tiki | hurricane | crushed | shaken | pineapple, cherry | Harry Yee, 1957
+- 0.75 oz @*rum-light
+- 0.75 oz @*vodka
+- 0.5 oz @liq-blue-curacao
+- 3 oz @mix-pineapple
+- 1 oz @prep:sour-mix
+> Shake, pour over crushed ice.
+
+## singapore-sling | Singapore Sling | Sling | hurricane or Collins | cubes | shaken | pineapple, cherry | Raffles Hotel, 1915
+- 1.5 oz @*gin-dry
+- 0.5 oz @*liq-cherry
+- 0.25 oz @*liq-orange
+- 0.25 oz @*liq-benedictine
+- 4 oz @mix-pineapple
+- 0.5 oz @lime-juice
+- 0.33 oz @prep:grenadine
+- 1 dash @bitters-aromatic
+> Shake, strain over ice.
+
+## suffering-bastard | Suffering Bastard | Tiki | highball | cubes | shaken | mint, cucumber, orange | Joe Scialom, Cairo, 1942
+- 1 oz @*brandy-cognac
+- 1 oz @*gin-dry
+- 0.5 oz @lime-juice
+- 0.25 oz @prep:simple-syrup
+- 2 dash @bitters-aromatic
+- 4 oz @mix-ginger-beer
+> Shake all but ginger beer, strain over ice, top.
+
+## pina-mezcal | Oaxacan Painkiller riff (Mezcal Colada) | Tiki | hurricane | crushed | shaken | pineapple | modern
+- 1.5 oz @*mezcal
+- 0.5 oz @*rum-blended-aged
+- 1.5 oz @prep:cream-of-coconut
+- 2 oz @mix-pineapple
+- 0.5 oz @lime-juice
+> Shake, pour over crushed ice.
+
+## chartreuse-swizzle | Chartreuse Swizzle | Swizzle | Collins | crushed | swizzled | mint, nutmeg | Marcovaldo Dionysos, 2002
+- 1.25 oz @*liq-chartreuse-green
+- 0.5 oz @*liq-falernum
+- 1 oz @mix-pineapple
+- 0.75 oz @lime-juice
+> Build over crushed ice and swizzle.
+
+## lion-tail | Lion's Tail | Sour | coupe | none | shaken | none | Café Royal Cocktail Book, 1937
+- 2 oz @*whiskey-bourbon
+- 0.5 oz @*liq-allspice
+- 0.5 oz @lime-juice
+- 0.25 oz @prep:simple-syrup
+- 1 dash @bitters-aromatic
+> Shake, fine-strain.
+
+## port-light | Port Light | Sour | coupe or rocks | none | shaken | none | Kelbo's, LA, 1960s
+- 2 oz @*whiskey-bourbon
+- 0.5 oz @prep:passion-fruit-syrup
+- 0.5 oz @prep:honey-syrup
+- 0.75 oz @lemon-juice
+- 0.5 oz @egg-white
+> Dry shake, shake with ice, fine-strain.
+
+## nui-nui | Nui Nui | Tiki | Collins | crushed | flash-blended | orange spiral | Don the Beachcomber, 1937
+- 2 oz @*rum-blended-aged
+- 0.5 oz @lime-juice
+- 0.5 oz @orange-juice
+- 0.25 oz @prep:cinnamon-syrup
+- 0.25 oz @prep:vanilla-syrup
+- 0.25 oz @*liq-allspice
+- 1 dash @bitters-aromatic
+> Flash-blend, pour.
+
+## donga-punch | Donga Punch | Tiki | double rocks | crushed | shaken | mint | Don the Beachcomber, 1937
+- 2 oz @rum-agricole-blanc|*rum-agricole
+- 0.75 oz @grapefruit-juice
+- 0.5 oz @lime-juice
+- 0.5 oz @prep:cinnamon-syrup
+> Shake, pour over crushed ice.
+
+# ---------- Punches (by the bowl) ----------
+## fish-house-punch | Philadelphia Fish House Punch (bowl) | Punch | punch cups | large block | built | lemon wheels, nutmeg | State in Schuylkill, 1732
+- 8 oz @prep:oleo-saccharum
+- 8 oz @lemon-juice
+- 12 oz @*brandy-cognac
+- 6 oz @rum-jamaican-aged
+- 4 oz @liq-peche
+- 24 oz water (cold)
+> Serves about 12. Dissolve oleo into lemon juice, add spirits and water, chill with a large block of ice.
+
+## pisco-punch | Pisco Punch | Punch | punch cup or rocks | cubes | shaken | pineapple | Duncan Nicol, Bank Exchange, SF, 1890s
+- 2 oz @*pisco
+- 0.75 oz @prep:pineapple-syrup
+- 0.75 oz @lemon-juice
+- 1 oz water
+> Shake, strain over ice.
+
+## chatham-artillery-punch | Chatham Artillery Punch (bowl) | Punch | punch cups | large block | built | lemon wheels | Savannah, 1850s
+- 6 oz @prep:oleo-saccharum
+- 8 oz @lemon-juice
+- 6 oz @*brandy-cognac
+- 6 oz @*whiskey-bourbon
+- 6 oz @rum-jamaican-aged
+- 1 bottle @*sparkling
+> Serves 15. Combine everything but the bubbly over a block of ice; top with Champagne just before serving.
+
+## regents-punch | Regent's Punch (bowl) | Punch | punch cups | large block | built | pineapple, lemon | George IV, 1810s
+- 6 oz @prep:oleo-saccharum
+- 6 oz @lemon-juice
+- 8 oz @*brandy-cognac
+- 4 oz @rum-jamaican-aged
+- 2 oz @*arrack
+- 12 oz green tea, chilled @tea-green
+- 1 bottle @*sparkling
+> Serves 15. Build with tea and spirits, top with Champagne.
+
+## sangria | Sangria (pitcher) | Punch | wine glass | cubes | built | orange and apple slices | Spain
+- 1 bottle @wine-red
+- 4 oz @*brandy-grape
+- 2 oz @*liq-orange
+- 2 oz @prep:simple-syrup
+- 4 oz @orange-juice
+> Serves 6. Combine with sliced fruit, chill 2+ hours, top with soda if you like.
+
+## milk-punch-bourbon | Bourbon Milk Punch (New Orleans) | Punch | rocks | cubes | shaken | grated nutmeg | New Orleans brunch
+- 1.5 oz @*whiskey-bourbon
+- 3 oz @whole-milk
+- 0.75 oz @prep:simple-syrup
+- 2 dash vanilla extract @vanilla-bean
+> Shake, strain over ice, grate nutmeg.
+
+## clarified-punch-serve | Clarified Milk Punch (serve) | Punch | rocks | large cube | built | lemon peel | 1700s
+- 3 oz @prep:clarified-milk-punch|prep:clarified-milk-punch-rum
+> Pour over a large clear cube.
+
+# ---------- Flips, nogs, dessert ----------
+## brandy-alexander | Brandy Alexander | Flip | coupe | none | shaken | grated nutmeg | 1910s
+- 1.5 oz @*brandy-cognac
+- 1 oz @liq-cacao-dark
+- 1 oz @heavy-cream
+> Shake hard, fine-strain, grate nutmeg.
+
+## alexander | Alexander (gin) | Flip | coupe | none | shaken | grated nutmeg | 1915
+- 1.5 oz @*gin-dry
+- 1 oz @liq-cacao-white
+- 1 oz @heavy-cream
+> Shake, fine-strain.
+
+## grasshopper | Grasshopper | Flip | coupe | none | shaken | mint leaf | Tujague's, New Orleans, 1918
+- 1 oz @liq-menthe-green
+- 1 oz @liq-cacao-white
+- 1.5 oz @heavy-cream
+> Shake, fine-strain.
+
+## golden-cadillac | Golden Cadillac | Flip | coupe | none | shaken | none | Poor Red's, 1952
+- 1 oz @liq-galliano
+- 1 oz @liq-cacao-white
+- 1 oz @heavy-cream
+> Shake, fine-strain.
+
+## brandy-flip | Brandy Flip | Flip | small coupe | none | shaken | grated nutmeg | 1860s
+- 2 oz @*brandy-cognac
+- 0.5 oz @prep:rich-simple
+- 1 whole @egg-whole
+> Dry shake, shake with ice, fine-strain, nutmeg.
+
+## coffee-cocktail | Coffee Cocktail | Flip | small wine glass | none | shaken | nutmeg | Jerry Thomas, 1887
+- 1.5 oz @*port-red
+- 1 oz @*brandy-cognac
+- 0.25 oz @prep:rich-simple
+- 1 whole @egg-whole
+> No coffee in it: just looks like it. Dry shake, shake, strain.
+
+## eggnog | Eggnog (per serving) | Flip | punch cup | none | shaken | grated nutmeg | colonial America
+- 1 oz @*brandy-cognac
+- 0.5 oz @rum-jamaican-aged
+- 0.5 oz @prep:simple-syrup
+- 1 whole @egg-whole
+- 2 oz @whole-milk
+- 1 oz @heavy-cream
+> Dry shake, shake with ice, strain, nutmeg. Scale for a batch and age it cold for weeks if you like.
+
+## tom-and-jerry | Tom and Jerry | Hot | mug | none | built | grated nutmeg | Jerry Thomas, 1860s
+- 1 oz @*brandy-cognac
+- 1 oz @rum-jamaican-aged
+- 2 oz batter (egg, sugar, spice beaten) @egg-whole
+- 3 oz hot milk @whole-milk
+> Spoon batter into a warm mug, add spirits, top with hot milk and stir.
+
+## mudslide | Mudslide | Flip | rocks | cubes | shaken | chocolate drizzle | Wreck Bar, Cayman, 1970s
+- 1 oz @*vodka
+- 1 oz @*liq-coffee
+- 1 oz @*liq-cream
+- 1 oz @heavy-cream
+> Shake, strain over ice.
+
+# ---------- Hot ----------
+## irish-coffee | Irish Coffee | Hot | Irish coffee glass | none | built | lightly whipped cream | Joe Sheridan, Foynes, 1940s
+- 1.5 oz @*irish
+- 0.5 oz @prep:demerara-syrup|prep:brown-sugar-syrup
+- 4 oz @mix-coffee
+- 1 oz @prep:whipped-cream-cocktail|heavy-cream
+> Warm the glass. Add whiskey, syrup and coffee, then float the cream over a spoon. Don't stir.
+
+## hot-toddy | Hot Toddy | Hot | mug | none | built | lemon wheel studded with cloves | 1700s
+- 1.5 oz @*whiskey-bourbon|*scotch-blend|*brandy-cognac
+- 0.5 oz @prep:honey-syrup
+- 0.5 oz @lemon-juice
+- 4 oz hot water
+> Build in a warm mug.
+
+## hot-buttered-rum | Hot Buttered Rum | Hot | mug | none | built | cinnamon stick | colonial America
+- 2 oz @*rum-dark|*rum-blended-aged
+- 1 tbsp spiced butter batter (butter, brown sugar, spices) @sugar-brown
+- 4 oz hot water
+> Dissolve batter in hot water, add rum, stir.
+
+## mulled-wine | Mulled Wine (pot) | Hot | mug | none | heated | orange slice, cinnamon | Europe
+- 1 bottle @wine-red
+- 2 oz @*brandy-grape
+- 3 oz @prep:spiced-syrup
+- 1 orange, sliced @orange
+> Serves 6. Warm gently (never boil) 20 minutes.
+
+## grog | Grog | Hot | mug | none | built | lemon | Royal Navy, 1740
+- 2 oz @*rum-dark
+- 0.5 oz @lemon-juice
+- 0.5 oz @prep:demerara-syrup
+- 4 oz hot water
+> Build in a warm mug.
+
+# ---------- Modern classics ----------
+## pdt-chartreuse | Industry Sour | Sour | coupe | none | shaken | none | Brooklyn industry staple
+- 1 oz @*fernet
+- 1 oz @*liq-chartreuse-green
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lime-juice
+> Shake, fine-strain.
+
+## gin-blossom | Gin Blossom | Martini | coupe | none | stirred | orange peel | Julie Reiner, Clover Club
+- 1.5 oz @*gin-dry
+- 1.5 oz @verm-blanc
+- 0.75 oz @*brandy-apple|brandy-apricot
+- 2 dash @bitters-orange
+> Stir, strain.
+
+## trident | Trident | Martini | coupe | none | stirred | lemon peel | Robert Hess, 2000s
+- 1 oz @aquavit|other-aquavit
+- 1 oz @*amaro-carciofo
+- 1 oz @*sherry-dry
+- 2 dash peach bitters @*bitters-other
+> Stir, strain.
+
+## art-of-choke | Art of Choke | Old Fashioned | rocks | large cube | stirred | mint sprig | Kyle Davidson, Violet Hour, 2007
+- 1 oz @*amaro-carciofo
+- 1 oz @*rum-light
+- 0.25 oz @*liq-chartreuse-green
+- 0.25 oz @lime-juice
+- 0.25 oz @prep:demerara-syrup
+> Stir with a mint sprig, strain over a large cube.
+
+## conference | Conference | Old Fashioned | rocks | large cube | stirred | lemon and orange peels | Brian Miller, Death & Co, 2008
+- 0.5 oz @*whiskey-rye
+- 0.5 oz @*whiskey-bourbon
+- 0.5 oz @*brandy-cognac
+- 0.5 oz @*brandy-apple
+- 1 tsp @prep:demerara-syrup
+- 2 dash @bitters-aromatic
+- 1 dash mole bitters @bitters-mole
+> Stir, strain over a large cube.
+
+## la-perla | La Perla | Martini | coupe | none | stirred | lemon peel | Jacques Bezuidenhout, 2005
+- 1.5 oz @*tequila-reposado
+- 1.5 oz @fort-manzanilla
+- 0.75 oz @liq-pear
+> Stir, strain.
+
+## shaddock | Siesta | Sour | coupe | none | shaken | grapefruit peel | Katie Stipe, 2006
+- 1.5 oz @*tequila-blanco
+- 0.5 oz @*aperitivo-red
+- 0.5 oz @lime-juice
+- 0.5 oz @grapefruit-juice
+- 0.5 oz @prep:simple-syrup
+> Shake, fine-strain.
+
+## oaxacan-flower | Mezcal Mule | Highball | copper mug | cubes | shaken | cucumber, candied ginger | Jason Cott, Mayahuel
+- 1.5 oz @*mezcal
+- 0.75 oz @lime-juice
+- 0.75 oz @prep:passion-fruit-syrup
+- 3 slices @cucumber
+- 3 oz @mix-ginger-beer
+> Muddle cucumber, shake, strain over ice, top with ginger beer.
+
+## old-cuban | Old Cuban | Champagne | coupe | none | shaken | mint leaf | Audrey Saunders, 2001
+- 1.5 oz @*rum-blended-aged
+- 1 oz @prep:simple-syrup
+- 0.75 oz @lime-juice
+- 2 dash @bitters-aromatic
+- 6 leaves @mint
+- 2 oz @*sparkling
+> Shake with mint, fine-strain, top with Champagne.
+
+## jimmy-roosevelt | Old Maid | Highball | highball | cubes | shaken | cucumber wheel | Sam Ross
+- 2 oz @*gin-dry
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lime-juice
+- 3 slices @cucumber
+- 6 leaves @mint
+> Muddle cucumber, shake with mint, strain over ice.
+
+## tia-mia | Tia Mia | Tiki | rocks | crushed | shaken | mint, lime wheel | Ivy Mix, 2009
+- 1 oz @rum-jamaican-pot
+- 1 oz @*mezcal
+- 0.5 oz @liq-dry-curacao
+- 0.5 oz @prep:orgeat
+- 0.75 oz @lime-juice
+> Shake, pour over crushed ice.
+
+## cynar-julep | Cynar Julep | Julep | julep cup | crushed | built | mint | Jacob Grier
+- 2 oz @*amaro-carciofo
+- 0.5 oz @prep:simple-syrup
+- 0.5 oz @grapefruit-juice
+- 8 leaves @mint
+> Build like a julep.
+
+## kentucky-maid | Kentucky Maid | Sour | rocks | cubes | shaken | cucumber wheel | Sam Ross, Milk & Honey
+- 2 oz @*whiskey-bourbon
+- 0.75 oz @prep:simple-syrup
+- 0.75 oz @lime-juice
+- 2 slices @cucumber
+- 8 leaves @mint
+> Muddle cucumber, shake with mint, strain over ice.
+
+## earl-grey-marteani | Earl Grey MarTEAni | Sour | coupe, sugar rim | none | shaken | lemon peel | Audrey Saunders, Pegu Club
+- 1.5 oz @prep:infusion-tea-gin
+- 1 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 1 whole @egg-white
+> Dry shake, shake with ice, strain into a sugar-rimmed coupe.
+
+## benton-negroni | Boulevardier Rye (Left Hand) | Old Fashioned | coupe | none | stirred | cherry | Sam Ross
+- 1.5 oz @*whiskey-bourbon
+- 0.75 oz @*verm-sweet
+- 0.75 oz @*aperitivo-red
+- 3 dash mole bitters @bitters-mole
+> Stir, strain.
+
+## chrysanthemum | Chrysanthemum | Martini | coupe | none | stirred | orange peel | Savoy, 1930
+- 2 oz @*verm-dry
+- 0.75 oz @*liq-benedictine
+- 3 dash @*absinthe
+> Stir, strain.
+
+## tipperary | Tipperary | Martini | coupe | none | stirred | orange peel | 1916
+- 1.5 oz @*irish
+- 0.75 oz @*verm-sweet
+- 0.5 oz @*liq-chartreuse-green
+- 2 dash @bitters-aromatic
+> Stir, strain.
+
+## monte-carlo | Monte Carlo | Old Fashioned | coupe | none | stirred | lemon peel | 1948
+- 2 oz @*whiskey-rye
+- 0.5 oz @*liq-benedictine
+- 2 dash @bitters-aromatic
+> Stir, strain.
+
+## improved-holland | Improved Holland Gin Cocktail | Old Fashioned | rocks | large cube | stirred | lemon peel | Jerry Thomas, 1876
+- 2 oz @*genever
+- 0.25 oz @prep:gomme-syrup|prep:rich-simple
+- 1 tsp @*liq-maraschino
+- 2 dash @bitters-aromatic
+- 1 dash @*absinthe
+> Stir, strain over a large cube.
+
+## japanese-cocktail | Japanese Cocktail | Old Fashioned | coupe | none | stirred | lemon peel | Jerry Thomas, 1862
+- 2 oz @*brandy-cognac
+- 0.5 oz @prep:orgeat
+- 2 dash @bitters-aromatic
+> Stir, strain.
+
+## army-navy | Army & Navy | Sour | coupe | none | shaken | lemon peel | David Embury, 1948
+- 2 oz @*gin-dry
+- 0.75 oz @prep:orgeat
+- 0.75 oz @lemon-juice
+- 1 dash @bitters-aromatic
+> Shake, fine-strain.
+
+## mexican-firing-squad | Mexican Firing Squad | Sour | rocks | cubes | shaken | lime wheel | La Cucaracha, Mexico City, 1937
+- 2 oz @*tequila-blanco
+- 0.75 oz @prep:grenadine
+- 0.75 oz @lime-juice
+- 4 dash @bitters-aromatic
+- 1 oz @mix-soda
+> Shake, strain over ice, splash of soda.
+
+## charlie-chaplin | Charlie Chaplin | Sour | coupe | none | shaken | lime wheel | Waldorf-Astoria, 1910s
+- 1 oz @*liq-sloe
+- 1 oz @liq-apricot
+- 1 oz @lime-juice
+> Shake, fine-strain.
+
+## gin-daisy | Gin Daisy | Sour | Collins | crushed | shaken | mint, fruit | 1870s
+- 2 oz @*gin-dry
+- 0.5 oz @prep:grenadine
+- 0.25 oz @*liq-orange
+- 0.75 oz @lemon-juice
+- 1 oz @mix-soda
+> Shake, pour over crushed ice, splash of soda.
+
+## brandy-daisy | Brandy Daisy | Sour | coupe | none | shaken | lemon peel | Jerry Thomas, 1876
+- 2 oz @*brandy-cognac
+- 0.5 oz @*liq-orange
+- 0.25 oz @prep:simple-syrup
+- 0.75 oz @lemon-juice
+- 1 oz @mix-soda
+> Shake, strain, splash of soda.

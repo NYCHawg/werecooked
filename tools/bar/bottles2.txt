@@ -1,0 +1,426 @@
+# American whiskey
+Buffalo Trace | whiskey-bourbon | 45
+Eagle Rare 10 | whiskey-bourbon | 45
+E.H. Taylor Small Batch | whiskey-bourbon-bib | 50
+Blanton's Single Barrel | whiskey-bourbon | 46.5
+Weller Special Reserve | whiskey-bourbon-wheated | 45
+Weller Antique 107 | whiskey-bourbon-wheated | 53.5
+Weller 12 | whiskey-bourbon-wheated | 45
+Maker's Mark | whiskey-bourbon-wheated | 45
+Maker's Mark 46 | whiskey-bourbon-wheated | 47
+Maker's Mark Cask Strength | whiskey-bourbon-cask | 55
+Larceny Small Batch | whiskey-bourbon-wheated | 46
+Larceny Barrel Proof | whiskey-bourbon-cask | 61
+Old Fitzgerald Bottled in Bond | whiskey-bourbon-wheated | 50
+Woodford Reserve | whiskey-bourbon-highrye | 45.2
+Woodford Reserve Double Oaked | whiskey-bourbon | 45.2
+Woodford Reserve Rye | whiskey-rye | 45.2
+Four Roses Bourbon | whiskey-bourbon-highrye | 40
+Four Roses Small Batch | whiskey-bourbon-highrye | 45
+Four Roses Single Barrel | whiskey-bourbon-highrye | 50
+Old Forester 86 | whiskey-bourbon | 43
+Old Forester 100 Signature | whiskey-bourbon | 50
+Old Forester 1920 Prohibition Style | whiskey-bourbon | 57.5
+Old Forester 1897 Bottled in Bond | whiskey-bourbon-bib | 50
+Old Grand-Dad Bonded | whiskey-bourbon-bib | 50
+Old Grand-Dad 114 | whiskey-bourbon-cask | 57
+Basil Hayden | whiskey-bourbon-highrye | 40
+Knob Creek 9 | whiskey-bourbon | 50
+Knob Creek 12 | whiskey-bourbon | 50
+Knob Creek Single Barrel | whiskey-bourbon-cask | 60
+Booker's | whiskey-bourbon-cask | 63
+Baker's 7 | whiskey-bourbon | 53.5
+Jim Beam White | whiskey-bourbon | 40
+Jim Beam Black | whiskey-bourbon | 43
+Jim Beam Bonded | whiskey-bourbon-bib | 50
+Evan Williams Black | whiskey-bourbon | 43
+Evan Williams Bottled in Bond | whiskey-bourbon-bib | 50
+Evan Williams Single Barrel | whiskey-bourbon | 43.3
+Henry McKenna Bottled in Bond | whiskey-bourbon-bib | 50
+Elijah Craig Small Batch | whiskey-bourbon | 47
+Elijah Craig Barrel Proof | whiskey-bourbon-cask | 62
+Heaven Hill Bottled in Bond 7 | whiskey-bourbon-bib | 50
+Wild Turkey 101 | whiskey-bourbon-highrye | 50.5
+Wild Turkey 81 | whiskey-bourbon | 40.5
+Wild Turkey Rare Breed | whiskey-bourbon-cask | 58.4
+Russell's Reserve 10 | whiskey-bourbon | 45
+Russell's Reserve Single Barrel | whiskey-bourbon-cask | 55
+Bulleit Bourbon | whiskey-bourbon-highrye | 45
+Bulleit 10 | whiskey-bourbon-highrye | 45.6
+Bulleit Rye | whiskey-rye-high | 45
+Bulleit Bourbon Barrel Strength | whiskey-bourbon-cask | 59.6
+Elmer T. Lee | whiskey-bourbon | 45
+1792 Small Batch | whiskey-bourbon-highrye | 46.85
+1792 Bottled in Bond | whiskey-bourbon-bib | 50
+Very Old Barton 100 | whiskey-bourbon | 50
+Old Crow | whiskey-bourbon | 40
+Benchmark Old No. 8 | whiskey-bourbon | 40
+Ancient Age | whiskey-bourbon | 40
+Wilderness Trail Bottled in Bond | whiskey-bourbon-bib | 50
+Wilderness Trail Wheated | whiskey-bourbon-wheated | 50
+New Riff Bottled in Bond | whiskey-bourbon-bib | 50
+New Riff Rye | whiskey-rye-bib | 50
+Michter's US*1 Bourbon | whiskey-bourbon | 45.7
+Michter's US*1 Rye | whiskey-rye | 42.4
+Michter's US*1 American | whiskey-american-blend | 41.7
+Angel's Envy | whiskey-bourbon | 43.3
+Angel's Envy Rye | whiskey-rye | 50
+Woodinville Straight Bourbon | whiskey-bourbon | 45
+Uncle Nearest 1856 | whiskey-tennessee | 50
+Jack Daniel's Old No. 7 | whiskey-tennessee | 40
+Jack Daniel's Bonded | whiskey-tennessee | 50
+Jack Daniel's Single Barrel | whiskey-tennessee | 47
+Jack Daniel's Rye | whiskey-rye | 45
+George Dickel No. 12 | whiskey-tennessee | 45
+George Dickel Bottled in Bond | whiskey-tennessee | 50
+George Dickel Rye | whiskey-rye-high | 45
+Gentleman Jack | whiskey-tennessee | 40
+Bernheim Original Wheat | whiskey-wheat | 45
+Mellow Corn | whiskey-corn | 50
+Balcones Baby Blue | whiskey-corn | 46
+Balcones Texas Single Malt | whiskey-american-malt | 53
+Westland American Single Malt | whiskey-american-malt | 46
+Stranahan's Original | whiskey-american-malt | 47
+Westward American Single Malt | whiskey-american-malt | 45
+Kings County Bourbon | whiskey-bourbon | 45
+Kings County Straight Rye | whiskey-rye | 45
+Kings County Moonshine | whiskey-corn | 40
+Hudson Baby Bourbon | whiskey-bourbon | 46
+Hudson Manhattan Rye | whiskey-rye | 46
+Widow Jane 10 | whiskey-bourbon | 45.5
+Widow Jane Decadence | whiskey-bourbon | 45.5
+Smooth Ambler Old Scout | whiskey-bourbon | 49.5
+Jefferson's Very Small Batch | whiskey-bourbon | 41.15
+Jefferson's Ocean | whiskey-bourbon | 45
+Rittenhouse Rye Bottled in Bond | whiskey-rye-bib | 50
+Old Overholt | whiskey-rye | 43
+Old Overholt Bonded | whiskey-rye-bib | 50
+Pikesville Rye | whiskey-rye | 55
+Sazerac Rye | whiskey-rye | 45
+Thomas H. Handy Sazerac | whiskey-rye-cask | 64
+WhistlePig 10 | whiskey-rye-high | 50
+WhistlePig PiggyBack 6 | whiskey-rye-high | 48.28
+High West Double Rye | whiskey-rye-high | 46
+High West Rendezvous Rye | whiskey-rye | 46
+High West American Prairie | whiskey-bourbon | 46
+Templeton Rye 4 | whiskey-rye-high | 40
+Knob Creek Rye | whiskey-rye | 50
+Wild Turkey 101 Rye | whiskey-rye | 50.5
+Russell's Reserve 6 Rye | whiskey-rye | 45
+Rittenhouse Very Rare 21 | whiskey-rye | 50
+James E. Pepper 1776 Rye | whiskey-rye-high | 50
+Dad's Hat Pennsylvania Rye | whiskey-rye | 45
+Sagamore Spirit Rye | whiskey-rye | 41.5
+Sagamore Spirit Cask Strength | whiskey-rye-cask | 56.1
+Redemption Rye | whiskey-rye-high | 46
+Bulleit Rye 12 | whiskey-rye-high | 46
+Jim Beam Rye | whiskey-rye | 45
+Old Forester Rye | whiskey-rye | 50
+Old Potrero Rye | whiskey-rye | 48.5
+Peerless Rye | whiskey-rye-cask | 54
+Willett 4 Year Rye | whiskey-rye-cask | 55
+Willett Pot Still Reserve | whiskey-bourbon | 47
+Rough Rider Rye | whiskey-rye | 45
+Alberta Premium Dark Horse | canadian-rye | 45
+Lot No. 40 | canadian-rye | 43
+Pike Creek 10 | canadian-blended | 42
+Crown Royal | canadian-blended | 40
+Crown Royal Northern Harvest Rye | canadian-rye | 45
+Canadian Club | canadian-blended | 40
+Canadian Club 100% Rye | canadian-rye | 40
+Seagram's VO | canadian-blended | 40
+Seagram's 7 Crown | whiskey-american-blend | 40
+Pendleton | canadian-blended | 40
+# Scotch
+Johnnie Walker Red | scotch-blended | 40
+Johnnie Walker Black 12 | scotch-blended | 40
+Johnnie Walker Double Black | scotch-blended | 40
+Johnnie Walker Green 15 | scotch-blended-malt | 43
+Johnnie Walker Blue | scotch-blended | 40
+Chivas Regal 12 | scotch-blended | 40
+Dewar's White Label | scotch-blended | 40
+Dewar's 12 | scotch-blended | 40
+Famous Grouse | scotch-blended | 40
+Monkey Shoulder | scotch-blended-malt | 43
+Naked Malt | scotch-blended-malt | 40
+Compass Box Great King St Artist's Blend | scotch-blended | 43
+Compass Box Peat Monster | scotch-blended-malt | 46
+Compass Box Orchard House | scotch-blended-malt | 46
+Compass Box Spice Tree | scotch-blended-malt | 46
+Compass Box Hedonism | scotch-grain | 43
+Cutty Sark | scotch-blended | 40
+J&B Rare | scotch-blended | 40
+Ballantine's Finest | scotch-blended | 40
+Grant's | scotch-blended | 40
+Bank Note 5 | scotch-blended | 43
+Pig's Nose | scotch-blended | 40
+Sheep Dip | scotch-blended-malt | 40
+Glenlivet 12 | scotch-speyside | 40
+Glenlivet Founder's Reserve | scotch-speyside | 40
+Glenfiddich 12 | scotch-speyside | 40
+Glenfiddich 15 Solera | scotch-speyside | 40
+Balvenie DoubleWood 12 | scotch-speyside | 43
+Balvenie Caribbean Cask 14 | scotch-speyside | 43
+Macallan 12 Sherry Oak | scotch-sherry | 43
+Macallan 12 Double Cask | scotch-sherry | 43
+Aberlour A'bunadh | scotch-sherry | 60
+Aberlour 12 | scotch-speyside | 40
+GlenDronach 12 | scotch-sherry | 43
+GlenDronach 15 | scotch-sherry | 46
+Glenfarclas 12 | scotch-sherry | 43
+Glenfarclas 105 | scotch-sherry | 60
+Cragganmore 12 | scotch-speyside | 40
+Craigellachie 13 | scotch-speyside | 46
+Mortlach 12 | scotch-speyside | 43.4
+Glen Grant 10 | scotch-speyside | 40
+Glen Moray Classic | scotch-speyside | 40
+Speyburn 10 | scotch-speyside | 40
+Glenmorangie Original 10 | scotch-highland | 40
+Glenmorangie Lasanta | scotch-sherry | 43
+Dalmore 12 | scotch-highland | 40
+Oban 14 | scotch-highland | 43
+Clynelish 14 | scotch-highland | 46
+Glengoyne 12 | scotch-highland | 43
+Aberfeldy 12 | scotch-highland | 40
+Old Pulteney 12 | scotch-highland | 40
+Deanston 12 | scotch-highland | 46.3
+Ardmore Legacy | scotch-highland | 40
+Royal Brackla 12 | scotch-highland | 40
+Glen Garioch 12 | scotch-highland | 48
+Auchentoshan 12 | scotch-lowland | 40
+Auchentoshan Three Wood | scotch-lowland | 43
+Glenkinchie 12 | scotch-lowland | 43
+Springbank 10 | scotch-campbeltown | 46
+Longrow Peated | scotch-campbeltown | 46
+Hazelburn 10 | scotch-campbeltown | 46
+Glen Scotia Double Cask | scotch-campbeltown | 46
+Kilkerran 12 | scotch-campbeltown | 46
+Laphroaig 10 | scotch-islay | 40
+Laphroaig Quarter Cask | scotch-islay | 48
+Lagavulin 16 | scotch-islay | 43
+Lagavulin 8 | scotch-islay | 48
+Ardbeg 10 | scotch-islay | 46
+Ardbeg Uigeadail | scotch-islay | 54.2
+Ardbeg Wee Beastie | scotch-islay | 47.4
+Caol Ila 12 | scotch-islay | 43
+Bowmore 12 | scotch-islay | 40
+Kilchoman Machir Bay | scotch-islay | 46
+Port Charlotte 10 | scotch-islay | 50
+Bruichladdich Classic Laddie | scotch-islay-unpeated | 50
+Bunnahabhain 12 | scotch-islay-unpeated | 46.3
+Octomore (any) | scotch-islay | 59
+Talisker 10 | scotch-island | 45.8
+Talisker Storm | scotch-island | 45.8
+Highland Park 12 | scotch-island | 40
+Highland Park 18 | scotch-island | 43
+Scapa Skiren | scotch-island | 40
+Jura 10 | scotch-island | 40
+Tobermory 12 | scotch-island | 46.3
+Ledaig 10 | scotch-island | 46.3
+Arran 10 | scotch-island | 46
+Arran Machrie Moor | scotch-island | 46
+Girvan Patent Still | scotch-grain | 42
+Haig Club | scotch-grain | 40
+Cameron Brig | scotch-grain | 40
+# Irish
+Jameson | irish-blended | 40
+Jameson Black Barrel | irish-blended | 40
+Powers Gold Label | irish-blended | 43.2
+Powers John's Lane | irish-pot-still | 46
+Redbreast 12 | irish-pot-still | 40
+Redbreast 12 Cask Strength | irish-pot-still | 57
+Green Spot | irish-pot-still | 40
+Yellow Spot | irish-pot-still | 46
+Midleton Very Rare | irish-blended | 40
+Bushmills Original | irish-blended | 40
+Bushmills Black Bush | irish-blended | 40
+Bushmills 10 | irish-malt | 40
+Tullamore D.E.W. | irish-blended | 40
+Teeling Small Batch | irish-blended | 46
+Teeling Single Grain | irish-grain | 46
+Teeling Single Malt | irish-malt | 46
+Knappogue Castle 12 | irish-malt | 40
+Writers' Tears Copper Pot | irish-blended | 40
+Slane | irish-blended | 40
+Proper No. Twelve | irish-blended | 40
+Roe & Co | irish-blended | 45
+Clontarf | irish-blended | 40
+Kilbeggan | irish-blended | 40
+Connemara Peated | irish-malt | 40
+Method and Madness Single Pot Still | irish-pot-still | 46
+# Japanese & world
+Suntory Toki | japanese-blended | 43
+Suntory Hibiki Harmony | japanese-blended | 43
+Suntory Yamazaki 12 | japanese-malt | 43
+Suntory Hakushu 12 | japanese-malt | 43
+Nikka From the Barrel | japanese-blended | 51.4
+Nikka Coffey Grain | japanese-blended | 45
+Nikka Days | japanese-blended | 40
+Nikka Yoichi Single Malt | japanese-malt | 45
+Nikka Miyagikyo Single Malt | japanese-malt | 45
+Mars Iwai Tradition | japanese-blended | 40
+Akashi White Oak | japanese-blended | 40
+Kaiyō Mizunara | japanese-malt | 43
+Kavalan Classic | world-malt | 40
+Kavalan Solist (any) | world-malt | 57
+Amrut Fusion | world-malt | 50
+Paul John Brilliance | world-malt | 46
+Mackmyra Svensk Ek | world-malt | 46.1
+Starward Nova | world-malt | 41
+# Brandy & eaux de vie
+Pierre Ferrand 1840 Original Formula | brandy-cognac-vs | 45
+Pierre Ferrand Ambre | brandy-cognac-vsop | 40
+Pierre Ferrand Réserve | brandy-cognac-xo | 42.3
+Hennessy VS | brandy-cognac-vs | 40
+Hennessy VSOP | brandy-cognac-vsop | 40
+Hennessy XO | brandy-cognac-xo | 40
+Rémy Martin VSOP | brandy-cognac-vsop | 40
+Rémy Martin 1738 | brandy-cognac-vsop | 40
+Rémy Martin XO | brandy-cognac-xo | 40
+Courvoisier VS | brandy-cognac-vs | 40
+Courvoisier VSOP | brandy-cognac-vsop | 40
+Martell VS | brandy-cognac-vs | 40
+Martell Blue Swift | brandy-cognac-vsop | 40
+H by Hine VSOP | brandy-cognac-vsop | 40
+Camus VS | brandy-cognac-vs | 40
+Camus VSOP | brandy-cognac-vsop | 40
+Park VS | brandy-cognac-vs | 40
+Park VSOP | brandy-cognac-vsop | 40
+Paul Masson Grande Amber VSOP | brandy-american | 40
+Germain-Robin Craft Method | brandy-american | 40
+Copper & Kings American Craft Brandy | brandy-american | 45
+Christian Brothers VS | brandy-american | 40
+E&J VSOP | brandy-american | 40
+St. George Brandy | brandy-american | 40
+Osocalis Rare Alambic | brandy-american | 40
+Laird's Straight Apple Brandy Bottled in Bond | brandy-applejack | 50
+Laird's Applejack | brandy-applejack | 40
+Laird's 7½ Year Apple Brandy | brandy-applejack | 44
+Clear Creek Apple Brandy | brandy-applejack | 40
+Christian Drouin Calvados Pays d'Auge Sélection | brandy-calvados | 40
+Christian Drouin VSOP | brandy-calvados | 40
+Busnel VSOP | brandy-calvados | 40
+Roger Groult 3 Year | brandy-calvados | 41
+Pere Magloire Fine | brandy-calvados | 40
+Boulard VSOP | brandy-calvados | 40
+Château de Laubade VSOP | brandy-armagnac | 40
+Darroze Les Grands Assemblages 8 | brandy-armagnac | 42
+Tariquet VS Classique | brandy-armagnac | 40
+Larressingle VSOP | brandy-armagnac | 40
+Marie Duffau Napoleon | brandy-armagnac | 40
+Delord Napoleon | brandy-armagnac | 40
+Château de Pellehaut L'Age de Glace | brandy-armagnac-blanche | 45
+Tariquet Blanche | brandy-armagnac-blanche | 45
+Lustau Brandy de Jerez Solera Reserva | brandy-spanish | 40
+Cardenal Mendoza | brandy-spanish | 40
+Fundador | brandy-spanish | 36
+Torres 10 | brandy-spanish | 38
+Metaxa 7 Stars | brandy-metaxa | 40
+Metaxa 12 Stars | brandy-metaxa | 40
+Barsol Quebranta | brandy-pisco-quebranta | 41.3
+Barsol Acholado | brandy-pisco-acholado | 41.3
+Barsol Italia | brandy-pisco-aromatic | 41.3
+Macchu Pisco | brandy-pisco-quebranta | 40
+La Diablada | brandy-pisco-acholado | 40
+Pisco Portón | brandy-pisco-acholado | 43
+Pisco 100 Acholado | brandy-pisco-acholado | 42
+Caravedo Quebranta | brandy-pisco-quebranta | 40
+Campo de Encanto Grand & Noble | brandy-pisco-acholado | 40.5
+Capurro Acholado | brandy-pisco-acholado | 41
+Kappa Pisco | brandy-pisco-chile | 42.6
+Capel Reservado | brandy-pisco-chile | 40
+Waqar | brandy-pisco-chile | 40
+Singani 63 | brandy-singani | 40
+Nonino Grappa | brandy-grappa | 41
+Nardini Bianca | brandy-grappa | 50
+Jacopo Poli Grappa | brandy-grappa | 40
+Clear Creek Kirschwasser | brandy-kirsch | 40
+Schladerer Kirschwasser | brandy-kirsch | 42
+Massenez Kirsch Vieux | brandy-kirsch | 40
+Clear Creek Pear Brandy | brandy-poire | 40
+Massenez Poire Williams | brandy-poire | 40
+Clear Creek Mirabelle | brandy-mirabelle | 40
+Massenez Framboise | brandy-framboise | 40
+Rudolf Jelínek Slivovitz | brandy-slivovitz | 50
+Zwack Barack Pálinka | brandy-apricot | 40
+Blume Marillen Apricot Eau de Vie | brandy-apricot | 40
+St. George Pear Brandy | brandy-poire | 40
+St. George Raspberry Brandy | brandy-framboise | 40
+# Orange & citrus liqueurs
+Cointreau | liq-triple-sec | 40
+Combier Liqueur d'Orange | liq-triple-sec | 40
+Pierre Ferrand Dry Curaçao | liq-dry-curacao | 40
+Grand Marnier Cordon Rouge | liq-grand-marnier | 40
+Bols Triple Sec | liq-orange-cheap | 21
+DeKuyper Triple Sec | liq-orange-cheap | 15
+Bols Blue Curaçao | liq-blue-curacao | 21
+Senior Curaçao of Curaçao | liq-dry-curacao | 31
+Giffard Curaçao Triple Sec | liq-triple-sec | 25
+Luxardo Triplum | liq-triple-sec | 39
+Mandarine Napoléon | liq-mandarine | 38
+Clément Créole Shrubb | liq-dry-curacao | 40
+Patrón Citrónge | liq-triple-sec | 40
+Caravella Limoncello | liq-limoncello | 32
+Pallini Limoncello | liq-limoncello | 26
+Villa Massa Limoncello | liq-limoncello | 30
+Giffard Pamplemousse Rose | liq-pamplemousse | 16
+Combier Pamplemousse Rose | liq-pamplemousse | 18
+Yuzuri Yuzu Liqueur | liq-yuzu | 15
+Choya Yuzu | liq-yuzu | 15
+# Herbal liqueurs
+Green Chartreuse | liq-green-chartreuse | 55
+Yellow Chartreuse | liq-yellow-chartreuse | 43
+Chartreuse V.E.P. Green | liq-green-chartreuse | 54
+Elixir Végétal de la Grande-Chartreuse | liq-green-chartreuse | 69
+Faccia Brutto Centerbe | liq-chartreuse-alt | 50
+Dolin Génépy le Chamois | liq-genepy | 35
+Génépy des Alpes (Distillerie des Alpes) | liq-genepy | 40
+Strega | liq-strega | 40
+Bénédictine D.O.M. | liq-benedictine | 40
+B&B | liq-benedictine | 40
+Galliano L'Autentico | liq-galliano | 42.3
+Galliano Vanilla | liq-galliano | 30
+Drambuie | liq-drambuie | 40
+Glayva | liq-drambuie | 35
+Licor 43 | liq-licor-43 | 31
+Tuaca | liq-tuaca | 35
+Kümmel (Helbing) | liq-kummel | 35
+Mentzendorff Kümmel | liq-kummel | 38
+Izarra Green | liq-izarra | 48
+Izarra Yellow | liq-izarra | 40
+Skinos Mastiha | liq-mastiha | 30
+Kleos Mastiha | liq-mastiha | 25
+Ancho Reyes | liq-chile | 40
+Ancho Reyes Verde | liq-chile | 40
+Giffard Vanille de Madagascar | liq-vanilla | 20
+Bärenjäger Honey | liq-honey | 35
+Jägermeister | amaro-krauter | 35
+Jägermeister Manifest | amaro-krauter | 38
+Becherovka | amaro-krauter | 38
+Zwack Unicum | amaro-krauter | 40
+Underberg | amaro-krauter | 44
+Killepitsch | amaro-krauter | 42
+Jeppson's Malört | amaro-malort | 35
+# Anise
+St. George Absinthe Verte | anise-absinthe | 60
+Pernod Absinthe | anise-absinthe | 68
+Kübler Absinthe | anise-absinthe-blanche | 53
+Vieux Pontarlier | anise-absinthe | 65
+Jade Nouvelle-Orléans | anise-absinthe | 68
+Lucid | anise-absinthe | 62
+Leopold Bros Absinthe Verte | anise-absinthe | 65
+La Clandestine | anise-absinthe-blanche | 53
+Copper & Kings Absinthe Blanche | anise-absinthe-blanche | 65
+Herbsaint Legendre | anise-herbsaint | 45
+Herbsaint Original | anise-herbsaint | 50
+Pernod Anise | anise-pernod | 40
+Ricard Pastis | anise-pastis | 45
+Pastis Henri Bardouin | anise-pastis | 45
+Sambuca Romana | anise-sambuca | 42
+Luxardo Sambuca | anise-sambuca | 38
+Ouzo 12 | anise-ouzo | 38
+Plomari Ouzo | anise-ouzo | 40
+Arak Touma | anise-arak | 50
+Arak Razzouk | anise-arak | 53
+Yeni Rakı | anise-raki | 45
+Marie Brizard Anisette | anise-anisette | 25

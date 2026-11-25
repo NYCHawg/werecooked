@@ -1,0 +1,96 @@
+# id | name | group | keeps | notes
+lemon-juice | Lemon juice (fresh) | Citrus | 1 day | Squeeze same day; best 4–8 hours after juicing.
+lime-juice | Lime juice (fresh) | Citrus | 1 day | Best 4–8 hours after juicing; falls off fast after a day.
+orange-juice | Orange juice (fresh) | Citrus | 2 days | Valencia or navel.
+grapefruit-juice | Grapefruit juice (fresh) | Citrus | 2 days | Pink or white.
+blood-orange-juice | Blood orange juice | Citrus | 2 days | Seasonal, winter.
+yuzu-juice | Yuzu juice | Citrus | 1 month bottled | Usually bought bottled.
+lemon | Lemons (for peels and wheels) | Citrus | 2 weeks | Twists, wheels, oleo saccharum.
+lime | Limes (for wedges and wheels) | Citrus | 2 weeks | Wedges, wheels, Caipirinha.
+orange | Oranges (for peels) | Citrus | 2 weeks | Old Fashioned and Negroni peels.
+grapefruit | Grapefruit (for peels) | Citrus | 2 weeks | Peels for Paloma, Brown Derby.
+pineapple | Fresh pineapple | Fruit | 4 days | Juice, wedges, fronds for garnish.
+pineapple-juice-fresh | Pineapple juice (fresh) | Fruit | 2 days | Juiced; foams beautifully.
+passion-fruit | Passion fruit / purée | Fruit | 3 days fresh, months frozen | Hurricane, Pornstar Martini.
+mango | Mango / purée | Fruit | 3 days | Tropical drinks.
+strawberries | Strawberries | Fruit | 4 days | Muddled, syrups.
+raspberries | Raspberries | Fruit | 3 days | Clover Club, muddled.
+blackberries | Blackberries | Fruit | 3 days | Bramble garnish, smashes.
+blueberries | Blueberries | Fruit | 1 week | Smashes.
+cherries-fresh | Fresh cherries | Fruit | 5 days | Seasonal smashes.
+watermelon | Watermelon | Fruit | 4 days | Juiced or muddled.
+peach | Peaches / white peach purée | Fruit | 4 days | Bellini.
+apple-fresh | Apples | Fruit | 3 weeks | Fans, slices, juice.
+pear-fresh | Pears | Fruit | 1 week | Garnish, purée.
+banana | Bananas | Fruit | 4 days | Blended drinks.
+coconut-fresh | Fresh coconut | Fruit | 1 week | Coconut water, serving vessel.
+cucumber | Cucumber | Produce | 1 week | Pimm's Cup, Eastside, Gin Basil Smash.
+celery | Celery | Produce | 2 weeks | Bloody Mary garnish, juice.
+ginger-root | Fresh ginger | Produce | 3 weeks | Ginger syrup, juice.
+jalapeno | Jalapeño / fresh chile | Produce | 1 week | Spicy Margarita.
+mint | Mint | Herbs | 4 days | Mojito, Julep, Southside. Keep stems in water.
+basil | Basil | Herbs | 3 days | Gin Basil Smash.
+rosemary | Rosemary | Herbs | 1 week | Garnish, syrup.
+thyme | Thyme | Herbs | 1 week | Garnish, syrup.
+sage | Sage | Herbs | 5 days | Garnish, syrup.
+cilantro | Cilantro | Herbs | 4 days | Savory sours.
+shiso | Shiso | Herbs | 3 days | Japanese-style drinks.
+lavender | Lavender (culinary) | Herbs | dried, months | Syrups.
+egg-white | Egg whites | Dairy & eggs | 3 days separated; carton 1 week | Sours, fizzes, Clover Club. Aquafaba works as a vegan stand-in.
+egg-whole | Whole eggs | Dairy & eggs | 3 weeks | Flips, nogs.
+aquafaba | Aquafaba | Dairy & eggs | 3 days | Chickpea liquid; vegan foam.
+heavy-cream | Heavy cream | Dairy & eggs | 1 week | Ramos Gin Fizz, Alexander, Grasshopper.
+half-half | Half-and-half | Dairy & eggs | 1 week | White Russian.
+whole-milk | Whole milk | Dairy & eggs | 1 week | Milk punch, clarified punch.
+coconut-milk | Coconut milk (canned) | Dairy & eggs | 4 days open | Coconut cream for tiki.
+vanilla-ice-cream | Vanilla ice cream | Dairy & eggs | months | Grasshopper (blended), flips.
+sugar-white | White sugar | Pantry | indefinite | Syrups, rims.
+sugar-demerara | Demerara / turbinado sugar | Pantry | indefinite | Rich syrups.
+sugar-cubes | Sugar cubes | Pantry | indefinite | Old Fashioned (traditional), Champagne Cocktail.
+sugar-brown | Brown sugar | Pantry | indefinite | Hot drinks, syrups.
+sugar-powdered | Powdered sugar | Pantry | indefinite | Crusta, juleps.
+honey | Honey | Pantry | indefinite | For honey syrup.
+agave-nectar | Agave nectar | Pantry | indefinite | Tommy's Margarita (diluted 2:1).
+maple-syrup | Maple syrup (grade A dark) | Pantry | 1 year cold | Maple Old Fashioned.
+kosher-salt | Kosher salt | Pantry | indefinite | Saline, rims.
+flaky-salt | Flaky / smoked salt | Pantry | indefinite | Rims, garnish.
+celery-salt | Celery salt | Pantry | indefinite | Bloody Mary rim.
+tajin | Tajín / chile-lime salt | Pantry | indefinite | Rims.
+black-pepper | Black pepper | Pantry | indefinite | Bloody Mary.
+nutmeg | Whole nutmeg | Pantry | indefinite | Grated over flips, nogs, Painkillers.
+cinnamon-stick | Cinnamon sticks | Pantry | indefinite | Syrup, garnish, flamed.
+star-anise | Star anise | Pantry | indefinite | Garnish, syrups.
+cloves | Whole cloves | Pantry | indefinite | Hot drinks, falernum.
+allspice-berries | Allspice berries | Pantry | indefinite | Pimento dram, syrups.
+cardamom | Cardamom pods | Pantry | indefinite | Syrups.
+vanilla-bean | Vanilla beans / extract | Pantry | indefinite | Syrups.
+coffee-beans | Coffee beans | Pantry | 1 month | Espresso Martini garnish, infusions.
+cocoa-powder | Cocoa powder | Pantry | indefinite | Garnish dust.
+citric-acid | Citric acid powder | Pantry | indefinite | Acid solutions, super juice.
+malic-acid | Malic acid powder | Pantry | indefinite | Acid-adjusted juices.
+tartaric-acid | Tartaric acid powder | Pantry | indefinite | Wine-like acidity.
+lactic-acid | Lactic acid (88% liquid or powder) | Pantry | indefinite | Soft, creamy acidity.
+succinic-acid | Succinic acid | Pantry | indefinite | Savory, salty-bitter acidity.
+phosphoric-acid | Phosphoric acid / acid phosphate | Pantry | indefinite | Soda-fountain sourness.
+msg | MSG | Pantry | indefinite | Savory tinctures.
+gum-arabic | Gum arabic | Pantry | indefinite | Gomme syrup.
+agar | Agar agar | Pantry | indefinite | Agar clarification.
+pectinex | Pectinex Ultra SP-L (enzyme) | Pantry | 1 year cold | Juice clarification.
+xanthan | Xanthan gum | Pantry | indefinite | Body, suspension.
+orgeat-almonds | Blanched almonds | Pantry | 3 months | Orgeat.
+hibiscus-dried | Dried hibiscus | Pantry | 1 year | Syrups, tea.
+tea-black | Black tea | Pantry | 1 year | Punch, syrups.
+tea-earl-grey | Earl Grey tea | Pantry | 1 year | Infusions, syrups.
+tea-green | Green tea / matcha | Pantry | 6 months | Infusions.
+chamomile | Chamomile | Pantry | 1 year | Syrups, infusions.
+worcestershire | Worcestershire sauce | Condiments | 1 year | Bloody Mary.
+hot-sauce | Hot sauce | Condiments | 1 year | Bloody Mary, Michelada.
+horseradish | Prepared horseradish | Condiments | 3 months | Bloody Mary.
+olive-brine | Olive brine | Condiments | months | Dirty Martini.
+olives | Cocktail olives (Castelvetrano, Manzanilla) | Garnish | months | Martini.
+cocktail-onions | Cocktail onions | Garnish | months | Gibson.
+cherries-brandied | Brandied cherries (Luxardo, Amarena) | Garnish | 1 year | Manhattan, Whiskey Sour.
+cherries-bright | Bright red maraschino cherries | Garnish | 1 year | Shirley Temple, retro drinks.
+dehydrated-citrus | Dehydrated citrus wheels | Garnish | months | Highballs, spritzes.
+edible-flowers | Edible flowers | Garnish | 4 days | Garnish.
+pickles | Pickles / pickle brine | Garnish | months | Pickleback, Martini riffs.

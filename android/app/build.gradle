@@ -17,7 +17,7 @@ android {
             dimension 'app'
             applicationId 'com.summithouse.werecooked'
             buildConfigField 'String', 'HOME', '"https://appassets.androidplatform.net/assets/index.html"'
-            resValue 'string', 'app_name', "We\'re Cooked"
+            resValue 'string', 'app_name', 'We’re Cooked'
             buildConfigField 'String', 'BAR_COLOR', '"#1F4D38"'
             manifestPlaceholders = [authScheme: 'werecooked']
         }

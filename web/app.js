@@ -810,7 +810,7 @@ function pantryView() {
   const q = S.pantryQ.toLowerCase();
   const low = S.pantry.filter(isLow).length, soon = ymd(addDays(new Date(), 3)), exp = S.pantry.filter(p => p.expires_on && p.expires_on <= soon && Number(p.qty) > 0).length;
   const onHand = S.pantry.filter(p => Number(p.qty) > 0 || Number(p.par) > 0).length;
-  const head = `<h2>Pantry</h2><p class="lede">${onHand} on hand · ${S.pantry.length - onHand} tracked for recipes${low ? ` · ${low} below par (on your list)` : ''}${exp ? ` · ${exp} to use soon` : ''}</p>
+  const head = `<h2>Pantry</h2><p class="lede" style="min-height:2.9em">${onHand} on hand · ${S.pantry.length - onHand} tracked for recipes${low ? ` · ${low} low` : ''}${exp ? ` · ${exp} to use soon` : ''}</p>
   <div class="switch" role="group" aria-label="Show"><button data-pview="kitchen" aria-pressed="${S.pview !== 'staples'}">🏠 Kitchen</button><button data-pview="staples" aria-pressed="${S.pview === 'staples'}">📋 Staples & pars</button></div>`;
   if (S.pview === 'staples') return head + staplesView();
   if (S.zone) {
@@ -1142,6 +1142,15 @@ function restoreScroll(root = document) {
 // background refreshes (another phone's change, a sync finishing) wait until you've stopped tapping or typing
 let lastInput = 0, softT;
 for (const ev of ['pointerdown', 'touchstart', 'keydown', 'wheel', 'scroll']) document.addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true });
+// whatever you just tapped stays under your finger, even if rows above it change size
+let tapAnchor = null;
+document.addEventListener('pointerdown', e => {
+  const t = e.target instanceof Element && e.target.closest('#main button, #main [role=button], #main input, #main label, #main a');
+  if (!t) { tapAnchor = null; return; }
+  const attrs = [...t.attributes].filter(a => a.name.startsWith('data-') || a.name === 'id').map(a => `[${a.name}="${CSS.escape(a.value)}"]`).join('');
+  tapAnchor = attrs ? { sel: t.tagName.toLowerCase() + attrs, at: Date.now() } : null;
+}, { capture: true, passive: true });
+function anchorTop() { if (!tapAnchor || Date.now() - tapAnchor.at > 4000) return null; const el = $('#main')?.querySelector(tapAnchor.sel); return el ? el.getBoundingClientRect().top : null; }
 function softRender() {
   clearTimeout(softT); if ($('.sheet')) return;     // closing the sheet re-draws anyway
   const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && $('#app').contains(document.activeElement);
@@ -1154,8 +1163,10 @@ function render() {
   if (!S.household) return onboardView();
   const v = { home: homeView, week: weekView, pantry: pantryView, recipes: cookbooksView, list: listView, family: familyView }[S.tab]();
   const y = $('#main')?.scrollTop || 0;
+  const top0 = anchorTop();
   app.innerHTML = shell(v);
   const main = $('#main'); main.scrollTop = y; restoreScroll(app);
+  if (top0 != null) { const top1 = anchorTop(); if (top1 != null && Math.abs(top1 - top0) > 0.5) main.scrollTop += top1 - top0; }
   const live = (id, key) => { const el = $(id); if (el) el.oninput = e => { S[key] = e.target.value; const pos = e.target.selectionStart; render(); const n = $(id); n.focus(); n.setSelectionRange(pos, pos); }; };
   live('#rq', 'recipeQ'); live('#psearch', 'pantryQ');
   setTimeout(queuePhotos, 60);

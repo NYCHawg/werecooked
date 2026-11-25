@@ -35,7 +35,7 @@ cat('freezer', 'Frozen', 'bag', 'Frozen peas', 'Frozen corn', 'Frozen peas and c
     'Frozen purple hull peas', 'Frozen green beans', 'Frozen butter beans', 'Whipped topping', 'Vanilla ice cream', 'Frozen strawberries')
 cat('counter', 'Produce', 'each', 'Yellow onions', 'Sweet onions', 'Red onions', 'White onions', 'Garlic', 'Russet potatoes', 'Yukon Gold potatoes', 'Baby potatoes',
     'Sweet potatoes', 'Tomatoes', 'Green tomatoes', 'Bananas', 'Apples', 'Lemons', 'Limes', 'Oranges', 'Avocados', 'Pineapple', 'Peaches', 'Figs')
-cat('fridge', 'Produce', 'each', 'Green onions', 'Celery', 'Carrots', 'Green bell peppers', 'Red bell peppers', 'Jalapeños', 'Hatch green chiles', 'Hot peppers', 'Lettuce',
+cat('fridge', 'Produce', 'each', 'Green onions', 'Celery', 'Carrots', 'Green bell peppers', 'Red bell peppers', 'Orange bell peppers', 'Jalapeños', 'Hatch green chiles', 'Hot peppers', 'Lettuce',
     'Green cabbage', 'Coleslaw mix', 'Cucumbers', 'Spinach', 'Collard greens', 'Turnip greens', 'Turnips', 'Okra', 'Zucchini', 'Yellow squash', 'Mushrooms', 'Broccoli', 'Sweet corn',
     'Green beans', 'Strawberries', 'Blackberries', 'Fresh cranberries', 'Cherries', 'Fresh parsley', 'Cilantro', 'Fresh basil', 'Fresh thyme', 'Fresh sage', 'Fresh rosemary',
     'Fresh dill', 'Chives', 'Fresh mint', 'Fresh ginger', 'Makrut lime leaves', 'Magnolia blossoms', 'Pico de gallo')
@@ -99,6 +99,14 @@ R = [
  (r"burger seasoning blend \(or salt and pepper\)", "sub:Burger Seasoning Blend"),
  (r"brioche buns, buttered", "Brioche buns + Butter"),
  (r"butter beans|lima beans", "Frozen butter beans"),
+ (r"string beans|snap beans|haricots? verts", "Green beans"),
+ (r"\byams?\b", "Sweet potatoes"),
+ (r"yellow potatoes|gold potatoes", "Yukon Gold potatoes"),
+ (r"red potatoes", "Baby potatoes"),
+ (r"orange (bell )?peppers?|yellow (bell )?peppers?", "Orange bell peppers"),
+ (r"navel oranges?|^oranges?$|clementines?|mandarins? \(fresh\)", "Oranges"),
+ (r"broccoli crowns?", "Broccoli"),
+ (r"romaine|iceberg", "Lettuce"),
  (r"ranch seasoning", "Ranch seasoning"),
  (r"blue cheese dressing", "Blue cheese dressing"),
  (r"\(15 oz\) black-eyed peas|canned black-eyed", "Canned black-eyed peas"),

@@ -267,10 +267,16 @@ function linkOf(i) {
   linkCache.set(n, out); return out;
 }
 /** The pantry row for a canonical item name (exact name, or a pantry row whose own name links to it). */
-function itemNamed(name) {
-  const k = String(name || '').toLowerCase(); if (!k) return null;
-  return S.pantry.find(p => p.name.toLowerCase() === k) || S.pantry.find(p => (linkOf(p.name)?.items || [])[0]?.toLowerCase() === k) || null;
+function rowsFor(name) {
+  const k = String(name || '').toLowerCase(); if (!k) return [];
+  return S.pantry.filter(p => p.name.toLowerCase() === k || (linkOf(p.name)?.items || [])[0]?.toLowerCase() === k);
 }
+/** The pantry row for a canonical item: a stocked row first (exact name preferred), else the exact row, else any linked row. */
+function itemNamed(name) {
+  const k = String(name || '').toLowerCase(), rows = rowsFor(name); if (!rows.length) return null;
+  return rows.find(p => Number(p.qty) > 0 && p.name.toLowerCase() === k) || rows.find(p => Number(p.qty) > 0) || rows.find(p => p.name.toLowerCase() === k) || rows[0];
+}
+const haveItem = name => rowsFor(name).some(p => Number(p.qty) > 0);
 const subRecipe = title => S.recipes.find(r => r.title.toLowerCase() === String(title).toLowerCase()) || S.recipes.find(r => same(r.title, title));
 const itemMeta = n => ING.items[n] || null;
 function pantryFor(x) {
@@ -285,7 +291,7 @@ function missingBuys(r, f = 1) {
   const out = [];
   for (const { i, its } of recipeMatch(r).missingRows) {
     if (!its) { out.push({ name: buyName(i.name), qty: i.qty ? i.qty * f : null, unit: normUnit(i.unit || ''), category: 'Other' }); continue; }
-    for (const n of its) { const p = itemNamed(n); if (p && Number(p.qty) > 0) continue; const single = its.length === 1;
+    for (const n of its) { if (haveItem(n)) continue; const p = itemNamed(n); const single = its.length === 1;
       out.push({ name: n, qty: single && i.qty ? i.qty * f : null, unit: single ? normUnit(i.unit || '') : '', category: p?.category || itemMeta(n)?.[1] || 'Other' }); }
   }
   return out;
@@ -323,7 +329,7 @@ function recipeMatch(r) {
     else { if (isSubRecipe(i.name) || /^(salt|pepper|black pepper|water|ice)$/i.test(norm(i.name)) || OPTIONAL.test(i.name)) continue; rows.push({ i, its: null }); }
   }
   if (!rows.length) return { pct: 0, have: 0, total: 0, missing: [], missingRows: [] };
-  const lacks = ({ i, its }) => its ? its.some(n => { const p = itemNamed(n); return !p || Number(p.qty) <= 0; }) : (() => { const p = S.pantry.find(p => same(p.name, i.name)); return !p || Number(p.qty) <= 0; })();
+  const lacks = ({ i, its }) => its ? its.some(n => !haveItem(n)) : (() => { const p = S.pantry.find(p => same(p.name, i.name)); return !p || Number(p.qty) <= 0; })();
   const missingRows = rows.filter(lacks);
   return { pct: Math.round((rows.length - missingRows.length) / rows.length * 100), have: rows.length - missingRows.length, total: rows.length, missing: missingRows.map(x => x.i), missingRows };
 }
@@ -393,20 +399,43 @@ async function markCooked(p) {
   await loadAll(); render(); toast('Marked cooked. Pantry updated.');
   if (ds.length) ratePrompt(ds[0], ds.slice(1));
 }
+const PACKAGE_UNITS = new Set(['', 'each', 'bag', 'box', 'can', 'jar', 'bottle', 'pack', 'package', 'carton', 'loaf', 'bunch', 'block', 'tub', 'roll', 'stick', 'dozen', 'container', 'head', 'piece']);
+/** Where a bought item should land: barcode match, else the linked pantry item (exact canonical row first), else a loose name match. */
+function pantryTarget(it) {
+  if (it.barcode) { const b = S.pantry.find(x => x.barcode === it.barcode); if (b) return b; }
+  const canon = linkOf(it.name)?.items?.[0];
+  if (canon) { const k = canon.toLowerCase(); return S.pantry.find(p => p.name.toLowerCase() === k) || rowsFor(canon)[0] || null; }
+  return S.pantry.find(p => p.name.toLowerCase() === String(it.name).trim().toLowerCase()) || S.pantry.find(p => same(p.name, it.name)) || null;
+}
 async function addToPantry(items) {
-  // items: [{name, qty, unit, category, expires_on, barcode}] — merges with what's already there
+  // items: [{name, qty, unit, category, expires_on, barcode}] — tops up what's already there; new things are filed under their pantry name
   let added = 0, updated = 0;
   for (const it of items) {
-    const p = (it.barcode && S.pantry.find(x => x.barcode === it.barcode)) || pantryFor(it.name); const q = Number(it.qty) || 1;
-    if (p && (normUnit(p.unit) === normUnit(it.unit) || !it.unit || !p.unit)) {
-      const u = await sb.from('pantry_items').update({ qty: Math.round((Number(p.qty) + q) * 100) / 100, updated_at: new Date().toISOString(), ...(it.expires_on ? { expires_on: it.expires_on } : {}), ...(it.barcode && !p.barcode ? { barcode: it.barcode } : {}) }).eq('id', p.id); if (u.error) throw u.error; updated++;
-      p.qty = Number(p.qty) + q;
+    const q = Number(it.qty) || 1, unit = normUnit(it.unit || ''), p = pantryTarget(it);
+    if (p) {
+      const pu = normUnit(p.unit || ''), have = Number(p.qty) || 0;
+      let qty, newUnit = p.unit;
+      if (have <= 0) { qty = q; newUnit = unit || p.unit; }            // was out: take what was bought, in its unit
+      else if (pu === unit || !unit || !pu) qty = have + q;             // same unit: add
+      else qty = have + (PACKAGE_UNITS.has(unit) ? q : 1);              // different units: count packages bought
+      const u = await sb.from('pantry_items').update({ qty: Math.round(qty * 100) / 100, unit: newUnit || '', updated_at: new Date().toISOString(), ...(it.expires_on ? { expires_on: it.expires_on } : {}), ...(it.barcode && !p.barcode ? { barcode: it.barcode } : {}) }).eq('id', p.id); if (u.error) throw u.error; updated++;
+      p.qty = qty; p.unit = newUnit;
     } else {
-      const i = await sb.from('pantry_items').insert({ household_id: S.household.id, name: it.name, qty: q, unit: normUnit(it.unit || ''), category: CATS.includes(it.category) ? it.category : 'Other', location: locationFor(it.name, it.category), expires_on: it.expires_on || null, barcode: it.barcode || null }); if (i.error) throw i.error; added++;
-      S.pantry.push({ name: it.name, qty: q, unit: it.unit || '' });
+      const canon = linkOf(it.name)?.items?.[0], meta = canon ? itemMeta(canon) : null, name = canon || it.name.replace(/^./, c => c.toUpperCase());
+      const row = { household_id: S.household.id, name, qty: q, unit, category: meta?.[1] || (CATS.includes(it.category) ? it.category : 'Other'), location: meta?.[0] || locationFor(name, it.category), expires_on: it.expires_on || null, barcode: it.barcode || null, updated_at: new Date().toISOString() };
+      const i2 = await sb.from('pantry_items').insert(row).select().single(); if (i2.error) throw i2.error; added++;
+      S.pantry.push(i2.data || row);
     }
   }
   return { added, updated };
+}
+/** Bought it: take matching unchecked items (and everything already checked) off the grocery list. */
+async function clearBoughtFromList(names) {
+  const keys = new Set(names.map(n => (linkOf(n)?.items?.[0] || n).toLowerCase()));
+  const hit = S.list.filter(l => !l.list_id && (l.checked || keys.has((linkOf(l.name)?.items?.[0] || l.name).toLowerCase()) || names.some(n => same(n, l.name))));
+  if (!hit.length) return 0;
+  const d = await sb.from('shopping_items').delete().in('id', hit.map(x => x.id)); if (d.error) throw d.error;
+  return hit.length;
 }
 async function checkedToPantry() {
   const done = S.list.filter(l => l.checked && (l.list_id || null) === S.listId); if (!done.length) return toast('Check off items first');
@@ -1665,7 +1694,8 @@ function receiptReview(el, out, opts = {}) {
     try {
       let msg = '';
       if (amt > 0) { const r = await sb.from('spending').insert({ household_id: S.household.id, kind: st.kind, amount: Math.round(amt * 100) / 100, day: st.day || today, note: st.store.trim() || null, added_by: S.session.user.id }); if (r.error) throw r.error; msg = `Logged ${money(amt)}${st.store ? ' at ' + st.store.trim() : ''}`; }
-      if (pick.length) { const a = await addToPantry(pick.map(x => ({ name: x.name.trim(), qty: x.qty, unit: x.unit, category: x.category, expires_on: x.expires_days ? ymd(addDays(new Date(), x.expires_days)) : null }))); msg += `${msg ? ' · ' : ''}${a.added + a.updated} items in the pantry`; }
+      if (pick.length) { const a = await addToPantry(pick.map(x => ({ name: x.name.trim(), qty: x.qty, unit: x.unit, category: x.category, expires_on: x.expires_days ? ymd(addDays(new Date(), x.expires_days)) : null }))); msg += `${msg ? ' · ' : ''}${a.added + a.updated} items in the pantry`;
+        const off = await clearBoughtFromList(pick.map(x => x.name.trim())); if (off) msg += ` · ${off} off the list`; }
       await loadAll(); el.remove(); render(); toast(msg);
     } catch (er) { el.remove(); fail(er); }
   });

@@ -108,10 +108,10 @@ async function loadAll() {
   ]);
   for (const r of [mem, pan, rec, pl, li, bk, sp]) if (r.error) throw r.error;
   await loadCalendar();
-  S.members = mem.data; S.pantry = pan.data; S.recipes = rec.data; S.plan = pl.data; S.list = li.data; S.books = bk.data; S.spending = sp.data;
+  S.members = mem.data; S.pantry = pan.data; S.recipes = rec.data; S.plan = pl.data; S.list = li.data.filter(x => x.source !== 'skip'); S.skips = li.data.filter(x => x.source === 'skip'); S.books = bk.data; S.spending = sp.data;
   if (!S.libLoaded) await loadLibrary();
   if (!Object.keys(ING.items).length) await loadIngredientMap();
-  scheduleLinks();
+  scheduleLinks(); scheduleListSync();
   setTimeout(() => ensureSideBook().catch(console.error), 300);
 }
 async function loadCalendar() {
@@ -253,7 +253,10 @@ async function loadIngredientMap() {
 const BASICS = /^(Table salt|Kosher salt|Sea salt|Black pepper)$/;
 const OPTIONAL = /\b(optional|to serve|for serving|to garnish|for garnish|garnish|for dipping|for topping)\b/i;
 /** {items:[pantry item names], sub:[recipe titles], skip:bool} or null when not linked yet */
-function linkOf(i) {
+const aliasOf = n => S.household?.custom?.alias?.[String(n).toLowerCase()] || n;
+const withAlias = l => (l && S.household?.custom?.alias && l.items.length) ? { ...l, items: l.items.map(aliasOf) } : l;
+function linkOf(i) { return withAlias(rawLinkOf(i)); }
+function rawLinkOf(i) {
   if (i && typeof i === 'object' && (Array.isArray(i.items) || Array.isArray(i.sub) || i.skip)) return { items: i.items || [], sub: i.sub || [], skip: !!i.skip };
   const n = String((i && typeof i === 'object') ? i.name : i || '').trim().toLowerCase(); if (!n) return null;
   if (linkCache.has(n)) return linkCache.get(n);
@@ -277,6 +280,45 @@ function itemNamed(name) {
   return rows.find(p => Number(p.qty) > 0 && p.name.toLowerCase() === k) || rows.find(p => Number(p.qty) > 0) || rows.find(p => p.name.toLowerCase() === k) || rows[0];
 }
 const haveItem = name => rowsFor(name).some(p => Number(p.qty) > 0);
+// ---------- units: compare and subtract across lb/oz, cups/tbsp/gallons, dozen/each ----------
+const UNIT_SETS = [{ oz: 1, lb: 16, g: 1 / 28.3495, kg: 35.274 },
+  { tsp: 1, tbsp: 3, 'fl oz': 6, cup: 48, pint: 96, pt: 96, quart: 192, qt: 192, gal: 768, gallon: 768, ml: 0.202884, l: 202.884 },
+  { '': 1, dozen: 12, piece: 1 }];
+/** q in `from` expressed in `to`, or null when the two units don't convert. */
+function convertQty(q, from, to) { const f = normUnit(from), t = normUnit(to); if (f === t) return q; for (const u of UNIT_SETS) if (f in u && t in u) return q * u[f] / u[t]; return null; }
+/** Everything on hand for an item, across every pantry row that links to it, in `unit` where it converts. */
+function stockOf(name, unit, rows) {
+  rows = rows || rowsFor(name); let qty = 0, any = false, exact = true;
+  for (const p of rows) { const h = Number(p.qty) || 0; if (h <= 0) continue; any = true; const c = convertQty(h, p.unit, unit); if (c == null) exact = false; else qty += c; }
+  return { qty, any, exact };
+}
+/** A recipe's lines with linked sub-recipes ("1 recipe pie crust") folded in, each with its scale factor. */
+function expandIngs(r, f = 1, depth = 0, seen = new Set()) {
+  const out = []; seen = new Set(seen).add(r.id);
+  for (const i of r.ingredients || []) {
+    const l = linkOf(i), subs = depth < 2 ? (l?.sub || []).map(subRecipe).filter(x => x && !seen.has(x.id)) : [];
+    if (subs.length) { const k = i.qty && (!i.unit || /^(recipe|batch|crust|portion)s?$/i.test(i.unit)) ? Number(i.qty) : 1; for (const x of subs) out.push(...expandIngs(x, f * k, depth + 1, seen)); if (!l.items.length) continue; }
+    out.push({ i, f });
+  }
+  return out;
+}
+// ---------- family dislikes ----------
+const DISLIKE_GROUPS = { shellfish: 'shrimp|crab|lobster|crawfish|scallop|oyster|clam|mussel', seafood: 'shrimp|crab|lobster|crawfish|scallop|oyster|clam|mussel|fish|catfish|salmon|tuna|cod|tilapia', fish: 'fish|catfish|salmon|tuna|cod|tilapia|anchov',
+  pork: 'pork|bacon|ham|sausage|chorizo|prosciutto|pancetta', nut: 'pecan|walnut|almond|peanut|cashew|pistachio|hazelnut', dairy: 'milk|cheese|butter|cream|yogurt|buttermilk|sour cream', gluten: 'flour|bread|pasta|noodle|biscuit|cracker|breadcrumb',
+  spicy: 'jalape|cayenne|hot sauce|chili|chile|habanero|red pepper flake', mushroom: 'mushroom', egg: 'egg', beef: 'beef|steak|ribeye|brisket', red_meat: 'beef|steak|lamb|venison|brisket' };
+const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function dislikePatterns(m) {
+  return String(m.dislikes || '').toLowerCase().split(/[,;\/]|\band\b|\bor\b/).map(x => x.replace(/\b(allerg(y|ies|ic)|intoleran\w*|no|hate|don'?t|dislike|avoid|anything|any|foods?|really|not|eat)\b/g, ' ').replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()).filter(x => x.length >= 3)
+    .map(w => { const stem = w.replace(/(es|s)$/, ''), g = DISLIKE_GROUPS[stem] || DISLIKE_GROUPS[stem.replace(/ /g, '_')]; return { w, rx: new RegExp(`\\b(${g ? g + '|' : ''}${reEsc(stem)})`) }; });
+}
+/** Who (home that night, or anyone when no day) avoids something in this recipe: [{m, what}] */
+function avoidersOf(r, day) {
+  const pl = day ? S.plan.find(x => x.day === day) : null, away = day ? new Set(awayOn(pl, day)) : new Set();
+  const text = [r.title, ...expandIngs(r).flatMap(({ i }) => [i.name, ...(linkOf(i)?.items || [])])].join(' | ').toLowerCase(), out = [];
+  for (const m of S.members) { if (away.has(m.user_id)) continue; const hit = dislikePatterns(m).find(d => d.rx.test(text)); if (hit) out.push({ m, what: hit.w }); }
+  return out;
+}
+const guestsOn = d => d ? (S.events || []).filter(e => e.day === d).reduce((a, e) => a + (Number(e.guests) || 0), 0) : 0;
 const subRecipe = title => S.recipes.find(r => r.title.toLowerCase() === String(title).toLowerCase()) || S.recipes.find(r => same(r.title, title));
 const itemMeta = n => ING.items[n] || null;
 function pantryFor(x) {
@@ -289,10 +331,11 @@ const usesItem = (i, p) => { const l = linkOf(i); return l ? l.items.some(n => i
 /** Shopping rows for whatever this recipe is missing, by pantry item name. */
 function missingBuys(r, f = 1) {
   const out = [];
-  for (const { i, its } of recipeMatch(r).missingRows) {
-    if (!its) { out.push({ name: buyName(i.name), qty: i.qty ? i.qty * f : null, unit: normUnit(i.unit || ''), category: 'Other' }); continue; }
-    for (const n of its) { if (haveItem(n)) continue; const p = itemNamed(n); const single = its.length === 1;
-      out.push({ name: n, qty: single && i.qty ? i.qty * f : null, unit: single ? normUnit(i.unit || '') : '', category: p?.category || itemMeta(n)?.[1] || 'Other' }); }
+  for (const { i, its, need } of recipeMatch(r, f).missingRows) {
+    if (!its) { out.push({ name: buyName(i.name), qty: need, unit: normUnit(i.unit || ''), category: 'Other' }); continue; }
+    for (const n of its) { const single = its.length === 1, st = stockOf(n, i.unit); if (!single && st.any) continue;
+      const q = single && need != null ? (st.exact ? Math.max(0, need - st.qty) : need) : null; const p = itemNamed(n);
+      out.push({ name: n, qty: q || null, unit: single ? normUnit(i.unit || '') : '', category: p?.category || itemMeta(n)?.[1] || 'Other' }); }
   }
   return out;
 }
@@ -321,21 +364,26 @@ function relink(newIngs, oldIngs = []) {
     if (o) return { ...i, items: o.items || [], sub: o.sub || [], ...(o.skip ? { skip: true } : {}) };
     const l = linkOf(i.name); return l ? { ...i, items: l.items, sub: l.sub, ...(l.skip ? { skip: true } : {}) } : i; });
 }
-function recipeMatch(r) {
-  const rows = [];
-  for (const i of r.ingredients || []) {
+function recipeMatch(r, f = 1) {
+  const rows = [], seen = new Map();
+  for (const { i, f: k } of expandIngs(r, f)) {
     const l = linkOf(i);
-    if (l) { if (l.skip || !l.items.length || l.items.every(n => BASICS.test(n)) || OPTIONAL.test(i.name)) continue; rows.push({ i, its: l.items }); }
-    else { if (isSubRecipe(i.name) || /^(salt|pepper|black pepper|water|ice)$/i.test(norm(i.name)) || OPTIONAL.test(i.name)) continue; rows.push({ i, its: null }); }
+    if (l) { if (l.skip || !l.items.length || l.items.every(n => BASICS.test(n)) || OPTIONAL.test(i.name)) continue;
+      const key = l.items.join('|').toLowerCase(), prev = seen.get(key);
+      if (prev) { const c = prev.i.qty != null && i.qty != null ? convertQty(i.qty * k, i.unit, prev.i.unit) : null; if (c != null) prev.need += c; else prev.need = null; continue; }
+      const row = { i, its: l.items, need: i.qty != null ? i.qty * k : null }; seen.set(key, row); rows.push(row); }
+    else { if (isSubRecipe(i.name) || /^(salt|pepper|black pepper|water|ice)$/i.test(norm(i.name)) || OPTIONAL.test(i.name)) continue; rows.push({ i, its: null, need: i.qty != null ? i.qty * k : null }); }
   }
   if (!rows.length) return { pct: 0, have: 0, total: 0, missing: [], missingRows: [] };
-  const lacks = ({ i, its }) => its ? its.some(n => !haveItem(n)) : (() => { const p = S.pantry.find(p => same(p.name, i.name)); return !p || Number(p.qty) <= 0; })();
+  // missing = none on hand, or (when units compare) clearly less than the recipe needs
+  const shortOf = (st, need) => !st.any || (need != null && st.exact && st.qty < need * 0.9);
+  const lacks = ({ i, its, need }) => its ? (its.length === 1 ? shortOf(stockOf(its[0], i.unit), need) : its.some(n => !haveItem(n))) : shortOf(stockOf(i.name, i.unit, S.pantry.filter(p => same(p.name, i.name))), need);
   const missingRows = rows.filter(lacks);
   return { pct: Math.round((rows.length - missingRows.length) / rows.length * 100), have: rows.length - missingRows.length, total: rows.length, missing: missingRows.map(x => x.i), missingRows };
 }
 function ideas(limit = 3) {
   const soon = S.pantry.filter(p => p.expires_on && parseYmd(p.expires_on) <= addDays(new Date(), 3) && Number(p.qty) > 0);
-  return S.recipes.filter(isMeal).map(r => { const m = recipeMatch(r); const uses = soon.filter(p => (r.ingredients || []).some(i => usesItem(i, p))).length; return { r, m, score: m.pct + uses * 15 + (r.favorite ? 5 : 0) + (r.rating || 0) * 2 }; })
+  return S.recipes.filter(r => isMeal(r) && !avoidersOf(r, ymd(new Date())).length).map(r => { const m = recipeMatch(r); const uses = soon.filter(p => (r.ingredients || []).some(i => usesItem(i, p))).length; return { r, m, score: m.pct + uses * 15 + (r.favorite ? 5 : 0) + (r.rating || 0) * 2 }; })
     .filter(x => x.m.total >= 3 && x.m.pct >= 50).sort((a, b) => b.score - a.score).slice(0, limit);
 }
 const busyOn = d => d ? S.busy.filter(b => b.day === d && memberById(b.user_id)) : [];
@@ -346,57 +394,92 @@ function awayOn(p, d) {
   return [...set];
 }
 const shortReason = b => (b.reason || '').replace(/\s+/g, ' ').slice(0, 70);
-const homeCount = p => Math.max(0, S.members.length - awayOn(p).length) || 1;
+const homeCount = p => (Math.max(0, S.members.length - awayOn(p).length) + guestsOn(p?.day)) || 1;
 const factorFor = (p, r) => (p.headcount || homeCount(p)) / (r.servings || 4);
 
-async function buildList() {
-  const hid = S.household.id, today = ymd(new Date()), end = ymd(addDays(new Date(), 6));
-  const need = new Map();
-  const add = (name, qty, unit, category) => { if (isSubRecipe(name)) return; name = buyName(name); if (!name || /\bwater\b|^ice$/i.test(name)) return; const k = norm(name) + '|' + normUnit(unit); const cur = need.get(k); if (cur) { cur.qty = (cur.qty || 0) + (qty || 0); } else need.set(k, { name, qty: qty || null, unit: normUnit(unit), category }); };
+/** What this week's meals and staples need from the store, after what's on hand. */
+function weekNeeds() {
+  const today = ymd(new Date()), end = ymd(addDays(new Date(), 6)), need = new Map();
+  const add = (name, qty, unit, category) => {
+    if (isSubRecipe(name)) return; name = buyName(name); if (!name || /\bwater\b|^ice$/i.test(name)) return; unit = normUnit(unit);
+    const k = norm(name), cur = need.get(k);
+    if (cur) { const c = qty != null ? convertQty(qty, unit, cur.unit) : null; if (c != null && cur.qty != null) { cur.qty += c; return; } if (qty == null || cur.qty == null) { if (cur.unit === unit || qty == null) { cur.qty = cur.qty ?? qty; return; } } const k2 = k + '|' + unit, c2 = need.get(k2); if (c2) c2.qty = (c2.qty || 0) + (qty || 0); else need.set(k2, { name, qty, unit, category }); return; }
+    need.set(k, { name, qty: qty ?? null, unit, category });
+  };
   for (const p of S.plan) {
     if (p.kind !== 'cook' || p.cooked || p.day < today || p.day > end) continue;
-    for (const r of dishesOf(p)) {
-      const f = factorFor(p, r);
-      for (const i of r.ingredients || []) { const l = linkOf(i);
-        if (!l) { add(i.name, i.qty ? i.qty * f : null, i.unit, 'Other'); continue; }
-        if (l.skip) continue;
-        for (const n of l.items) { if (BASICS.test(n)) continue; const single = l.items.length === 1; add(n, single && i.qty ? i.qty * f : null, single ? i.unit : '', itemNamed(n)?.category || itemMeta(n)?.[1] || 'Other'); } }
+    for (const r of dishesOf(p)) for (const { i, f } of expandIngs(r, factorFor(p, r))) {
+      const l = linkOf(i);
+      if (!l) { add(i.name, i.qty != null ? i.qty * f : null, i.unit, 'Other'); continue; }
+      if (l.skip) continue;
+      for (const n of l.items) { if (BASICS.test(n)) continue; const single = l.items.length === 1; add(n, single && i.qty != null ? i.qty * f : null, single ? i.unit : '', itemNamed(n)?.category || itemMeta(n)?.[1] || 'Other'); }
     }
   }
   const rows = [];
   for (const n of need.values()) {
     if (/^(salt|water|ice)$/.test(norm(n.name))) continue;
-    const p = pantryFor(n.name);
-    if (p) {
-      if (normUnit(p.unit) === n.unit && n.qty != null) { const short = n.qty - Number(p.qty); if (short <= 0.001) continue; n.qty = short; }
-      else if (Number(p.qty) > 0) continue;
-    }
-    rows.push({ household_id: hid, name: n.name, qty: roundBuy(n.qty, n.unit), unit: n.unit, category: n.category, source: 'plan', added_by: S.session.user.id });
+    const linked = rowsFor(n.name), st = stockOf(n.name, n.unit, linked.length ? linked : S.pantry.filter(p => same(p.name, n.name)));
+    if (st.any) { if (n.qty == null || !st.exact) continue; const short = n.qty - st.qty; if (short <= 0.001) continue; n.qty = short; }
+    rows.push({ name: n.name, qty: roundBuy(n.qty, n.unit), unit: n.unit, category: n.category, source: 'plan' });
   }
   for (const p of S.pantry) if (Number(p.par) > 0 && Number(p.qty) < Number(p.par) && !rows.some(r => same(r.name, p.name)))
-    rows.push({ household_id: hid, name: p.name, qty: Number(p.par) - Number(p.qty), unit: p.unit, category: p.category, source: 'par', added_by: S.session.user.id });
-  const finalRows = rows.filter(r => !S.list.some(l => !l.list_id && l.source === 'manual' && !l.checked && same(l.name, r.name)));
-  const del = await sb.from('shopping_items').delete().eq('household_id', hid).eq('checked', false).is('list_id', null).in('source', ['plan', 'par']);
-  if (del.error) throw del.error;
-  if (finalRows.length) { const ins = await sb.from('shopping_items').insert(finalRows); if (ins.error) throw ins.error; }
-  await loadAll(); render();
-  toast(finalRows.length ? `Added ${finalRows.length} item${finalRows.length > 1 ? 's' : ''} from this week's meals and low stock` : 'Nothing needed: the pantry covers this week');
+    rows.push({ name: p.name, qty: Number(p.par) - Number(p.qty), unit: p.unit || '', category: p.category || 'Other', source: 'par' });
+  return rows;
+}
+const canonKey = n => (linkOf(n)?.items?.[0] || n).toLowerCase();
+let listSyncing = false, listAgain = false, listSyncT;
+const scheduleListSync = (ms = 1200) => { clearTimeout(listSyncT); listSyncT = setTimeout(() => syncList().catch(console.error), ms); };
+/** Keep the grocery list in step with the plan and the pantry: add what's needed, update amounts, drop what's covered.
+    Items you added, checked, or removed yourself are left alone. */
+async function syncList() {
+  if (!S.household || !S.session) return { added: 0, changed: 0, removed: 0 };
+  if (listSyncing) { listAgain = true; return { added: 0, changed: 0, removed: 0 }; } listSyncing = true;
+  try {
+    const want = weekNeeds(), byKey = new Map(want.map(w => [canonKey(w.name), w]));
+    const main = S.list.filter(l => !l.list_id), skips = (S.skips || []).filter(l => !l.list_id);
+    const auto = main.filter(l => !l.checked && (l.source === 'plan' || l.source === 'par'));
+    const mine = [...main.filter(l => l.checked || !(l.source === 'plan' || l.source === 'par')), ...skips];
+    const blocked = w => mine.some(l => canonKey(l.name) === canonKey(w.name) || same(l.name, w.name));
+    const del = [], upd = [], kept = new Set();
+    for (const l of auto) { const k = canonKey(l.name), w = byKey.get(k);
+      if (!w || kept.has(k) || blocked(w)) { del.push(l.id); continue; } kept.add(k);
+      if (Number(l.qty || 0) !== Number(w.qty || 0) || normUnit(l.unit) !== normUnit(w.unit) || l.source !== w.source) upd.push([l.id, { qty: w.qty, unit: w.unit || '', source: w.source }]); }
+    for (const l of skips) if (!byKey.has(canonKey(l.name))) del.push(l.id);
+    const ins = want.filter(w => !kept.has(canonKey(w.name)) && !blocked(w)).map(w => ({ household_id: S.household.id, name: w.name, qty: w.qty, unit: w.unit || '', category: w.category || 'Other', source: w.source, added_by: S.session.user.id }));
+    if (!del.length && !upd.length && !ins.length) return { added: 0, changed: 0, removed: 0 };
+    quietUntil = Date.now() + 4000;
+    if (del.length) { const r = await sb.from('shopping_items').delete().in('id', del); if (r.error) throw r.error; }
+    for (const [id, row] of upd) { const r = await sb.from('shopping_items').update(row).eq('id', id); if (r.error) throw r.error; }
+    if (ins.length) { const r = await sb.from('shopping_items').insert(ins); if (r.error) throw r.error; }
+    const li = await sb.from('shopping_items').select('*').eq('household_id', S.household.id).order('created_at');
+    if (!li.error) { S.list = li.data.filter(x => x.source !== 'skip'); S.skips = li.data.filter(x => x.source === 'skip'); if (!$('.sheet')) render(); }
+    return { added: ins.length, changed: upd.length, removed: del.length - skips.filter(l => del.includes(l.id)).length };
+  } finally { listSyncing = false; if (listAgain) { listAgain = false; scheduleListSync(300); } }
+}
+async function buildList() {
+  const r = await syncList(); await loadAll(); render();
+  const n = S.list.filter(l => !l.list_id && !l.checked && (l.source === 'plan' || l.source === 'par')).length;
+  toast(r.added || r.removed || r.changed ? [r.added && `Added ${r.added}`, r.changed && `updated ${r.changed}`, r.removed && `removed ${r.removed} you no longer need`].filter(Boolean).join(', ') : n ? 'List is up to date with this week' : 'Nothing needed: the pantry covers this week');
 }
 async function markCooked(p) {
-  const ds = dishesOf(p);
-  for (const r of ds) {
-    const f = factorFor(p, r);
-    for (const i of r.ingredients || []) {
-      const lk = linkOf(i); if (lk && lk.items.length !== 1) continue;
-      const it = pantryFor(i); if (!it || i.qty == null) continue;
-      if (normUnit(it.unit) !== normUnit(i.unit) && it.unit && i.unit) continue;
-      const q = Math.max(0, Math.round((Number(it.qty) - i.qty * f) * 100) / 100);
-      const u = await sb.from('pantry_items').update({ qty: q, updated_at: new Date().toISOString() }).eq('id', it.id); if (u.error) throw u.error;
-      it.qty = q;
+  const ds = dishesOf(p), left = new Map();
+  for (const r of ds) for (const { i, f } of expandIngs(r, factorFor(p, r))) {
+    const lk = linkOf(i); if (i.qty == null) continue;
+    if (lk && (lk.skip || lk.items.length !== 1 || BASICS.test(lk.items[0]) || OPTIONAL.test(i.name))) continue;
+    const rows = (lk ? rowsFor(lk.items[0]) : S.pantry.filter(x => same(x.name, i.name))).filter(x => Number(x.qty) > 0)
+      .sort((a, b) => (a.expires_on || '9999').localeCompare(b.expires_on || '9999'));
+    let need = i.qty * f;
+    for (const it of rows) {
+      if (need <= 0.0001) break;
+      const c = convertQty(need, i.unit, it.unit); if (c == null) continue;       // can't tell how much of a bag/box a cup is: leave it
+      const take = Math.min(Number(it.qty), c); it.qty = Math.max(0, Math.round((Number(it.qty) - take) * 100) / 100); left.set(it.id, it.qty);
+      need -= convertQty(take, it.unit, i.unit) ?? need;
     }
   }
+  const now = new Date().toISOString();
+  for (const [id, qty] of left) { const u = await sb.from('pantry_items').update({ qty, updated_at: now }).eq('id', id); if (u.error) throw u.error; }
   const u = await sb.from('meal_plan').update({ cooked: true }).eq('id', p.id); if (u.error) throw u.error;
-  await loadAll(); render(); toast('Marked cooked. Pantry updated.');
+  await loadAll(); render(); toast(left.size ? `Marked cooked. Used up ${left.size} pantry item${left.size > 1 ? 's' : ''}.` : 'Marked cooked.');
   if (ds.length) ratePrompt(ds[0], ds.slice(1));
 }
 const PACKAGE_UNITS = new Set(['', 'each', 'bag', 'box', 'can', 'jar', 'bottle', 'pack', 'package', 'carton', 'loaf', 'bunch', 'block', 'tub', 'roll', 'stick', 'dozen', 'container', 'head', 'piece']);
@@ -415,9 +498,12 @@ async function addToPantry(items) {
     if (p) {
       const pu = normUnit(p.unit || ''), have = Number(p.qty) || 0;
       let qty, newUnit = p.unit;
-      if (have <= 0) { qty = q; newUnit = unit || p.unit; }            // was out: take what was bought, in its unit
-      else if (pu === unit || !unit || !pu) qty = have + q;             // same unit: add
-      else qty = have + (PACKAGE_UNITS.has(unit) ? q : 1);              // different units: count packages bought
+      const conv = convertQty(q, unit, pu);
+      if (pu === unit || !unit) qty = have + q;                         // same unit: add
+      else if (conv != null) qty = have + conv;                         // lb onto oz, a dozen onto eggs counted singly… (keeps par in step)
+      else if (!pu && have <= 0) { qty = q; newUnit = unit; }           // no unit yet: take the receipt's
+      else if (have <= 0 && !(Number(p.par) > 0)) { qty = q; newUnit = unit; } // was out: take what was bought, in its unit
+      else qty = have + (PACKAGE_UNITS.has(unit) ? q : 1);              // different kinds of unit: count packages bought
       const u = await sb.from('pantry_items').update({ qty: Math.round(qty * 100) / 100, unit: newUnit || '', updated_at: new Date().toISOString(), ...(it.expires_on ? { expires_on: it.expires_on } : {}), ...(it.barcode && !p.barcode ? { barcode: it.barcode } : {}) }).eq('id', p.id); if (u.error) throw u.error; updated++;
       p.qty = qty; p.unit = newUnit;
     } else {
@@ -431,11 +517,12 @@ async function addToPantry(items) {
 }
 /** Bought it: take matching unchecked items (and everything already checked) off the grocery list. */
 async function clearBoughtFromList(names) {
-  const keys = new Set(names.map(n => (linkOf(n)?.items?.[0] || n).toLowerCase()));
-  const hit = S.list.filter(l => !l.list_id && (l.checked || keys.has((linkOf(l.name)?.items?.[0] || l.name).toLowerCase()) || names.some(n => same(n, l.name))));
-  if (!hit.length) return 0;
-  const d = await sb.from('shopping_items').delete().in('id', hit.map(x => x.id)); if (d.error) throw d.error;
-  return hit.length;
+  const keys = new Set(names.map(canonKey)), hits = l => keys.has(canonKey(l.name)) || names.some(n => same(n, l.name));
+  const off = [...S.list, ...(S.skips || [])].filter(l => !l.list_id && (l.checked || hits(l)));
+  const tick = S.list.filter(l => l.list_id && !l.checked && hits(l));
+  if (off.length) { const d = await sb.from('shopping_items').delete().in('id', off.map(x => x.id)); if (d.error) throw d.error; }
+  if (tick.length) { const u = await sb.from('shopping_items').update({ checked: true }).in('id', tick.map(x => x.id)); if (u.error) throw u.error; }
+  return off.filter(l => l.source !== 'skip').length + tick.length;
 }
 async function checkedToPantry() {
   const done = S.list.filter(l => l.checked && (l.list_id || null) === S.listId); if (!done.length) return toast('Check off items first');
@@ -869,7 +956,7 @@ function listView() {
   const L = curList(), items = itemsOn(S.listId);
   const open = items.filter(l => !l.checked), done = items.filter(l => l.checked);
   const groups = CATS.map(c => [c, open.filter(l => (CATS.includes(l.category) ? l.category : 'Other') === c)]).filter(g => g[1].length);
-  const row = l => `<div class="chk${l.checked ? ' done' : ''}"><input type="checkbox" data-check="${l.id}" ${l.checked ? 'checked' : ''} aria-label="Got ${esc(l.name)}"><span><span class="iname">${esc(l.name)}</span><span class="imeta" style="display:block">${[l.qty ? fmtQty(l.qty) + ' ' + l.unit : '', l.source === 'plan' ? 'for this week' : l.source === 'par' ? 'below par' : ''].filter(Boolean).map(esc).join(' · ')}</span></span><button class="del" data-delitem="${l.id}" aria-label="Remove ${esc(l.name)}">×</button></div>`;
+  const row = l => `<div class="chk${l.checked ? ' done' : ''}"><input type="checkbox" data-check="${l.id}" ${l.checked ? 'checked' : ''} aria-label="Got ${esc(l.name)}"><span><span class="iname">${esc(l.name)}</span><span class="imeta" style="display:block">${[l.qty ? fmtQty(l.qty) + ' ' + l.unit : '', l.source === 'plan' ? 'for this week' : l.source === 'par' ? 'below par' : '', !l.checked && l.source !== 'par' && stockOf(linkOf(l.name)?.items?.[0] || l.name, l.unit, rowsFor(linkOf(l.name)?.items?.[0] || l.name).length ? null : S.pantry.filter(p => same(p.name, l.name))).any ? 'some at home' : ''].filter(Boolean).map(esc).join(' · ')}</span></span><button class="del" data-delitem="${l.id}" aria-label="Remove ${esc(l.name)}">×</button></div>`;
   const tabs = `<div class="ltabs" role="tablist" aria-label="Shopping lists"><button class="lt" role="tab" data-lst="" aria-selected="${!L}">🛒 Groceries${itemsOn(null).filter(l => !l.checked).length ? ` <b>${itemsOn(null).filter(l => !l.checked).length}</b>` : ''}</button>${S.lists.map(x => { const n = itemsOn(x.id).filter(l => !l.checked).length;
     return `<button class="lt" role="tab" data-lst="${x.id}" aria-selected="${L?.id === x.id}">${esc(x.emoji)} ${esc(x.name)}${n ? ` <b>${n}</b>` : ''}</button>`; }).join('')}<button class="lt add" data-act="newlist">＋ New list</button></div>`;
   const due = L?.due ? (() => { const n = Math.round((parseYmd(L.due) - parseYmd(ymd(new Date()))) / 864e5); return n < 0 ? 'Date passed' : n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `In ${n} days · ${parseYmd(L.due).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}`; })() : '';
@@ -1065,12 +1152,22 @@ function applyCustom() {
   for (const l of c.locations || []) if (!LOCS[l.key]) { LOCS[l.key] = [l.name, l.emoji || '📦', '#7A6A55']; LOC_ORDER.push(l.key); }
   for (const a of c.aisles || []) if (!CATS.includes(a)) CATS.splice(Math.max(0, CATS.indexOf('Other')), 0, a);
   for (const k of c.rcats || []) if (!RCATS[k.key]) { RCATS[k.key] = [k.name, k.emoji || '🍽', '#6E6150']; const sl = SLOT_CATS[k.slot] ? k.slot : 'main'; if (!SLOT_CATS[sl].includes(k.key)) SLOT_CATS[sl].push(k.key); }
-  CUSTOM_COURSES = c.courses || [];
+  CUSTOM_COURSES = c.courses || []; linkCache.clear();
 }
 async function addCustom(kind, value) {
   const c = { ...(S.household.custom || {}) }; c[kind] = [...(c[kind] || []), value];
   const r = await sb.from('households').update({ custom: c }).eq('id', S.household.id); if (r.error) throw r.error;
   S.household.custom = c; applyCustom();
+}
+/** A pantry item got renamed: recipes linked to the old name follow it, and so do list items. */
+async function renameItem(from, to) {
+  const used = S.recipes.some(r => (r.ingredients || []).some(i => (rawLinkOf(i)?.items || []).some(n => n.toLowerCase() === from.toLowerCase()))) || ING.items[from] || Object.values(S.household.custom?.alias || {}).includes(from);
+  if (used) { const c = { ...(S.household.custom || {}) }, A = { ...(c.alias || {}) };
+    for (const k of Object.keys(A)) if (A[k] === from) A[k] = to;
+    A[from.toLowerCase()] = to; delete A[to.toLowerCase()]; c.alias = A;
+    const r = await sb.from('households').update({ custom: c }).eq('id', S.household.id); if (r.error) throw r.error; S.household.custom = c; linkCache.clear(); }
+  quietUntil = Date.now() + 3000;
+  await sb.from('shopping_items').update({ name: to }).eq('household_id', S.household.id).eq('name', from);
 }
 /** A small "name it" sheet. Resolves {name, emoji} or null. */
 function askNew(title, placeholder, emojis = null) {
@@ -1164,7 +1261,7 @@ function suggestFor(mains, slot, exclude = [], n = 4) {
   const rules = slot === 'side' ? PAIRS : (PAIR_EXTRAS[slot] || []);
   for (const m of mains) for (const [rx, names] of rules) if (rx.test(m.title)) names.forEach((nm, j) => { const k = nm.toLowerCase(); want.set(k, Math.max(want.get(k) || 0, 50 - j * 4)); });
   return S.recipes.filter(r => isMeal(r) && !isTodo(r) && slotFor(r) === slot && !exclude.includes(r.id))
-    .map(r => ({ r, s: (want.get(r.title.toLowerCase()) || 0) + recipeMatch(r).pct * 0.2 + (r.rating || 0) * 3 + (r.favorite ? 6 : 0) + Math.random() * 5 }))
+    .map(r => ({ r, s: (want.get(r.title.toLowerCase()) || 0) + recipeMatch(r).pct * 0.2 + (r.rating || 0) * 3 + (r.favorite ? 6 : 0) + Math.random() * 5 - (avoidersOf(r).length ? 60 : 0) }))
     .sort((a, b) => b.s - a.s).slice(0, n).map(x => x.r);
 }
 /** Write a whole cooked meal for a day in one go. */
@@ -1251,7 +1348,7 @@ function dayEditor(day) {
     ${st.kind === 'other' ? `<label for="dt">Plan</label><input type="text" id="dt" value="${esc(p.title || '')}" maxlength="80">` : ''}
     ${st.kind !== 'away' ? `<label>Who's home (tap to mark away)</label><div class="chips">${S.members.map(m => `<button type="button" class="chip" data-away="${m.user_id}" aria-pressed="${!st.away.includes(m.user_id)}" style="display:inline-flex;align-items:center;gap:6px">${av(m, st.away.includes(m.user_id))}${esc(m.display_name)}${busyIds.includes(m.user_id) ? `<small style="opacity:.75">· ${st.away.includes(m.user_id) ? 'working' : 'home anyway'}</small>` : ''}</button>`).join('')}</div>
     ${busyOn(day).map(b => `<p class="calnote">${svg('cal')}<span><b>${esc(memberById(b.user_id).display_name)}'s calendar:</b> ${esc(shortReason(b))}. ${st.away.includes(b.user_id) ? 'Tap their name if they\'ll be home for dinner after all.' : 'Marked home for dinner anyway.'}</span></p>`).join('')}
-    <label for="dh">How many eating (blank = everyone home)</label><input type="number" id="dh" min="0" max="80" value="${p.headcount ?? ''}" placeholder="${homeCount({ away: st.away })}">` : ''}
+    <label for="dh">How many eating (blank = everyone home)</label><input type="number" id="dh" min="0" max="80" value="${p.headcount ?? ''}" placeholder="${homeCount({ away: st.away, present: p.present, day: p.day })}">` : ''}
     <label for="dn">Note</label><input type="text" id="dn" value="${esc(p.note || '')}" maxlength="120" placeholder="e.g. game night, Thanksgiving at our house">`;
     if (map) { map.remove(); map = null; }
     if (st.results.length && !st.place) map = miniMap(el.querySelector('#pmap'), st.results, i => choose(el, i));
@@ -1328,7 +1425,11 @@ function pantryEditor(id, preset = {}) {
       e.preventDefault(); const g = s => el.querySelector(s).value;
       const row = { household_id: S.household.id, name: g('#pnm').trim(), qty: Number(g('#pq')) || 0, unit: normUnit(g('#pu').trim()), par: Number(g('#ppar')) || 0, expires_on: g('#pex') || null, category: g('#pcat'), location: g('#ploc'), barcode: p.barcode || null, updated_at: new Date().toISOString() };
       if (id && row.name !== p.name && p.photo_credit !== 'own') { row.photo_url = null; row.photo_credit = null; }
+      if (!id) { const t = pantryTarget({ name: row.name, barcode: row.barcode });
+        if (t) { try { await addToPantry([{ name: row.name, qty: row.qty || 1, unit: row.unit, expires_on: row.expires_on }]); if (row.par > 0 && !(Number(t.par) > 0)) await sb.from('pantry_items').update({ par: row.par }).eq('id', t.id); } catch (er) { return fail(er); }
+          await loadAll(); close(); return toast(`Added to ${t.name}`); } }
       const r = id ? await sb.from('pantry_items').update(row).eq('id', id) : await sb.from('pantry_items').insert(row); if (r.error) return fail(r.error);
+      if (id && row.name !== p.name) { try { await renameItem(p.name, row.name); } catch (er) { console.error(er); } }
       await loadAll(); close();
     };
     el.querySelector('#pdel')?.addEventListener('click', async () => { const r = await sb.from('pantry_items').delete().eq('id', id); if (r.error) return fail(r.error); await loadAll(); close(); });
@@ -1745,7 +1846,7 @@ async function pantryPhoto(src, mode, opts = {}) {
       if (t.dataset.on != null) { items[i].on = t.checked; el.querySelector('#addall').textContent = `Add ${items.filter(x => x.on).length} to the pantry`; }
       if (t.dataset.nm != null) items[i].name = t.value; if (t.dataset.q != null) items[i].qty = Number(t.value); if (t.dataset.u != null) items[i].unit = t.value; });
     el.addEventListener('click', async e => { if (!e.target.closest('#addall')) return; const pick = items.filter(x => x.on && x.name.trim()); if (!pick.length) return toast('Nothing selected'); busy(el, 'Adding to the pantry…');
-      try { const r = await addToPantry(pick.map(x => ({ name: x.name.trim(), qty: x.qty, unit: x.unit, category: x.category, expires_on: x.expires_days ? ymd(addDays(new Date(), x.expires_days)) : null }))); await loadAll(); el.remove(); render(); toast([r.added && `Added ${r.added} new item${r.added > 1 ? 's' : ''}`, r.updated && `topped up ${r.updated}`].filter(Boolean).join(', ')); if (mode === 'receipt_photo') spendEditor('groceries'); } catch (er) { el.remove(); fail(er); } });
+      try { const r = await addToPantry(pick.map(x => ({ name: x.name.trim(), qty: x.qty, unit: x.unit, category: x.category, expires_on: x.expires_days ? ymd(addDays(new Date(), x.expires_days)) : null }))); const off = await clearBoughtFromList(pick.map(x => x.name.trim())); await loadAll(); el.remove(); render(); toast([r.added && `Added ${r.added} new item${r.added > 1 ? 's' : ''}`, r.updated && `topped up ${r.updated}`, off && `${off} off the list`].filter(Boolean).join(', ')); if (mode === 'receipt_photo') spendEditor('groceries'); } catch (er) { el.remove(); fail(er); } });
   } catch (e) { el.remove(); fail(e); }
 }
 
@@ -1801,7 +1902,8 @@ document.addEventListener('click', async e => {
       if (wasLow !== isLow(p)) toast(isLow(p) ? `${p.name} added to the shopping list` : `${p.name} is stocked — off the list`);
       clearTimeout(pantryT); pantryT = setTimeout(async () => { try { await loadAll(); if (!$('.sheet')) render(); } catch (_) { } }, 900); return; }
     if (t.dataset.check) { const l = S.list.find(x => x.id === t.dataset.check); l.checked = t.checked; render(); const r = await sb.from('shopping_items').update({ checked: l.checked }).eq('id', l.id); if (r.error) fail(r.error); return; }
-    if (t.dataset.delitem) { S.list = S.list.filter(x => x.id !== t.dataset.delitem); render(); const r = await sb.from('shopping_items').delete().eq('id', t.dataset.delitem); if (r.error) fail(r.error); return; }
+    if (t.dataset.delitem) { const it = S.list.find(x => x.id === t.dataset.delitem); S.list = S.list.filter(x => x.id !== t.dataset.delitem); render(); quietUntil = Date.now() + 2500;
+      const r = it && !it.list_id && !it.checked && (it.source === 'plan' || it.source === 'par') ? await sb.from('shopping_items').update({ source: 'skip' }).eq('id', it.id).then(x => { if (!x.error) (S.skips = S.skips || []).push({ ...it, source: 'skip' }); return x; }) : await sb.from('shopping_items').delete().eq('id', t.dataset.delitem); if (r.error) fail(r.error); return; }
     const a = t.dataset.act;
     if (a === 'addpantry') return pantryEditor(null);
     if (a === 'addstaple') return pantryEditor(null, { par: 1, qty: 1 });
@@ -1835,6 +1937,7 @@ document.addEventListener('click', async e => {
 });
 
 window.__reload = async () => { if (S.household) { await loadAll(); render(); } };
+if (/^(localhost|127\.)/.test(location.hostname)) window.__wc = { S: () => S, recipeMatch, missingBuys, weekNeeds, syncList, markCooked, setMeal, homeCount, avoidersOf, stockOf, convertQty, clearBoughtFromList, addToPantry, expandIngs, renameItem, pantryTarget };
 window.__back = () => { const s = [...document.querySelectorAll('.sheet')].pop(); if (s) { s.close ? s.close() : s.remove(); return true; } if (S.session && S.household && S.tab !== 'home') { S.tab = 'home'; render(); return true; } return false; };
 
 sb.auth.onAuthStateChange((ev, session) => {
@@ -1906,7 +2009,7 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
     const used = new Set(), usedSides = new Set();
     const rows = days.map(d => {
       const awayNames = awayOn(null, d).map(memberById).filter(Boolean).map(m => m.display_name.split(' ')[0]); const short = awayNames.length > 0;
-      const ranked = scored.map(x => ({ ...x, s: x.base + (short && x.r.time_min && x.r.time_min <= 45 ? 15 : 0) })).sort((a, b) => b.s - a.s);
+      const ranked = scored.map(x => ({ ...x, s: x.base + (short && x.r.time_min && x.r.time_min <= 45 ? 15 : 0) - (avoidersOf(x.r, d).length ? 80 : 0) })).sort((a, b) => b.s - a.s);
       const pick = ranked.find(x => !used.has(x.r.id)); if (pick) used.add(pick.r.id);
       const sides = pick ? suggestFor([pick.r], 'side', [...usedSides], 2) : []; sides.forEach(x => usedSides.add(x.id));
       return { day: d, short, awayNames, ranked, pick, sides };

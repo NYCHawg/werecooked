@@ -1504,44 +1504,106 @@ function chefSheet(day) {
 }
 
 // ---------- camera ----------
+// ---------- barcode reading (native detector when it really works, ZXing otherwise) ----------
+const BC_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'];
+let nativeBcOK = null;
+async function makeReader() {
+  if (nativeBcOK !== false && 'BarcodeDetector' in window) {
+    try { const f = await BarcodeDetector.getSupportedFormats(); const want = BC_FORMATS.filter(x => f.includes(x)); if (want.length) return { kind: 'native', d: new BarcodeDetector({ formats: want }) }; } catch (_) { }
+    nativeBcOK = false;
+  }
+  const Z = await loadZxing(); const hints = new Map();
+  hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E, Z.BarcodeFormat.CODE_128]); hints.set(Z.DecodeHintType.TRY_HARDER, true);
+  const reader = new Z.MultiFormatReader(); reader.setHints(hints); return { kind: 'zx', Z, reader };
+}
+function zxDecode(r, canvas) {
+  const { Z, reader } = r;
+  for (const Bin of [Z.HybridBinarizer, Z.GlobalHistogramBinarizer]) { try { const res = reader.decode(new Z.BinaryBitmap(new Bin(new Z.HTMLCanvasElementLuminanceSource(canvas)))); if (res) return res.getText(); } catch (_) { } }
+  return null;
+}
+/** Try to read a barcode from a canvas; falls back from the native detector to ZXing if the native one errors. */
+async function readCode(r, canvas) {
+  if (r.kind === 'native') {
+    try { const out = await r.d.detect(canvas); nativeBcOK = true; return out[0]?.rawValue || null; }
+    catch (_) { nativeBcOK = false; const z = await makeReader(); Object.assign(r, z); return zxDecode(r, canvas); }
+  }
+  return zxDecode(r, canvas);
+}
+const drawTo = (src, w, h, sx = 0, sy = 0, sw, sh, rot = 0) => { const c = document.createElement('canvas'); c.width = rot ? h : w; c.height = rot ? w : h; const g = c.getContext('2d'); if (rot) { g.translate(c.width / 2, c.height / 2); g.rotate(rot * Math.PI / 180); g.translate(-w / 2, -h / 2); } g.drawImage(src, sx, sy, sw ?? (src.videoWidth || src.naturalWidth || src.width), sh ?? (src.videoHeight || src.naturalHeight || src.height), 0, 0, w, h); return c; };
+async function readCodeFromFile(file) {
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not read that photo')); i.src = URL.createObjectURL(file); });
+  const r = await makeReader(), W = img.naturalWidth, H = img.naturalHeight;
+  for (const max of [1600, 1100, 800]) for (const rot of [0, 90]) {
+    const sc = Math.min(1, max / Math.max(W, H)), code = await readCode(r, drawTo(img, Math.round(W * sc), Math.round(H * sc), 0, 0, W, H, rot));
+    if (code) { URL.revokeObjectURL(img.src); return code; }
+  }
+  URL.revokeObjectURL(img.src); return null;
+}
 function openCamera({ title, hint, barcode, onFrame, onPick }) {
   let stream = null, timer = null, stopped = false;
   const stop = () => { stopped = true; clearInterval(timer); stream?.getTracks().forEach(t => t.stop()); };
   const el = sheet(`<h2>${esc(title)}</h2><div class="cam"><video playsinline muted autoplay></video>${barcode ? '<div class="reticle"></div>' : ''}<div class="hint">${esc(hint)}</div></div>
-    ${barcode ? '' : '<button class="shutter" id="shoot" aria-label="Take photo"></button>'}
-    <div class="row" style="justify-content:center;margin-top:12px"><label class="btn sm ghost" style="margin:0;color:var(--ink)">Choose from photos<input type="file" accept="image/*" id="pick" hidden></label>${barcode ? '<button class="btn sm ghost" id="typecode">Type the number</button>' : ''}<button class="btn sm line" data-close>Cancel</button></div>`, async (el) => {
-    const video = el.querySelector('video');
-    el.querySelector('#pick').onchange = e => { const f = e.target.files[0]; if (f) { stop(); el.remove(); onPick(f); } };
-    el.querySelector('#typecode')?.addEventListener('click', () => { stop(); el.remove(); const c = prompt('Barcode number'); if (c && /^\d{6,14}$/.test(c.trim())) onFrame(c.trim()); });
+    ${barcode ? '' : '<button class="shutter" id="shoot" aria-label="Take photo" disabled></button>'}
+    <div class="camopts"><label class="btn sm">${svg('camera')} ${barcode ? 'Photo of the barcode' : 'Use phone camera'}<input type="file" accept="image/*" capture="environment" class="campick" hidden></label>
+      <label class="btn sm ghost">Choose from photos<input type="file" accept="image/*" class="campick" hidden></label>
+      ${barcode ? '<button class="btn sm ghost" id="typec">Type the number</button>' : ''}</div>
+    ${barcode ? `<form id="typeform" class="row" style="flex-wrap:nowrap;margin-top:10px" hidden><input type="text" id="typenum" inputmode="numeric" pattern="[0-9]*" placeholder="Numbers under the barcode" autocomplete="off"><button class="btn" type="submit">Look up</button></form>` : ''}`, async (el) => {
+    const video = el.querySelector('video'), hintEl = el.querySelector('.hint');
+    el.querySelectorAll('.campick').forEach(inp => inp.onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      if (!barcode) { stop(); el.remove(); return onPick(f); }
+      hintEl.textContent = 'Reading the barcode in your photo…';
+      try { const code = await readCodeFromFile(f); if (code) { stop(); el.remove(); return onFrame(code); } hintEl.textContent = 'Couldn’t find a barcode in that photo. Try closer, flat and in good light, or type the number.'; }
+      catch (er) { hintEl.textContent = er.message; }
+      e.target.value = '';
+    });
+    el.querySelector('#typec')?.addEventListener('click', () => { const f = el.querySelector('#typeform'); f.hidden = false; f.querySelector('input').focus(); });
+    el.querySelector('#typeform')?.addEventListener('submit', e => { e.preventDefault(); const c = el.querySelector('#typenum').value.replace(/\D/g, ''); if (c.length < 6 || c.length > 14) { hintEl.textContent = 'Barcodes are 8 to 13 digits — check the number.'; return; } stop(); el.remove(); onFrame(c); });
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
       if (stopped) return stop(); video.srcObject = stream; await video.play().catch(() => { });
-    } catch (e) { el.querySelector('.hint').textContent = 'Camera unavailable — allow camera access, or choose a photo instead.'; return; }
-    el.querySelector('#shoot')?.addEventListener('click', async () => { const b64 = await imageToBase64(video); stop(); el.remove(); onFrame(b64); });
+    } catch (e) { hintEl.textContent = `Live camera unavailable. Use ${barcode ? '“Photo of the barcode”' : '“Use phone camera”'} below instead.`; return; }
+    const ready = () => video.videoWidth > 0 && video.readyState >= 2;
+    const shoot = el.querySelector('#shoot');
+    const arm = () => { if (shoot) shoot.disabled = false; };
+    if (ready()) arm(); else video.addEventListener('loadeddata', arm, { once: true });
+    setTimeout(() => { if (!stopped && !ready()) hintEl.textContent = 'The live preview didn’t start. Use the buttons below instead.'; }, 4000);
+    shoot?.addEventListener('click', async () => { if (!ready()) return; const b64 = await imageToBase64(video, 2000); stop(); el.remove(); onFrame(b64); });
     if (barcode) {
-      let detector = null, zx = null, canvas = document.createElement('canvas');
-      if ('BarcodeDetector' in window) { try { detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] }); } catch (_) { detector = null; } }
-      if (!detector) { try { const Z = await loadZxing(); const hints = new Map(); hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E, Z.BarcodeFormat.CODE_128]); hints.set(Z.DecodeHintType.TRY_HARDER, true); zx = { Z, reader: new Z.MultiFormatReader() }; zx.reader.setHints(hints); } catch (e) { el.querySelector('.hint').textContent = e.message; } }
-      let busyScan = false;
+      let r = null; try { r = await makeReader(); } catch (e) { hintEl.textContent = e.message + '. Use a photo or type the number.'; return; }
+      let busyScan = false, tick = 0;
       timer = setInterval(async () => {
-        if (busyScan || stopped || !video.videoWidth) return; busyScan = true;
+        if (busyScan || stopped || !ready()) return; busyScan = true; tick++;
         try {
-          let code = null;
-          if (detector) { const r = await detector.detect(video); code = r[0]?.rawValue; }
-          else if (zx) { const w = video.videoWidth, h = video.videoHeight, cw = Math.min(1280, w), ch = Math.round(h * cw / w); canvas.width = cw; canvas.height = ch; canvas.getContext('2d').drawImage(video, 0, 0, cw, ch);
-            try { const src = new zx.Z.HTMLCanvasElementLuminanceSource(canvas); const res = zx.reader.decode(new zx.Z.BinaryBitmap(new zx.Z.HybridBinarizer(src))); code = res.getText(); } catch (_) { } }
-          if (code) { navigator.vibrate?.(60); stop(); el.remove(); onFrame(code); }
-        } finally { busyScan = false; }
-      }, 280);
+          const w = video.videoWidth, h = video.videoHeight; let c;
+          if (tick % 2) { const cw = Math.round(w * .8), chh = Math.round(h * .45), sc = Math.min(1, 1280 / cw); c = drawTo(video, Math.round(cw * sc), Math.round(chh * sc), (w - cw) / 2, (h - chh) / 2, cw, chh); }
+          else { const sc = Math.min(1, 1280 / w); c = drawTo(video, Math.round(w * sc), Math.round(h * sc)); }
+          const code = await readCode(r, c);
+          if (code && /^\d{6,14}$/.test(code)) { navigator.vibrate?.(60); stop(); el.remove(); onFrame(code); }
+        } catch (_) { } finally { busyScan = false; }
+      }, 250);
     }
   }, { onClose: stop });
-  return el;
 }
-function captureImage(title, hint, cb) {
-  openCamera({ title, hint, onFrame: b64 => cb({ b64 }), onPick: f => cb(f) });
+/** Receipts: sharp, full-resolution photos from the phone's camera; up to 3 for long receipts. */
+function receiptFlow() {
+  const shots = [];
+  const draw = () => `<h2>Scan a receipt</h2><p class="lede">Lay it flat in good light and fill the frame. Long receipt? Take it in 2 or 3 photos, top to bottom.</p>
+    ${shots.length ? `<div class="shots">${shots.map((x, i) => `<span class="shot" style="background-image:url('${x.url}')"><button type="button" data-unshot="${i}" aria-label="Remove photo ${i + 1}">×</button><b>${i + 1}</b></span>`).join('')}</div>` : ''}
+    <div class="camopts" style="margin-top:12px">${shots.length < 3 ? `<label class="btn">${svg('camera')} ${shots.length ? 'Add the next part' : 'Take a photo'}<input type="file" accept="image/*" capture="environment" class="rpick" hidden></label><label class="btn ghost">Choose from photos<input type="file" accept="image/*" class="rpick" hidden></label>` : ''}</div>
+    ${shots.length ? `<button class="btn wide flame" id="rread" style="margin-top:14px">${svg('spark')} Read ${shots.length > 1 ? `${shots.length} photos` : 'the receipt'}</button>` : ''}`;
+  sheet(draw(), (el, close) => {
+    const box = el.querySelector('[role=dialog]'), redraw = () => { box.innerHTML = draw(); };
+    el.addEventListener('change', e => { if (!e.target.classList.contains('rpick')) return; const f = e.target.files[0]; if (f) { shots.push({ f, url: URL.createObjectURL(f) }); redraw(); } });
+    el.addEventListener('click', async e => {
+      const u = e.target.closest('[data-unshot]'); if (u) { shots.splice(+u.dataset.unshot, 1); return redraw(); }
+      if (!e.target.closest('#rread')) return;
+      const files = shots.map(x => x.f); el.remove(); pantryPhoto({ files }, 'receipt_photo');
+    });
+  });
 }
 function scanBarcodeFlow() {
-  openCamera({ title: 'Scan a barcode', hint: 'Line the barcode up inside the box', barcode: true, onPick: async f => toast('Use the live camera for barcodes, or type the number'), onFrame: async code => {
+  openCamera({ title: 'Scan a barcode', hint: 'Line the barcode up inside the box', barcode: true, onPick: () => { }, onFrame: async code => {
     const existing = S.pantry.find(p => p.barcode === code);
     if (existing) { const u = await sb.from('pantry_items').update({ qty: Number(existing.qty) + 1, updated_at: new Date().toISOString() }).eq('id', existing.id); if (u.error) return fail(u.error); await loadAll(); render(); toast(`Added one more ${existing.name}`); return; }
     toast('Looking up the product…');
@@ -1553,8 +1615,9 @@ function scanBarcodeFlow() {
 async function pantryPhoto(src, mode) {
   const el = sheet('', null); busy(el, mode === 'receipt_photo' ? 'Reading the receipt…' : 'Spotting what\'s on the shelves…');
   try {
-    const image = src.b64 || await imageToBase64(src);
-    const out = await ai(mode, { image, media_type: 'image/jpeg' });
+    const big = mode === 'receipt_photo' ? 2200 : 1600;
+    const images = src.files ? await Promise.all(src.files.map(f => imageToBase64(f, big))) : [src.b64 || await imageToBase64(src, big)];
+    const out = await ai(mode, { image: images[0], images, media_type: 'image/jpeg' });
     const items = (out.items || []).map(x => ({ ...x, on: true }));
     if (!items.length) { el.remove(); return toast('Couldn\'t make out any items. Try a closer, brighter photo.'); }
     const draw = () => `<h2>${items.length} items found</h2><p class="lede">Uncheck anything that's wrong and fix amounts before adding.</p>
@@ -1628,7 +1691,7 @@ document.addEventListener('click', async e => {
     if (a === 'staples') return addStaples(t);
     if (a === 'scanbarcode') return scanBarcodeFlow();
     if (a === 'snappantry') return captureImage('Snap your shelves', 'Fridge, freezer, pantry or a counter of groceries', src => pantryPhoto(src, 'pantry_photo'));
-    if (a === 'snapreceipt') return captureImage('Scan a receipt', 'Lay the receipt flat and fill the frame', src => pantryPhoto(src, 'receipt_photo'));
+    if (a === 'snapreceipt') return receiptFlow();
     if (a === 'addrecipe') return addRecipeMenu();
     if (a === 'chef') return chefSheet();
     if (a === 'newbook') return bookEditor(null);

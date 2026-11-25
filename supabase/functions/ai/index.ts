@@ -1,7 +1,7 @@
 // We're Cooked AI helper. Signed-in users only (JWT verified by Supabase).
 // Modes:
-//   pantry_photo  {image, media_type}            -> {items:[{name,qty,unit,category,expires_days}]}
-//   receipt_photo {image, media_type}            -> same shape, from a grocery receipt
+//   pantry_photo  {image|images[], media_type}   -> {items:[{name,qty,unit,category,expires_days}]}
+//   receipt_photo {image|images[], media_type}   -> same shape, from a grocery receipt (up to 4 photos of one receipt)
 //   recipe_photo  {image, media_type}            -> {recipe:{...}}
 //   recipe_url    {url}                          -> {recipe:{...}}  (schema.org first, AI fallback)
 //   generate      {pantry:[...], dislikes, servings, wish} -> {recipes:[...]}
@@ -23,17 +23,29 @@ const json = (body: unknown, status = 200) =>
 async function claude(content: unknown[], system: string, maxTokens = 4000) {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("NO_KEY");
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content }] }),
-  });
-  if (!r.ok) throw new Error(`AI service error ${r.status}: ${(await r.text()).slice(0, 300)}`);
-  const d = await r.json();
-  const text = (d.content || []).map((c: { text?: string }) => c.text || "").join("");
-  const m = text.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error("The AI did not return a usable answer. Try again.");
-  return JSON.parse(m[0]);
+  let r: Response | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content }] }),
+    });
+    if (r.ok || ![429, 500, 502, 503, 529].includes(r.status)) break;
+    await new Promise(res => setTimeout(res, 1500 * (attempt + 1)));
+  }
+  if (!r!.ok) { const t = (await r!.text()).slice(0, 400); console.error("anthropic error", r!.status, t); throw new Error(r!.status === 400 && /image/i.test(t) ? "That photo couldn't be read. Try a clearer, closer photo." : `AI service error ${r!.status}. Try again in a moment.`); }
+  const d = await r!.json();
+  const text = (d.content || []).map((c: { text?: string }) => c.text || "").join("").replace(/```(?:json)?/g, "");
+  const a = text.indexOf("{"), z = text.lastIndexOf("}");
+  if (a < 0 || z <= a) { console.error("no json", d.stop_reason, text.slice(0, 300)); throw new Error("The AI did not return a usable answer. Try again."); }
+  try { return JSON.parse(text.slice(a, z + 1)); }
+  catch (e) {
+    // a long answer cut off mid-list: keep the complete items
+    const cut = text.slice(a); const lastObj = cut.lastIndexOf("}");
+    for (let k = lastObj; k > 0; k = cut.lastIndexOf("}", k - 1)) { try { return JSON.parse(cut.slice(0, k + 1) + "]}"); } catch (_) { /* keep trimming */ } if (lastObj - k > 4000) break; }
+    console.error("bad json", d.stop_reason, (e as Error).message, text.slice(0, 300));
+    throw new Error("The AI's answer was garbled. Try again.");
+  }
 }
 
 const img = (b64: string, mt: string) => ({ type: "image", source: { type: "base64", media_type: mt || "image/jpeg", data: b64 } });
@@ -69,11 +81,14 @@ Deno.serve(async (req) => {
     const mode = b.mode as string;
 
     if (mode === "pantry_photo" || mode === "receipt_photo") {
+      const pics: string[] = (Array.isArray(b.images) && b.images.length ? b.images : [b.image]).filter(Boolean).slice(0, 4);
+      if (!pics.length) return json({ error: "No photo came through. Try again." }, 400);
       const what = mode === "receipt_photo"
         ? "This is a grocery receipt. List each food or household item bought, expanding abbreviations into plain names (e.g. 'GV WHL MLK GAL' -> 'whole milk'). Use the quantity bought."
         : "This is a photo of a pantry, fridge, freezer or groceries. List every distinct food item you can identify with reasonable confidence, with an estimated count or amount.";
-      const out = await claude([img(b.image, b.media_type), { type: "text", text: `${what}\nReturn only JSON: {"items":[{"name":string (short, lowercase, singular where natural),"qty":number,"unit":string ("" for countable items, or lb, oz, gal, qt, cup, bag, box, can, jar, bottle, bunch, dozen),"category":one of ${CATS},"expires_days":number|null (typical days until it should be used, for fresh food only)}]}` }],
-        "You help a family keep their kitchen inventory. Be practical and don't invent items you can't see.");
+      const multi = pics.length > 1 ? `These ${pics.length} photos are consecutive parts of the same ${mode === "receipt_photo" ? "receipt, top to bottom; items may repeat where the photos overlap, so list each purchased line once" : "kitchen"}.\n` : "";
+      const out = await claude([...pics.map(p => img(p, b.media_type)), { type: "text", text: `${multi}${what}\nReturn only JSON: {"items":[{"name":string (short, lowercase, singular where natural),"qty":number,"unit":string ("" for countable items, or lb, oz, gal, qt, cup, bag, box, can, jar, bottle, bunch, dozen),"category":one of ${CATS},"expires_days":number|null (typical days until it should be used, for fresh food only)}]}` }],
+        "You help a family keep their kitchen inventory. Be practical and don't invent items you can't see.", 8000);
       return json(out);
     }
 
@@ -134,6 +149,7 @@ Return only JSON: {"recipe":${RECIPE_SHAPE},"estimated":[string]}` }],
     return json({ error: "Unknown mode" }, 400);
   } catch (e) {
     const msg = (e as Error).message;
+    console.error("ai failed:", msg);
     if (msg === "NO_KEY") return json({ error: "AI features aren't switched on yet. Add an ANTHROPIC_API_KEY secret in Supabase (Edge Functions › Secrets).", code: "NO_KEY" }, 503);
     return json({ error: msg }, 500);
   }

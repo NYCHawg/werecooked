@@ -9,6 +9,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.provider.MediaStore;
+import androidx.core.content.FileProvider;
+import java.io.File;
 import java.util.ArrayList;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
@@ -31,6 +34,9 @@ public class MainActivity extends Activity {
     private static final int CAM_REQ = 8;
     private static final int FILE_REQ = 9;
     private static final int VOICE_REQ = 11;
+    private static final int FILECAM_REQ = 12;
+    private Uri cameraUri = null;
+    private boolean pendingCapture = false, pendingImages = true;
     private PermissionRequest pendingCam;
     private ValueCallback<Uri[]> fileCallback;
     private WebView web;
@@ -56,6 +62,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
         s.setSaveFormData(false);
+        s.setMediaPlaybackRequiresUserGesture(false);
         if (android.os.Build.VERSION.SDK_INT >= 26) web.setImportantForAutofill(android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
         web.addJavascriptInterface(new Bridge(), "Android");
         web.setWebViewClient(new WebViewClient() {
@@ -78,7 +85,6 @@ public class MainActivity extends Activity {
                 if (pendingAuth != null) { deliverAuth(pendingAuth); pendingAuth = null; }
             }
         });
-        s.setMediaPlaybackRequiresUserGesture(false);
         web.setWebChromeClient(new WebChromeClient() {
             // Camera for the barcode scanner and pantry photos
             @Override
@@ -102,18 +108,16 @@ public class MainActivity extends Activity {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
                 fileCallback = callback;
                 try {
-                    Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-                    i.addCategory(Intent.CATEGORY_OPENABLE);
                     String[] accept = params.getAcceptTypes();
                     String joined = accept == null ? "" : String.join(",", accept);
                     boolean images = joined.isEmpty() || joined.contains("image");
-                    if (images) {
-                        i.setType("image/*");
+                    boolean capture = params.isCaptureEnabled();
+                    if (images && Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        pendingCapture = capture; pendingImages = true;
+                        requestPermissions(new String[]{Manifest.permission.CAMERA}, FILECAM_REQ);
                     } else {
-                        i.setType("*/*");
-                        i.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"text/csv", "text/comma-separated-values", "text/plain", "application/csv", "application/vnd.ms-excel", "application/octet-stream"});
+                        launchChooser(images, capture, true);
                     }
-                    startActivityForResult(Intent.createChooser(i, images ? "Choose a photo" : "Choose a CSV file"), FILE_REQ);
                 } catch (Exception e) {
                     fileCallback = null;
                     return false;
@@ -138,6 +142,39 @@ public class MainActivity extends Activity {
         else web.loadUrl(HOME);
     }
 
+    /** Photos: the phone's real camera (full resolution) and/or the gallery. Other files: the file picker. */
+    private void launchChooser(boolean images, boolean capture, boolean camAllowed) {
+        try {
+            Intent pick = new Intent(Intent.ACTION_GET_CONTENT);
+            pick.addCategory(Intent.CATEGORY_OPENABLE);
+            if (!images) {
+                pick.setType("*/*");
+                pick.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"text/csv", "text/comma-separated-values", "text/plain", "application/csv", "application/vnd.ms-excel", "application/octet-stream"});
+                startActivityForResult(Intent.createChooser(pick, "Choose a CSV file"), FILE_REQ);
+                return;
+            }
+            pick.setType("image/*");
+            Intent cam = null;
+            cameraUri = null;
+            if (camAllowed) {
+                try {
+                    File dir = new File(getCacheDir(), "shots"); dir.mkdirs();
+                    File f = new File(dir, "shot-" + System.currentTimeMillis() + ".jpg");
+                    cameraUri = FileProvider.getUriForFile(this, getPackageName() + ".files", f);
+                    cam = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    cam.putExtra(MediaStore.EXTRA_OUTPUT, cameraUri);
+                    cam.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (Exception e) { cam = null; cameraUri = null; }
+            }
+            if (capture && cam != null) { startActivityForResult(cam, FILE_REQ); return; }
+            Intent chooser = Intent.createChooser(pick, "Add a photo");
+            if (cam != null) chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cam});
+            startActivityForResult(chooser, FILE_REQ);
+        } catch (Exception e) {
+            if (fileCallback != null) { fileCallback.onReceiveValue(null); fileCallback = null; }
+        }
+    }
+
     @Override
     protected void onActivityResult(int code, int result, Intent data) {
         super.onActivityResult(code, result, data);
@@ -153,7 +190,11 @@ public class MainActivity extends Activity {
         }
         if (code == FILE_REQ && fileCallback != null) {
             Uri[] out = null;
-            if (result == RESULT_OK && data != null && data.getData() != null) out = new Uri[]{data.getData()};
+            if (result == RESULT_OK) {
+                if (data != null && data.getData() != null) out = new Uri[]{data.getData()};
+                else if (cameraUri != null) out = new Uri[]{cameraUri};
+            }
+            cameraUri = null;
             fileCallback.onReceiveValue(out);
             fileCallback = null;
         }
@@ -166,6 +207,11 @@ public class MainActivity extends Activity {
                 pendingCam.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
             else pendingCam.deny();
             pendingCam = null;
+            return;
+        }
+        if (code == FILECAM_REQ) {
+            boolean ok = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
+            launchChooser(pendingImages, pendingCapture, ok);
             return;
         }
         if (code == LOC_REQ && geoCallback != null) {

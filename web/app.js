@@ -245,10 +245,10 @@ async function importLibrary(btn) {
 
 // ---------- planning logic ----------
 // ---------- pantry links: every ingredient points at specific pantry items ----------
-let ING = { items: {}, map: {}, rules: [] };
+let ING = { items: {}, sizes: {}, convert: new Set(), map: {}, rules: [] };
 const linkCache = new Map();
 async function loadIngredientMap() {
-  try { const j = await fetch('ingredients.json').then(r => r.json()); ING = { items: j.items || {}, lower: Object.fromEntries(Object.keys(j.items || {}).map(k => [k.toLowerCase(), k])), map: j.map || {}, rules: (j.rules || []).map(([p, r]) => [new RegExp(p), r]) }; linkCache.clear(); } catch (_) { }
+  try { const j = await fetch('ingredients.json').then(r => r.json()); ING = { items: j.items || {}, sizes: j.sizes || {}, convert: new Set(j.convert || []), lower: Object.fromEntries(Object.keys(j.items || {}).map(k => [k.toLowerCase(), k])), map: j.map || {}, rules: (j.rules || []).map(([p, r]) => [new RegExp(p), r]) }; linkCache.clear(); } catch (_) { }
 }
 const BASICS = /^(Table salt|Kosher salt|Sea salt|Black pepper)$/;
 const OPTIONAL = /\b(optional|to serve|for serving|to garnish|for garnish|garnish|for dipping|for topping)\b/i;
@@ -286,10 +286,53 @@ const UNIT_SETS = [{ oz: 1, lb: 16, g: 1 / 28.3495, kg: 35.274 },
   { '': 1, dozen: 12, piece: 1 }];
 /** q in `from` expressed in `to`, or null when the two units don't convert. */
 function convertQty(q, from, to) { const f = normUnit(from), t = normUnit(to); if (f === t) return q; for (const u of UNIT_SETS) if (f in u && t in u) return q * u[f] / u[t]; return null; }
+// ---------- package sizes: a bag of flour is 5 lb, a cup of flour is 4.25 oz ----------
+/** An item's package size: the one set on its pantry row, else the standard one. {pkg, amt, unit, opc} */
+function sizeOf(name, row) {
+  const canon = linkOf(name)?.items?.[0] || name, k = ING.sizes[canon] ? canon : ING.lower?.[String(canon || '').toLowerCase()], d = k ? ING.sizes[k] : null;
+  if (row?.pack_qty && row?.pack_unit) return { pkg: normUnit(row.pack_name || d?.[0] || ''), amt: Number(row.pack_qty), unit: normUnit(row.pack_unit), opc: d?.[3] || null };
+  return d ? { pkg: d[0], amt: Number(d[1]), unit: normUnit(d[2]), opc: d[3] || null } : null;
+}
+function toBase(q, u, sz, depth = 0) {
+  u = normUnit(u); if (u in UNIT_SETS[0]) return { k: 'm', v: q * UNIT_SETS[0][u] }; if (u in UNIT_SETS[1]) return { k: 'v', v: q * UNIT_SETS[1][u] };
+  if (sz && !depth && u && (u === sz.pkg || PACKAGE_UNITS.has(u))) return toBase(q * sz.amt, sz.unit, sz, 1);
+  return null;
+}
+/** Like convertQty, but knows this item: bags/boxes/cans become pounds or ounces, and cups become weight for dry goods. */
+function itemConvert(q, from, to, name, row) {
+  const c = convertQty(q, from, to); if (c != null) return c;
+  const sz = name ? sizeOf(name, row) : null; if (!sz) return null;
+  const a = toBase(q, from, sz), b = toBase(1, to, sz); if (!a || !b) return null;
+  let v = a.v; if (a.k !== b.k) { if (!sz.opc) return null; v = a.k === 'v' ? v / 48 * sz.opc : v / sz.opc * 48; }
+  return v / b.v;
+}
+/** "≈ 2 bags" next to an amount kept in pounds or ounces. */
+function packsLabel(p) {
+  const sz = sizeOf(p.name, p); if (!sz || !ING.convert.has(sz.pkg) || normUnit(p.unit) !== sz.unit || !(Number(p.qty) > 0)) return '';
+  const n = Math.round(Number(p.qty) / sz.amt * 2) / 2; return n > 0 ? `≈ ${fmtQty(n)} ${sz.pkg}${n > 1 ? (sz.pkg.endsWith('x') ? 'es' : 's') : ''}` : `under a ${sz.pkg}`;
+}
+const stepOf = p => { const sz = sizeOf(p.name, p); return sz && ING.convert.has(sz.pkg) && normUnit(p.unit) === sz.unit ? sz.amt : 1; };
+/** A par of "keep 1 bag" becomes "restock when about a quarter bag is left", so one bake doesn't send flour to the list. */
+const parIn = (par, amt) => { par = Number(par) || 0; return par > 0 ? Math.round(Math.max(amt * 0.25, (par - 0.75) * amt) * 100) / 100 : 0; };
+/** Pantry rows counted in bags, boxes and containers switch to the weight or volume they hold (2 bags of flour → 10 lb). */
+async function measureRows() {
+  const now = new Date().toISOString(), todo = [];
+  for (const p of S.pantry) {
+    let u = normUnit(p.unit), mult = 1; const m = u.match(/^(\d+(?:\.\d+)?)\s*(lb|oz|g|kg)s?\s+(\w+)$/);   // "5lb bag"
+    if (m) { todo.push([p, { qty: Number(p.qty) * Number(m[1]), par: parIn(p.par, Number(m[1])), unit: m[2], pack_name: m[3], pack_qty: Number(m[1]), pack_unit: m[2], updated_at: now }]); continue; }
+    if (!ING.convert.has(u)) continue;
+    const sz = sizeOf(p.name, p); if (!sz || !(sz.unit in UNIT_SETS[0] || sz.unit in UNIT_SETS[1])) continue;
+    mult = sz.amt; todo.push([p, { qty: Math.round(Number(p.qty) * mult * 100) / 100, par: parIn(p.par, mult), unit: sz.unit, pack_name: u, pack_qty: sz.amt, pack_unit: sz.unit, updated_at: now }]);
+  }
+  if (!todo.length) return 0;
+  quietUntil = Date.now() + 6000;
+  for (const [p, row] of todo) { const r = await sb.from('pantry_items').update(row).eq('id', p.id); if (r.error) { console.error(r.error); break; } Object.assign(p, row); }
+  return todo.length;
+}
 /** Everything on hand for an item, across every pantry row that links to it, in `unit` where it converts. */
 function stockOf(name, unit, rows) {
   rows = rows || rowsFor(name); let qty = 0, any = false, exact = true;
-  for (const p of rows) { const h = Number(p.qty) || 0; if (h <= 0) continue; any = true; const c = convertQty(h, p.unit, unit); if (c == null) exact = false; else qty += c; }
+  for (const p of rows) { const h = Number(p.qty) || 0; if (h <= 0) continue; any = true; const c = itemConvert(h, p.unit, unit, name, p); if (c == null) exact = false; else qty += c; }
   return { qty, any, exact };
 }
 /** A recipe's lines with linked sub-recipes ("1 recipe pie crust") folded in, each with its scale factor. */
@@ -355,7 +398,8 @@ async function ensureLinks() {
     const next = ings.map(i => { if (Array.isArray(i.items) || i.skip) return i; const l = linkOf(i); return l ? { ...i, items: l.items, sub: l.sub, ...(l.skip ? { skip: true } : {}) } : i; });
     r.ingredients = next; quietUntil = Date.now() + 3000; await sb.from('recipes').update({ ingredients: next }).eq('id', r.id);
   }
-  if (add.length) { const pr = await sb.from('pantry_items').select('*').eq('household_id', S.household.id).order('name'); if (!pr.error) S.pantry = pr.data; if (!$('.sheet')) render(); }
+  const measured = await measureRows();
+  if (add.length || measured) { const pr = await sb.from('pantry_items').select('*').eq('household_id', S.household.id).order('name'); if (!pr.error) S.pantry = pr.data; if (!$('.sheet')) render(); }
   } finally { linking = false; }
 }
 /** Re-link edited ingredient lines, keeping links you set by hand on lines that didn't change. */
@@ -370,7 +414,7 @@ function recipeMatch(r, f = 1) {
     const l = linkOf(i);
     if (l) { if (l.skip || !l.items.length || l.items.every(n => BASICS.test(n)) || OPTIONAL.test(i.name)) continue;
       const key = l.items.join('|').toLowerCase(), prev = seen.get(key);
-      if (prev) { const c = prev.i.qty != null && i.qty != null ? convertQty(i.qty * k, i.unit, prev.i.unit) : null; if (c != null) prev.need += c; else prev.need = null; continue; }
+      if (prev) { const c = prev.i.qty != null && i.qty != null ? itemConvert(i.qty * k, i.unit, prev.i.unit, l.items[0]) : null; if (c != null) prev.need += c; else prev.need = null; continue; }
       const row = { i, its: l.items, need: i.qty != null ? i.qty * k : null }; seen.set(key, row); rows.push(row); }
     else { if (isSubRecipe(i.name) || /^(salt|pepper|black pepper|water|ice)$/i.test(norm(i.name)) || OPTIONAL.test(i.name)) continue; rows.push({ i, its: null, need: i.qty != null ? i.qty * k : null }); }
   }
@@ -403,7 +447,7 @@ function weekNeeds() {
   const add = (name, qty, unit, category) => {
     if (isSubRecipe(name)) return; name = buyName(name); if (!name || /\bwater\b|^ice$/i.test(name)) return; unit = normUnit(unit);
     const k = norm(name), cur = need.get(k);
-    if (cur) { const c = qty != null ? convertQty(qty, unit, cur.unit) : null; if (c != null && cur.qty != null) { cur.qty += c; return; } if (qty == null || cur.qty == null) { if (cur.unit === unit || qty == null) { cur.qty = cur.qty ?? qty; return; } } const k2 = k + '|' + unit, c2 = need.get(k2); if (c2) c2.qty = (c2.qty || 0) + (qty || 0); else need.set(k2, { name, qty, unit, category }); return; }
+    if (cur) { const c = qty != null ? itemConvert(qty, unit, cur.unit, name) : null; if (c != null && cur.qty != null) { cur.qty += c; return; } if (qty == null || cur.qty == null) { if (cur.unit === unit || qty == null) { cur.qty = cur.qty ?? qty; return; } } const k2 = k + '|' + unit, c2 = need.get(k2); if (c2) c2.qty = (c2.qty || 0) + (qty || 0); else need.set(k2, { name, qty, unit, category }); return; }
     need.set(k, { name, qty: qty ?? null, unit, category });
   };
   for (const p of S.plan) {
@@ -471,9 +515,9 @@ async function markCooked(p) {
     let need = i.qty * f;
     for (const it of rows) {
       if (need <= 0.0001) break;
-      const c = convertQty(need, i.unit, it.unit); if (c == null) continue;       // can't tell how much of a bag/box a cup is: leave it
+      const nm = lk ? lk.items[0] : it.name, c = itemConvert(need, i.unit, it.unit, nm, it); if (c == null) continue;   // no size known for this package: leave it
       const take = Math.min(Number(it.qty), c); it.qty = Math.max(0, Math.round((Number(it.qty) - take) * 100) / 100); left.set(it.id, it.qty);
-      need -= convertQty(take, it.unit, i.unit) ?? need;
+      need -= itemConvert(take, it.unit, i.unit, nm, it) ?? need;
     }
   }
   const now = new Date().toISOString();
@@ -498,7 +542,7 @@ async function addToPantry(items) {
     if (p) {
       const pu = normUnit(p.unit || ''), have = Number(p.qty) || 0;
       let qty, newUnit = p.unit;
-      const conv = convertQty(q, unit, pu);
+      const conv = itemConvert(q, unit, pu, p.name, p);
       if (pu === unit || !unit) qty = have + q;                         // same unit: add
       else if (conv != null) qty = have + conv;                         // lb onto oz, a dozen onto eggs counted singly… (keeps par in step)
       else if (!pu && have <= 0) { qty = q; newUnit = unit; }           // no unit yet: take the receipt's
@@ -508,7 +552,8 @@ async function addToPantry(items) {
       p.qty = qty; p.unit = newUnit;
     } else {
       const canon = linkOf(it.name)?.items?.[0], meta = canon ? itemMeta(canon) : null, name = canon || it.name.replace(/^./, c => c.toUpperCase());
-      const row = { household_id: S.household.id, name, qty: q, unit, category: meta?.[1] || (CATS.includes(it.category) ? it.category : 'Other'), location: meta?.[0] || locationFor(name, it.category), expires_on: it.expires_on || null, barcode: it.barcode || null, updated_at: new Date().toISOString() };
+      const sz = sizeOf(name), inPk = sz && ING.convert.has(sz.pkg) && (unit === sz.pkg || (ING.convert.has(unit) && toBase(1, unit, sz)));
+      const row = { household_id: S.household.id, name, qty: inPk ? Math.round(q * sz.amt * 100) / 100 : q, unit: inPk ? sz.unit : unit, ...(inPk ? { pack_name: unit, pack_qty: sz.amt, pack_unit: sz.unit } : {}), category: meta?.[1] || (CATS.includes(it.category) ? it.category : 'Other'), location: meta?.[0] || locationFor(name, it.category), expires_on: it.expires_on || null, barcode: it.barcode || null, updated_at: new Date().toISOString() };
       const i2 = await sb.from('pantry_items').insert(row).select().single(); if (i2.error) throw i2.error; added++;
       S.pantry.push(i2.data || row);
     }
@@ -757,8 +802,8 @@ const photoStyle = url => url ? ` style="background-image:url('${esc(url)}')"` :
 const needsPhoto = (x) => !x.photo_url && x.photo_credit !== 'none';
 function ptile(p) {
   return `<div class="ptile${isLow(p) ? ' low' : ''}"><button class="pimg${p.photo_url ? ' has' : ''}" data-edit-pantry="${p.id}"${photoStyle(p.photo_url)} ${needsPhoto(p) ? `data-ph="p" data-ph-id="${p.id}"` : ''} aria-label="Edit ${esc(p.name)}"><span class="pe">${itemEmoji(p)}</span>${isLow(p) ? '<span class="badge">Low</span>' : ''}</button>
-  <div class="pbody"><span class="iname">${esc(p.name)}</span><span class="imeta">${Number(p.par) > 0 ? `keep ${fmtQty(p.par)}` : 'no par'}${p.expires_on && p.expires_on <= ymd(addDays(new Date(), 3)) ? ' · <b style="color:var(--flamed)">use soon</b>' : ''}</span>
-  <span class="stepper sm"><button data-dq="${p.id}" data-d="-1" aria-label="Less">−</button><span>${fmtQty(p.qty)}${p.unit ? ' ' + esc(p.unit) : ''}</span><button data-dq="${p.id}" data-d="1" aria-label="More">+</button></span></div></div>`;
+  <div class="pbody"><span class="iname">${esc(p.name)}</span><span class="imeta">${Number(p.par) > 0 ? `keep ${fmtQty(p.par)}` : 'no par'}${packsLabel(p) ? ' · ' + packsLabel(p) : ''}${p.expires_on && p.expires_on <= ymd(addDays(new Date(), 3)) ? ' · <b style="color:var(--flamed)">use soon</b>' : ''}</span>
+  <span class="stepper sm"><button data-dq="${p.id}" data-d="${-stepOf(p)}" aria-label="Less">−</button><span>${fmtQty(p.qty)}${p.unit ? ' ' + esc(p.unit) : ''}</span><button data-dq="${p.id}" data-d="${stepOf(p)}" aria-label="More">+</button></span></div></div>`;
 }
 function zoneCounts() { const c = {}; for (const k of LOC_ORDER) c[k] = { n: 0, low: 0 }; for (const p of S.pantry) { const k = locOf(p); if (Number(p.qty) > 0 || Number(p.par) > 0) c[k].n++; if (isLow(p)) c[k].low++; } return c; }
 function pantryView() {
@@ -799,7 +844,7 @@ function staplesView() {
   <div class="row" style="margin-bottom:6px"><span class="imeta sp">${staples.length} staples · ${low.length} below par</span><button class="btn sm ghost" data-act="addstaple">+ Add a staple</button></div>
   ${groups.map(([k, items]) => `<h3>${LOCS[k][1]} ${LOCS[k][0]} · ${items.length}</h3><div class="card">${items.map(p => `<div class="srow${isLow(p) ? ' low' : ''}"><button class="thumb${p.photo_url ? ' has' : ''}" data-edit-pantry="${p.id}"${photoStyle(p.photo_url)} ${needsPhoto(p) ? `data-ph="p" data-ph-id="${p.id}"` : ''} aria-label="Edit ${esc(p.name)}"><span>${itemEmoji(p)}</span></button>
     <button style="all:unset;cursor:pointer;min-width:0" data-edit-pantry="${p.id}"><span class="iname">${esc(p.name)}</span><span class="imeta" style="display:block">${isLow(p) ? '<b style="color:var(--flamed)">On the list</b> · ' : ''}keep ${fmtQty(p.par)}${p.unit ? ' ' + esc(p.unit) : ''}</span></button>
-    <span class="stepper sm"><button data-dq="${p.id}" data-d="-1" aria-label="Less">−</button><span>${fmtQty(p.qty)}</span><button data-dq="${p.id}" data-d="1" aria-label="More">+</button></span></div>`).join('')}</div>`).join('')}`;
+    <span class="stepper sm"><button data-dq="${p.id}" data-d="${-stepOf(p)}" aria-label="Less">−</button><span>${fmtQty(p.qty)}${p.unit ? ' ' + esc(p.unit) : ''}</span><button data-dq="${p.id}" data-d="${stepOf(p)}" aria-label="More">+</button></span></div>`).join('')}</div>`).join('')}`;
 }
 async function addStaples(btn) {
   if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
@@ -1413,6 +1458,9 @@ function pantryEditor(id, preset = {}) {
   <label for="pnm">Item</label><input type="text" id="pnm" value="${esc(p.name)}" required maxlength="80" placeholder="e.g. Eggs">
   ${p.size ? `<p class="imeta" style="margin:6px 0 0">Package size: ${esc(p.size)}</p>` : ''}
   <div class="grid2"><div><label for="pq">On hand</label><input type="number" id="pq" step="any" min="0" value="${p.qty}"></div><div><label for="pu">Unit</label><input type="text" id="pu" value="${esc(p.unit)}" placeholder="each, lb, can…" maxlength="20"></div></div>
+  ${(() => { const sz = id ? sizeOf(p.name, p) : null; return `<div class="grid2"><div><label for="ppk">Comes in a</label><input type="text" id="ppk" value="${esc(sz?.pkg || '')}" placeholder="bag, box, can…" maxlength="20"></div>
+  <div><label for="ppq">That holds</label><div class="row" style="flex-wrap:nowrap;gap:6px"><input type="number" id="ppq" step="any" min="0" value="${sz?.amt ?? ''}" placeholder="5" style="min-width:0;flex:1"><input type="text" id="ppu" value="${esc(sz?.unit || '')}" placeholder="lb, oz" maxlength="12" style="width:72px"></div></div></div>
+  <p class="imeta" style="margin:4px 0 0">Bags and boxes are kept in the weight they hold, so recipes in cups can come out of them.</p>`; })()}
   <div class="grid2"><div><label for="ppar">Always keep (par)</label><input type="number" id="ppar" step="any" min="0" value="${p.par}"></div><div><label for="pex">Use by</label><input type="date" id="pex" value="${esc(p.expires_on || '')}"></div></div>
   <div class="grid2"><div><label for="ploc">Where it lives</label><select id="ploc" data-add="location">${LOC_ORDER.map(k => `<option value="${k}" ${(p.location || locationFor(p.name, p.category)) === k ? 'selected' : ''}>${LOCS[k][1]} ${LOCS[k][0]}</option>`).join('')}</select></div>
   <div><label for="pcat">Store aisle</label><select id="pcat" data-add="aisle">${CATS.map(c => `<option ${c === p.category ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
@@ -1424,6 +1472,9 @@ function pantryEditor(id, preset = {}) {
     el.querySelector('#pform').onsubmit = async e => {
       e.preventDefault(); const g = s => el.querySelector(s).value;
       const row = { household_id: S.household.id, name: g('#pnm').trim(), qty: Number(g('#pq')) || 0, unit: normUnit(g('#pu').trim()), par: Number(g('#ppar')) || 0, expires_on: g('#pex') || null, category: g('#pcat'), location: g('#ploc'), barcode: p.barcode || null, updated_at: new Date().toISOString() };
+      const pk = normUnit(g('#ppk').trim()), pq = Number(g('#ppq')), pu = normUnit(g('#ppu').trim());
+      if (pq > 0 && pu) Object.assign(row, { pack_name: pk || null, pack_qty: pq, pack_unit: pu }); else Object.assign(row, { pack_name: null, pack_qty: null, pack_unit: null });
+      if (pq > 0 && pu && row.unit === pk && ING.convert.has(pk) && (pu in UNIT_SETS[0] || pu in UNIT_SETS[1])) { row.qty = Math.round(row.qty * pq * 100) / 100; row.par = parIn(row.par, pq); row.unit = pu; }
       if (id && row.name !== p.name && p.photo_credit !== 'own') { row.photo_url = null; row.photo_credit = null; }
       if (!id) { const t = pantryTarget({ name: row.name, barcode: row.barcode });
         if (t) { try { await addToPantry([{ name: row.name, qty: row.qty || 1, unit: row.unit, expires_on: row.expires_on }]); if (row.par > 0 && !(Number(t.par) > 0)) await sb.from('pantry_items').update({ par: row.par }).eq('id', t.id); } catch (er) { return fail(er); }

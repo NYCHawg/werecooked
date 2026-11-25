@@ -661,7 +661,9 @@ function pantryView() {
         + (off.length ? `<details class="offstock"><summary>Not in stock · ${off.length} used by your recipes</summary><p class="imeta">Every recipe ingredient is linked to one of these. Tap one to set how much you have.</p><div class="pgrid">${off.map(ptile).join('')}</div></details>` : ''); })()}`;
   }
   const hits = q ? S.pantry.filter(p => p.name.toLowerCase().includes(q)) : [];
-  return head + `<div class="kwrap">${window.kitchenSVG(zoneCounts())}</div><p class="imeta" style="text-align:center;margin:-2px 0 12px">Tap any spot in the kitchen to see what's there</p>
+  const zc = zoneCounts(), extraSpots = LOC_ORDER.filter(k => k.startsWith('c:'));
+  return head + `<div class="kwrap">${window.kitchenSVG(zc)}</div><p class="imeta" style="text-align:center;margin:-2px 0 10px">Tap any spot in the kitchen to see what's there</p>
+  <div class="spots">${extraSpots.map(k => `<button class="spot" data-zone="${esc(k)}"><span>${esc(LOCS[k][1])}</span><b>${esc(LOCS[k][0])}</b><i>${zc[k]?.n || 0}</i></button>`).join('')}<button class="spot add" data-act="newspot"><span>＋</span><b>Add a spot</b></button></div>
   <div class="tools">
     <button class="tool" data-act="scanbarcode"><span class="ico">${svg('scan')}</span>Scan barcode</button>
     <button class="tool f" data-act="snappantry"><span class="ico">${svg('camera')}</span>Snap shelves</button>
@@ -748,7 +750,7 @@ function readCookbookCSV(text) {
     for (const b of bnames) if (!books.has(b.toLowerCase())) books.set(b.toLowerCase(), { name: b, emoji: get(r, 'emoji') || '📖', color: /^#[0-9a-f]{6}$/i.test(get(r, 'color')) ? get(r, 'color') : '' });
     const title = get(r, 'title'); if (!title) continue;
     const kindRaw = get(r, 'kind').toLowerCase(), category = catFrom(get(r, 'category'));
-    recipes.push({ title, books: bnames, servings: Math.min(60, Math.max(1, parseInt(get(r, 'servings')) || 4)), time_min: parseInt(get(r, 'time')) || null, category,
+    recipes.push({ title, books: bnames, servings: Math.min(50, Math.max(1, parseInt(get(r, 'servings')) || 4)), time_min: Math.min(1440, parseInt(get(r, 'time')) || 0) || null, category,
       kind: /sauce|condiment|staple|component|seasoning/.test(kindRaw) || ['sauce', 'seasoning', 'dressing', 'condiment'].includes(category) ? 'component' : 'meal',
       ingredients: splitList(get(r, 'ingredients')).map(parseIng).filter(Boolean), steps: splitList(get(r, 'steps')).map(x => x.replace(/^\s*\d+[.)]\s*/, '')), notes: get(r, 'notes') || null,
       tags: get(r, 'tags').split(/\s*[,;]\s*/).filter(Boolean), source_url: /^https?:\/\//i.test(get(r, 'url')) ? get(r, 'url') : null });
@@ -853,7 +855,7 @@ function listView() {
   ${done.length ? `<h3>${L ? 'Got it' : 'In the cart'}</h3><div class="card">${done.map(row).join('')}</div><div class="row" style="gap:8px"><button class="btn sp" data-act="putaway">Put checked in the pantry</button>${L ? '<button class="btn ghost" data-act="clearchecked">Clear checked</button>' : ''}</div>` : ''}
   ${L ? '' : '<button class="btn line wide" style="margin-top:10px" data-act="logspend">Log a grocery trip</button>'}`;
 }
-function listEditor(id) {
+function listEditor(id, opts = {}) {
   const L = S.lists.find(x => x.id === id) || { name: '', emoji: '🛍️', due: '' };
   let emoji = L.emoji, sure = false;
   sheet(`<h2>${id ? 'Edit list' : 'New list'}</h2><p class="lede">${id ? '' : 'A running list for a holiday, a party, a trip — anything that isn’t this week’s groceries.'}</p>
@@ -870,16 +872,15 @@ function listEditor(id) {
     el.querySelector('#lf').onsubmit = async e => { e.preventDefault();
       const row = { household_id: S.household.id, name: el.querySelector('#lname').value.trim(), emoji, due: el.querySelector('#ldue').value || null };
       const r = id ? await sb.from('shopping_lists').update(row).eq('id', id).select().single() : await sb.from('shopping_lists').insert(row).select().single();
-      if (r.error) return fail(r.error); S.listId = r.data?.id || id; S.tab = 'list'; await loadAll(); close(); toast(id ? 'List saved' : `${row.emoji} ${row.name} list created`); };
+      if (r.error) return fail(r.error); if (opts.onSaved) { await loadAll(); el.remove(); toast(`${row.emoji} ${row.name} list created`); return opts.onSaved(r.data.id); } S.listId = r.data?.id || id; S.tab = 'list'; await loadAll(); close(); toast(id ? 'List saved' : `${row.emoji} ${row.name} list created`); };
     el.querySelector('#ldel')?.addEventListener('click', async e => { if (!sure) { sure = true; e.target.textContent = 'Tap again to delete'; return; }
       const r = await sb.from('shopping_lists').delete().eq('id', id); if (r.error) return fail(r.error); S.listId = null; await loadAll(); close(); toast('List deleted'); });
   });
 }
 /** Ask which list (when there's more than Groceries), then run cb(listId|null). */
 function chooseList(title, cb) {
-  if (!S.lists.length) return cb(null);
-  sheet(`<h2>${esc(title)}</h2><p class="lede">Which list?</p><div class="card flat" style="padding:4px 14px">${[{ id: '', emoji: '🛒', name: 'Groceries' }, ...S.lists].map(x => `<button class="item" data-pick-list="${x.id}" style="all:unset;display:flex;gap:12px;align-items:center;width:100%;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer"><span style="font-size:22px">${esc(x.emoji)}</span><span class="iname sp">${esc(x.name)}</span><span class="imeta">${itemsOn(x.id || null).filter(l => !l.checked).length} items ›</span></button>`).join('')}</div>`,
-    (el, close) => el.addEventListener('click', e => { const b = e.target.closest('[data-pick-list]'); if (!b) return; el.remove(); cb(b.dataset.pickList || null); }));
+  sheet(`<h2>${esc(title)}</h2><p class="lede">Which list?</p><div class="card flat" style="padding:4px 14px">${[{ id: '', emoji: '🛒', name: 'Groceries' }, ...S.lists].map(x => `<button class="item" data-pick-list="${x.id}" style="all:unset;display:flex;gap:12px;align-items:center;width:100%;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer"><span style="font-size:22px">${esc(x.emoji)}</span><span class="iname sp">${esc(x.name)}</span><span class="imeta">${itemsOn(x.id || null).filter(l => !l.checked).length} items ›</span></button>`).join('')}<button class="item" data-newlist="1" style="all:unset;display:flex;gap:12px;align-items:center;width:100%;padding:13px 0;cursor:pointer;color:var(--greend)"><span style="font-size:22px">＋</span><span class="iname sp" style="color:var(--greend)">New list</span></button></div>`,
+    (el, close) => el.addEventListener('click', e => { if (e.target.closest('[data-newlist]')) { el.remove(); return listEditor(null, { onSaved: id => cb(id) }); } const b = e.target.closest('[data-pick-list]'); if (!b) return; el.remove(); cb(b.dataset.pickList || null); }));
 }
 async function addBuys(listId, buys) {
   const on = itemsOn(listId).filter(l => !l.checked);
@@ -1022,11 +1023,49 @@ function onboardView() {
   $('#mk').onsubmit = async e => { e.preventDefault(); const r = await sb.rpc('create_household', { p_name: $('#hn').value, p_display_name: $('#yn').value }); if (r.error) return ($('#oerr').textContent = r.error.message); await enter(); };
   $('#jn').onsubmit = async e => { e.preventDefault(); const r = await sb.rpc('join_household', { p_code: $('#ic').value, p_display_name: $('#jy').value }); if (r.error) return ($('#oerr').textContent = r.error.message); await enter(); };
 }
-async function refreshMe() { const r = await sb.from('members').select('*').eq('user_id', S.session.user.id).maybeSingle(); if (r.error) throw r.error; S.me = r.data; if (S.me) { const h = await sb.from('households').select('*').eq('id', S.me.household_id).single(); if (h.error) throw h.error; S.household = h.data; } else S.household = null; }
+async function refreshMe() { const r = await sb.from('members').select('*').eq('user_id', S.session.user.id).maybeSingle(); if (r.error) throw r.error; S.me = r.data; if (S.me) { const h = await sb.from('households').select('*').eq('id', S.me.household_id).single(); if (h.error) throw h.error; S.household = h.data; applyCustom(); } else S.household = null; }
 async function enter() { try { await refreshMe(); if (S.household) { await loadAll(); await ensureBooks(); subscribe(); } render(); if (S.household) { finishCalendar(S.session); setTimeout(autoSyncCalendar, 1500); } } catch (e) { fail(e); } }
 
 // ---------- sheets ----------
 const TOUCH = matchMedia('(pointer: coarse)').matches;
+// ---------- household-added options (new spots, aisles, recipe types, courses) ----------
+let CUSTOM_COURSES = [];
+const slugKey = (pre, name) => pre + ':' + String(name).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+function applyCustom() {
+  const c = S.household?.custom || {};
+  for (const l of c.locations || []) if (!LOCS[l.key]) { LOCS[l.key] = [l.name, l.emoji || '📦', '#7A6A55']; LOC_ORDER.push(l.key); }
+  for (const a of c.aisles || []) if (!CATS.includes(a)) CATS.splice(Math.max(0, CATS.indexOf('Other')), 0, a);
+  for (const k of c.rcats || []) if (!RCATS[k.key]) { RCATS[k.key] = [k.name, k.emoji || '🍽', '#6E6150']; const sl = SLOT_CATS[k.slot] ? k.slot : 'main'; if (!SLOT_CATS[sl].includes(k.key)) SLOT_CATS[sl].push(k.key); }
+  CUSTOM_COURSES = c.courses || [];
+}
+async function addCustom(kind, value) {
+  const c = { ...(S.household.custom || {}) }; c[kind] = [...(c[kind] || []), value];
+  const r = await sb.from('households').update({ custom: c }).eq('id', S.household.id); if (r.error) throw r.error;
+  S.household.custom = c; applyCustom();
+}
+/** A small "name it" sheet. Resolves {name, emoji} or null. */
+function askNew(title, placeholder, emojis = null) {
+  return new Promise(res => {
+    let emoji = emojis?.[0] || null, done = false;
+    const el = sheet(`<h2>${esc(title)}</h2><form id="anf"><label for="ann">Name</label><input type="text" id="ann" maxlength="40" required placeholder="${esc(placeholder)}" autocomplete="off">
+      ${emojis ? `<label>Icon</label><div class="emo">${emojis.map(e => `<button type="button" data-ane="${e}" aria-pressed="${e === emoji}">${e}</button>`).join('')}</div>` : ''}
+      <div class="row" style="margin-top:16px"><button class="btn" type="submit">Add</button><button class="btn ghost" type="button" data-close>Cancel</button></div></form>`, (el, close) => {
+      el.querySelectorAll('[data-ane]').forEach(b => b.onclick = () => { emoji = b.dataset.ane; el.querySelectorAll('[data-ane]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      el.querySelector('#anf').onsubmit = e => { e.preventDefault(); const name = el.querySelector('#ann').value.trim(); if (!name) return; done = true; el.remove(); res({ name, emoji }); };
+      setTimeout(() => el.querySelector('#ann')?.focus(), 50);
+    }, { onClose: () => { if (!done) res(null); } });
+  });
+}
+/** "+ New" handlers for chip-row menus (selects marked data-add). Each returns {value, label} or null. */
+const ADDERS = {
+  location: async () => { const n = await askNew('New storage spot', 'Garage freezer, wine fridge, deep pantry…', ['📦', '🧊', '🍷', '🥫', '🧺', '🗄️', '🚪', '🏠']); if (!n) return null;
+    const key = slugKey('c', n.name); if (!LOCS[key]) await addCustom('locations', { key, name: n.name, emoji: n.emoji }); return { value: key, label: `${LOCS[key][1]} ${LOCS[key][0]}` }; },
+  aisle: async () => { const n = await askNew('New store aisle', 'Deli, International, Pet…'); if (!n) return null; if (!CATS.includes(n.name)) await addCustom('aisles', n.name); return { value: n.name, label: n.name }; },
+  rcat: async () => { const n = await askNew('New recipe type', 'Casserole, Cocktail, Smoker…', ['🍽', '🥘', '🍹', '🔥', '🥪', '🍕', '🌮', '🍜', '🥟', '🧁']); if (!n) return null;
+    const key = slugKey('c', n.name); if (!RCATS[key]) await addCustom('rcats', { key, name: n.name, emoji: n.emoji, slot: 'main' }); return { value: key, label: `${RCATS[key][1]} ${RCATS[key][0]}` }; },
+  member: async () => { try { await navigator.clipboard.writeText(`Join our household on We're Cooked: ${WEB_HOME} — invite code ${S.household.invite_code}`); toast('Invite copied — text it to them'); } catch (_) { toast('Invite code: ' + S.household.invite_code); } return null; }
+};
+const ADD_LABEL = { location: 'New spot', aisle: 'New aisle', rcat: 'New type', member: 'Invite someone' };
 /** Swap every <select> for a one-row strip of chips (no full-screen pickers) and switch off browser autofill lists. */
 function tameInputs(root = document) {
   root.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=file]):not([autocomplete]),textarea:not([autocomplete])').forEach(i => i.setAttribute('autocomplete', 'off'));
@@ -1034,8 +1073,11 @@ function tameInputs(root = document) {
     sel.dataset.enh = '1'; sel.hidden = true;
     const wrap = document.createElement('div'); wrap.className = 'pickrow'; wrap.setAttribute('role', 'radiogroup');
     const lab = sel.id && root.querySelector?.(`label[for="${sel.id}"]`); if (lab) { lab.removeAttribute('for'); wrap.setAttribute('aria-label', lab.textContent); } else if (sel.getAttribute('aria-label')) wrap.setAttribute('aria-label', sel.getAttribute('aria-label'));
-    wrap.innerHTML = [...sel.options].map(o => `<button type="button" role="radio" aria-checked="${o.selected}" data-v="${esc(o.value)}">${esc(o.textContent)}</button>`).join('');
-    wrap.addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; sel.value = b.dataset.v; [...wrap.children].forEach(x => x.setAttribute('aria-checked', x === b)); sel.dispatchEvent(new Event('change', { bubbles: true })); });
+    const build = () => { wrap.innerHTML = [...sel.options].map(o => `<button type="button" role="radio" aria-checked="${o.selected}" data-v="${esc(o.value)}">${esc(o.textContent)}</button>`).join('') + (sel.dataset.add && ADDERS[sel.dataset.add] ? `<button type="button" class="pr-new" data-new="1">＋ ${esc(ADD_LABEL[sel.dataset.add] || 'New')}</button>` : ''); };
+    build();
+    wrap.addEventListener('click', async e => {
+      if (e.target.closest('[data-new]')) { try { const got = await ADDERS[sel.dataset.add](); if (!got) return; if (![...sel.options].some(o => o.value === got.value)) sel.add(new Option(got.label, got.value)); sel.value = got.value; build(); sel.dispatchEvent(new Event('change', { bubbles: true })); requestAnimationFrame(() => { wrap.scrollLeft = wrap.scrollWidth; }); } catch (er) { fail(er); } return; }
+      const b = e.target.closest('[data-v]'); if (!b) return; sel.value = b.dataset.v; [...wrap.children].forEach(x => x.setAttribute('aria-checked', x === b)); sel.dispatchEvent(new Event('change', { bubbles: true })); });
     sel.after(wrap);
     requestAnimationFrame(() => { const on = wrap.querySelector('[aria-checked=true]'); if (on) wrap.scrollLeft = Math.max(0, on.offsetLeft - wrap.clientWidth / 2 + on.offsetWidth / 2); });
   });
@@ -1057,7 +1099,8 @@ const SLOTS = { main: ['Main', 'Choose a main', 'Add another main'], side: ['Sid
 const SLOT_ORDER = ['main', 'side', 'salad', 'bread', 'dessert'];
 const SLOT_CATS = { main: ['main', 'soup', 'breakfast', 'appetizer'], side: ['side'], salad: ['salad'], bread: ['bread'], dessert: ['dessert'] };
 const slotFor = r => { const c = catOf(r); return ['side', 'salad', 'bread', 'dessert'].includes(c) ? c : 'main'; };
-const orderCourses = cs => SLOT_ORDER.flatMap(sl => cs.filter(x => x.slot === sl));
+const orderCourses = cs => [...SLOT_ORDER.flatMap(sl => cs.filter(x => x.slot === sl)), ...cs.filter(x => !SLOT_ORDER.includes(x.slot))];
+const slotInfo = sl => SLOTS[sl] || (() => { const n = String(sl).replace(/^x:/, ''); return [n, `Add ${n.toLowerCase()}`, `Add more ${n.toLowerCase()}`]; })();
 /** [{id, slot}] for a plan row; older rows without courses get roles from each recipe's type. */
 function coursesOf(p) {
   if (!p) return []; const ids = dishIds(p);
@@ -1102,22 +1145,26 @@ async function setMeal(day, courses) {
   if (u.error) throw u.error;
 }
 function dishPicker(selected, onDone, opts = {}) {
-  const st = { sel: [...selected], book: opts.slot ? '' : (S.book || ''), q: '', all: !opts.slot };
-  const list = () => S.recipes.filter(r => isMeal(r) && !isTodo(r) && (st.all || SLOT_CATS[opts.slot].includes(catOf(r))) && (!st.book || (r.books || []).includes(st.book)) && (!st.q || r.title.toLowerCase().includes(st.q.toLowerCase()) || (r.tags || []).join(' ').toLowerCase().includes(st.q.toLowerCase())));
+  const pkBooks = () => [['', '📚', 'All']].concat(S.books.map(b => [b.id, b.emoji, b.name])).map(([id, e, n]) => `<button class="chip" data-pb="${id}" aria-pressed="${st.book === id}" style="white-space:nowrap">${esc(e)} ${esc(n)}</button>`).join('') + '<button class="chip pr-new" data-pbnew="1" style="white-space:nowrap">＋ New book</button>';
+  const st = { sel: [...selected], book: opts.slot ? '' : (S.book || ''), q: '', all: !opts.slot || !SLOT_CATS[opts.slot] };
+  const list = () => S.recipes.filter(r => isMeal(r) && !isTodo(r) && (st.all || !SLOT_CATS[opts.slot] || SLOT_CATS[opts.slot].includes(catOf(r))) && (!st.book || (r.books || []).includes(st.book)) && (!st.q || r.title.toLowerCase().includes(st.q.toLowerCase()) || (r.tags || []).join(' ').toLowerCase().includes(st.q.toLowerCase())));
   const body = () => {
     const rs = list(); const groups = {}; for (const r of rs) (groups[catOf(r)] = groups[catOf(r)] || []).push(r);
     return ['main', 'side', 'soup', 'salad', 'bread', 'appetizer', 'breakfast', 'dessert', 'drink'].filter(c => groups[c]).map(c => `<h3>${RCATS[c][0]}${RCATS[c][0].endsWith('s') ? '' : 's'}</h3><div class="card flat" style="padding:2px 12px">${groups[c].sort((a, b) => a.title.localeCompare(b.title)).map(r => { const on = st.sel.includes(r.id), m = recipeMatch(r); return `<button class="pick${on ? ' on' : ''}" data-pk="${r.id}"><span class="thumb${r.photo_url ? ' has' : ''}" style="--c:${colorOf(r)}${r.photo_url ? `;background-image:url('${esc(r.photo_url)}')` : ''}"><span>${emojiOf(r)}</span></span><span style="min-width:0"><span class="iname">${esc(r.title)}</span><span class="imeta" style="display:block">${[fmtTime(r.time_min), m.total ? `${m.have}/${m.total} at home` : '', r.rating ? '★'.repeat(r.rating) : ''].filter(Boolean).join(' · ')}</span></span><span class="tick">${on ? '✓' : '+'}</span></button>`; }).join('')}</div>`).join('') || '<p class="empty">No recipes in this book yet.</p>';
   };
-  sheet(`<div class="row"><h2 class="sp">${opts.slot ? esc(SLOTS[opts.slot][1].replace(/^Add /, 'Choose ').replace(/^Choose a main$/, 'Choose the main')) : 'Add dishes'}</h2><button class="btn sm" id="pkdone">Done</button></div>
-  ${opts.slot ? `<div class="row" style="margin:-4px 0 8px"><span class="imeta sp">Showing ${esc(SLOTS[opts.slot][0].toLowerCase())}</span><button type="button" class="btn sm ghost" id="pkall">Show every recipe</button></div>` : ''}
-  <div class="chips scroll">${[['', '📚', 'All']].concat(S.books.map(b => [b.id, b.emoji, b.name])).map(([id, e, n]) => `<button class="chip" data-pb="${id}" aria-pressed="${st.book === id}" style="white-space:nowrap">${esc(e)} ${esc(n)}</button>`).join('')}</div>
+  sheet(`<div class="row"><h2 class="sp">${opts.slot ? esc(slotInfo(opts.slot)[1].replace(/^Add /, 'Choose ').replace(/^Choose a main$/, 'Choose the main')) : 'Add dishes'}</h2><button class="btn sm" id="pkdone">Done</button></div>
+  ${opts.slot ? `<div class="row" style="margin:-4px 0 8px"><span class="imeta sp">Showing ${esc(slotInfo(opts.slot)[0].toLowerCase())}</span><button type="button" class="btn sm ghost" id="pkall">Show every recipe</button></div>` : ''}
+  <div class="chips scroll" id="pkbooks">${pkBooks()}</div>
+  <button type="button" class="newrow" id="pknew">${svg('plus')}<span><b>New recipe</b><i>${opts.slot ? `Add a ${esc(slotInfo(opts.slot)[0].toLowerCase().replace(/s$/, ''))} that isn’t in your cookbooks yet` : 'Add a dish that isn’t in your cookbooks yet'}</i></span></button>
   <div class="search">${svg('search')}<input type="search" id="pkq" placeholder="Search this cookbook"></div><div id="pkl">${body()}</div>`, (el) => {
     const redraw = () => { el.querySelector('#pkl').innerHTML = body(); el.querySelector('#pkdone').textContent = st.sel.length ? `Done (${st.sel.length})` : 'Done'; };
     el.querySelector('#pkq').oninput = e => { st.q = e.target.value; redraw(); };
     el.addEventListener('click', e => {
       const b = e.target.closest('[data-pb]'); if (b) { st.book = b.dataset.pb; el.querySelectorAll('[data-pb]').forEach(x => x.setAttribute('aria-pressed', x === b)); return redraw(); }
       const k = e.target.closest('[data-pk]'); if (k) { const id = k.dataset.pk; st.sel = st.sel.includes(id) ? st.sel.filter(x => x !== id) : [...st.sel, id]; return redraw(); }
-      if (e.target.closest('#pkall')) { st.all = !st.all; e.target.closest('#pkall').textContent = st.all ? `Only ${SLOTS[opts.slot][0].toLowerCase()}` : 'Show every recipe'; return redraw(); }
+      if (e.target.closest('#pknew')) { const cat = opts.slot && SLOT_CATS[opts.slot] ? SLOT_CATS[opts.slot][0] : ''; recipeEditor(null, { category: cat, books: st.book ? [st.book] : [], kind: 'meal' }, { onSaved: id => { if (!st.sel.includes(id)) st.sel.push(id); redraw(); toast('Added and picked'); } }); return; }
+      if (e.target.closest('[data-pbnew]')) { bookEditor(null, { onSaved: id => { st.book = id; el.querySelector('#pkbooks').innerHTML = pkBooks(); redraw(); } }); return; }
+      if (e.target.closest('#pkall')) { st.all = !st.all; e.target.closest('#pkall').textContent = st.all ? `Only ${slotInfo(opts.slot)[0].toLowerCase()}` : 'Show every recipe'; return redraw(); }
       if (e.target.closest('#pkdone')) { el.remove(); onDone(st.sel); }
     });
     redraw();
@@ -1152,17 +1199,17 @@ function dayEditor(day) {
     const miss = [...new Set(ds.flatMap(c => missingBuys(c.r).map(b => b.name)))];
     const dish = c => `<div class="pick on" style="cursor:default"><span class="thumb${c.r.photo_url ? ' has' : ''}" style="--c:${colorOf(c.r)}${c.r.photo_url ? `;background-image:url('${esc(c.r.photo_url)}')` : ''}"><span>${emojiOf(c.r)}</span></span><span style="min-width:0"><span class="iname">${esc(c.r.title)}</span><span class="imeta" style="display:block">${(() => { const m = recipeMatch(c.r); return [c.r.time_min ? fmtTime(c.r.time_min) : '', m.total ? `${m.have}/${m.total} at home` : ''].filter(Boolean).join(' · '); })()}</span></span><button type="button" class="del" data-undish="${c.id}" aria-label="Remove ${esc(c.r.title)}">×</button></div>`;
     const section = sl => { const list = of(sl), sug = mains.length && sl !== 'main' ? suggestFor(mains, sl, used, list.length ? (sl === 'side' ? 3 : 2) : (sl === 'side' ? 4 : 3)) : [];
-      return `<div class="course"><div class="course-h"><span>${SLOTS[sl][0]}</span>${sl !== 'main' && sl !== 'side' && !list.length ? `<button type="button" class="course-x" data-unslot="${sl}" aria-label="Remove ${SLOTS[sl][0]} slot">×</button>` : ''}</div>
+      return `<div class="course"><div class="course-h"><span>${slotInfo(sl)[0]}</span>${sl !== 'main' && sl !== 'side' && !list.length ? `<button type="button" class="course-x" data-unslot="${sl}" aria-label="Remove ${slotInfo(sl)[0]} slot">×</button>` : ''}</div>
         ${list.length ? `<div class="card flat" style="padding:2px 12px;margin:0">${list.map(dish).join('')}</div>` : ''}
         ${sug.length && list.length < 4 ? `<div class="sugrow"><span class="imeta">${list.length ? 'More that go with it' : 'Goes well with ' + esc(mains[0].title)}</span><div class="chips">${sug.map(r => `<button type="button" class="chip" data-addslot="${sl}" data-rid="${r.id}">${svg('plus')} ${esc(r.title)}</button>`).join('')}</div></div>` : ''}
-        <button type="button" class="btn sm ghost" data-pickslot="${sl}">${svg('plus')} ${list.length ? SLOTS[sl][2] : SLOTS[sl][1]}</button></div>`; };
-    const extras = ['salad', 'bread', 'dessert'], shown = extras.filter(sl => st.open.has(sl) || of(sl).length), hidden = extras.filter(sl => !shown.includes(sl));
+        <button type="button" class="btn sm ghost" data-pickslot="${sl}">${svg('plus')} ${list.length ? slotInfo(sl)[2] : slotInfo(sl)[1]}</button></div>`; };
+    const extras = ['salad', 'bread', 'dessert', ...CUSTOM_COURSES.map(n => 'x:' + n), ...[...st.open].filter(sl => sl.startsWith('x:') && !CUSTOM_COURSES.includes(sl.slice(2)))], shown = extras.filter(sl => st.open.has(sl) || of(sl).length), hidden = extras.filter(sl => !shown.includes(sl));
     return `<label>On the menu</label>
       ${section('main')}
       ${!mains.length && ide.length ? `<div class="imeta" style="margin:-2px 0 6px">Makeable from your pantry:</div><div class="chips" style="margin-bottom:8px">${ide.map(x => `<button type="button" class="chip" data-addslot="main" data-rid="${x.r.id}">${emojiOf(x.r)} ${esc(x.r.title)}</button>`).join('')}</div>` : ''}
       ${section('side')}
       ${shown.map(section).join('')}
-      ${hidden.length ? `<div class="course-add"><span class="imeta">Add a course</span>${hidden.map(sl => `<button type="button" class="chip" data-openslot="${sl}">${svg('plus')} ${SLOTS[sl][0]}</button>`).join('')}</div>` : ''}
+      <div class="course-add"><span class="imeta">Add a course</span>${hidden.map(sl => `<button type="button" class="chip" data-openslot="${esc(sl)}">${svg('plus')} ${esc(slotInfo(sl)[0])}</button>`).join('')}<button type="button" class="chip pr-new" data-newcourse="1">＋ New course</button></div>
       <div class="row" style="margin-top:10px"><button type="button" class="btn sm flame" id="dchef">${svg('spark')} Ask the chef</button></div>
       ${ds.length ? `<div class="imeta" style="margin-top:8px">${miss.length ? 'Need to buy: ' + esc(miss.slice(0, 10).join(', ')) + (miss.length > 10 ? '…' : '') : 'Everything is in the pantry'}</div>` : ''}`;
   };
@@ -1170,7 +1217,7 @@ function dayEditor(day) {
   const draw = el => {
     el.querySelector('#dbody').innerHTML = `
     <div class="seg">${Object.entries(KINDS).map(([k, l]) => `<button type="button" data-kind="${k}" style="--k:var(--${k})" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
-    ${st.kind === 'cook' ? menu() + `<label for="dc">Who's cooking</label><select id="dc"><option value="">Not decided</option>${S.members.map(m => `<option value="${m.user_id}" ${st.cook_id === m.user_id ? 'selected' : ''}>${esc(m.display_name)}</option>`).join('')}</select>` : ''}
+    ${st.kind === 'cook' ? menu() + `<label for="dc">Who's cooking</label><select id="dc" data-add="member"><option value="">Not decided</option>${S.members.map(m => `<option value="${m.user_id}" ${st.cook_id === m.user_id ? 'selected' : ''}>${esc(m.display_name)}</option>`).join('')}</select>` : ''}
     ${st.kind === 'out' || st.kind === 'takeout' ? placePicker() + `<label for="dcost">What did it cost? (optional)</label><input type="number" id="dcost" min="0" step="0.01" inputmode="decimal" value="${p.cost ?? ''}" placeholder="$">` : ''}
     ${st.kind === 'other' ? `<label for="dt">Plan</label><input type="text" id="dt" value="${esc(p.title || '')}" maxlength="80">` : ''}
     ${st.kind !== 'away' ? `<label>Who's home (tap to mark away)</label><div class="chips">${S.members.map(m => `<button type="button" class="chip" data-away="${m.user_id}" aria-pressed="${!st.away.includes(m.user_id)}" style="display:inline-flex;align-items:center;gap:6px">${av(m, st.away.includes(m.user_id))}${esc(m.display_name)}${busyIds.includes(m.user_id) ? `<small style="opacity:.75">· ${st.away.includes(m.user_id) ? 'working' : 'home anyway'}</small>` : ''}</button>`).join('')}</div>
@@ -1190,11 +1237,12 @@ function dayEditor(day) {
     ${p.id && p.kind === 'cook' && dishIds(p).length && !p.cooked ? `<button class="btn line wide" type="button" id="dcooked" style="margin-top:10px">We cooked this — update the pantry</button>` : ''}</form>`, (el, close) => {
     draw(el);
     keepRef = () => { const g = id => el.querySelector(id); if (g('#dc')) st.cook_id = g('#dc').value || null; if (g('#dt')) p.title = g('#dt').value; if (g('#dh')) p.headcount = g('#dh').value ? Number(g('#dh').value) : null; if (g('#dn')) p.note = g('#dn').value; if (g('#pq2')) st.q = g('#pq2').value; if (g('#dcost')) p.cost = g('#dcost').value ? Number(g('#dcost').value) : null; };
-    el.addEventListener('click', e => {
+    el.addEventListener('click', async e => {
       const k = e.target.closest('[data-kind]'); if (k) { keep(); st.kind = k.dataset.kind; draw(el); return; }
       const a = e.target.closest('[data-away]'); if (a) { keep(); const id = a.dataset.away; st.away = st.away.includes(id) ? st.away.filter(x => x !== id) : [...st.away, id]; draw(el); return; }
       const ud = e.target.closest('[data-undish]'); if (ud) { keep(); st.courses = st.courses.filter(c => c.id !== ud.dataset.undish); draw(el); return; }
       const as = e.target.closest('[data-addslot]'); if (as) { keep(); if (!st.courses.some(c => c.id === as.dataset.rid)) st.courses = orderCourses([...st.courses, { id: as.dataset.rid, slot: as.dataset.addslot }]); st.open.add(as.dataset.addslot); draw(el); return; }
+      if (e.target.closest('[data-newcourse]')) { keep(); const n = await askNew('New course', 'Appetizers, Cocktails, Soup…'); if (!n) return; if (!CUSTOM_COURSES.includes(n.name)) { try { await addCustom('courses', n.name); } catch (er) { return fail(er); } } st.open.add('x:' + n.name); draw(el); return; }
       const os = e.target.closest('[data-openslot]'); if (os) { keep(); st.open.add(os.dataset.openslot); draw(el); return; }
       const uso = e.target.closest('[data-unslot]'); if (uso) { keep(); st.open.delete(uso.dataset.unslot); draw(el); return; }
       const ps = e.target.closest('[data-pickslot]'); if (ps) { keep(); const sl = ps.dataset.pickslot; dishPicker(st.courses.filter(c => c.slot === sl).map(c => c.id), sel => { st.courses = orderCourses([...st.courses.filter(c => c.slot !== sl && !sel.includes(c.id)), ...sel.map(id => ({ id, slot: sl }))]); st.open.add(sl); draw(el); }, { slot: sl }); return; }
@@ -1240,8 +1288,8 @@ function pantryEditor(id, preset = {}) {
   ${p.size ? `<p class="imeta" style="margin:6px 0 0">Package size: ${esc(p.size)}</p>` : ''}
   <div class="grid2"><div><label for="pq">On hand</label><input type="number" id="pq" step="any" min="0" value="${p.qty}"></div><div><label for="pu">Unit</label><input type="text" id="pu" value="${esc(p.unit)}" placeholder="each, lb, can…" maxlength="20"></div></div>
   <div class="grid2"><div><label for="ppar">Always keep (par)</label><input type="number" id="ppar" step="any" min="0" value="${p.par}"></div><div><label for="pex">Use by</label><input type="date" id="pex" value="${esc(p.expires_on || '')}"></div></div>
-  <div class="grid2"><div><label for="ploc">Where it lives</label><select id="ploc">${LOC_ORDER.map(k => `<option value="${k}" ${(p.location || locationFor(p.name, p.category)) === k ? 'selected' : ''}>${LOCS[k][1]} ${LOCS[k][0]}</option>`).join('')}</select></div>
-  <div><label for="pcat">Store aisle</label><select id="pcat">${CATS.map(c => `<option ${c === p.category ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+  <div class="grid2"><div><label for="ploc">Where it lives</label><select id="ploc" data-add="location">${LOC_ORDER.map(k => `<option value="${k}" ${(p.location || locationFor(p.name, p.category)) === k ? 'selected' : ''}>${LOCS[k][1]} ${LOCS[k][0]}</option>`).join('')}</select></div>
+  <div><label for="pcat">Store aisle</label><select id="pcat" data-add="aisle">${CATS.map(c => `<option ${c === p.category ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
   <p class="imeta">Set a par and it becomes a staple: drop below it and it lands on the shopping list automatically.</p>
   ${p.barcode ? `<p class="imeta">Barcode ${esc(p.barcode)} — scanning it again adds one more.</p>` : ''}
   <div class="row" style="margin-top:18px"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" data-close>Cancel</button><span class="sp"></span>${id ? '<button class="btn line sm" type="button" id="pdel">Delete</button>' : ''}</div></form>`, (el, close) => {
@@ -1285,7 +1333,8 @@ function linkPicker(r, n, done) {
     el.addEventListener('keydown', e => { if (e.target.id === 'lkq' && e.key === 'Enter') { e.preventDefault(); addOne(); } });
     el.addEventListener('input', e => { if (e.target.id !== 'lkq') return; const q = e.target.value.trim().toLowerCase(), box2 = el.querySelector('#lksug'); if (!q) { box2.innerHTML = ''; return; }
       const hits = names.filter(x => x.toLowerCase().includes(q)).sort((a, b) => a.toLowerCase().indexOf(q) - b.toLowerCase().indexOf(q) || a.length - b.length).slice(0, 6);
-      box2.innerHTML = hits.map(x => `<button type="button" role="option" data-sug="${esc(x)}">${esc(x)}</button>`).join(''); });
+      const exact = hits.some(x => x.toLowerCase() === q), typed = e.target.value.trim().replace(/^./, c => c.toUpperCase());
+      box2.innerHTML = hits.map(x => `<button type="button" role="option" data-sug="${esc(x)}">${esc(x)}</button>`).join('') + (exact ? '' : `<button type="button" class="pr-new" data-sug="${esc(typed)}">＋ Add “${esc(typed)}” as a new item</button>`); });
     el.addEventListener('click', async e => {
       const sg = e.target.closest('[data-sug]'); if (sg) { el.querySelector('#lkq').value = sg.dataset.sug; return addOne(); }
       const u = e.target.closest('[data-unpick]'); if (u) { picked.splice(+u.dataset.unpick, 1); return redraw(); }
@@ -1316,7 +1365,7 @@ function recipeView(id, opts = {}) {
     <div class="meta"><span>${cat[0]}</span>${r.time_min ? `<span>⏱ ${fmtTime(r.time_min)}</span>` : ''}<span>Serves ${r.servings || 4}</span>${m.total ? `<span>${m.have}/${m.total} at home</span>` : ''}</div></div>
     <div class="rbody${cook ? ' cook' : ''}">
     <div class="row"><div class="rate" aria-label="Rating">${[1, 2, 3, 4, 5].map(n => `<button data-rate="${n}" class="${(r.rating || 0) >= n ? 'on' : ''}" aria-label="${n} stars">★</button>`).join('')}</div><span class="sp"></span><button class="btn sm ${cook ? '' : 'ghost'}" id="rcook">${svg('fire')} ${cook ? 'Cooking' : 'Cook mode'}</button></div>
-    ${S.books.length ? `<h3>In these books</h3><div class="bchips">${S.books.map(b => `<button class="bchip" style="--c:${esc(b.color)}" data-tbook="${b.id}" aria-pressed="${(r.books || []).includes(b.id)}">${esc(b.emoji)} ${esc(b.name)}</button>`).join('')}</div>` : ''}
+    ${`<h3>In these books</h3><div class="bchips">${S.books.map(b => `<button class="bchip" style="--c:${esc(b.color)}" data-tbook="${b.id}" aria-pressed="${(r.books || []).includes(b.id)}">${esc(b.emoji)} ${esc(b.name)}</button>`).join('')}<button class="bchip pr-new" data-tbooknew="1">＋ New book</button></div>`}
     ${isTodo(r) ? `<div class="banner flame" style="margin-top:16px"><span class="em">✍️</span><span class="sp"><b>No recipe written down yet</b><p>Tap edit to add the ingredients and steps.</p></span></div>` : ''}
     ${(r.ingredients || []).length ? `<div class="row" style="margin-top:22px;margin-bottom:6px"><h3 class="sp" style="margin:0">Ingredients</h3><span class="stepper"><button id="rm" aria-label="Fewer servings">−</button><span>Serves ${serves}</span><button id="rp" aria-label="More servings">+</button></span></div>
     <ul class="ings">${r.ingredients.map((i, n) => { const q = fmtQty(i.qty ? i.qty * f : null); return `<li data-ing="${n}" class="${got.has(n) ? 'got' : ''}"><span class="box">${got.has(n) ? '✓' : ''}</span><span class="txt">${q || i.unit ? `<b>${esc([q, i.unit].filter(Boolean).join(' '))}</b> ` : ''}${esc(i.name)}<span class="links">${linkChips(i, n)}</span></span></li>`; }).join('')}</ul>` : ''}
@@ -1341,6 +1390,7 @@ function recipeView(id, opts = {}) {
       const stp = t.closest('[data-stp]'); if (stp) { const n = Number(stp.dataset.stp); done.has(n) ? done.delete(n) : done.add(n); return redraw(); }
       if (t.closest('#rcook')) { cook = !cook; try { if (cook && navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); else { wakeLock?.release(); wakeLock = null; } } catch (_) { } toast(cook ? 'Cook mode: bigger text, screen stays on' : 'Cook mode off'); return redraw(); }
       const rt = t.closest('[data-rate]'); if (rt) { const n = Number(rt.dataset.rate); r.rating = r.rating === n ? null : n; redraw(); const u = await sb.from('recipes').update({ rating: r.rating }).eq('id', r.id); if (u.error) fail(u.error); return; }
+      if (t.closest('[data-tbooknew]')) { bookEditor(null, { onSaved: async id => { r.books = [...(r.books || []), id]; const u = await sb.from('recipes').update({ books: r.books }).eq('id', r.id); if (u.error) return fail(u.error); redraw(); toast('Added to the new book'); } }); return; }
       const tb = t.closest('[data-tbook]'); if (tb) { const b = tb.dataset.tbook; r.books = (r.books || []).includes(b) ? r.books.filter(x => x !== b) : [...(r.books || []), b]; redraw(); const u = await sb.from('recipes').update({ books: r.books }).eq('id', r.id); if (u.error) fail(u.error); return; }
       if (t.closest('#rfav')) { r.favorite = !r.favorite; redraw(); const u = await sb.from('recipes').update({ favorite: r.favorite }).eq('id', r.id); if (u.error) fail(u.error); return; }
       if (t.closest('#redit')) { el.remove(); return recipeEditor(id); }
@@ -1366,15 +1416,15 @@ function ratePrompt(r, rest = []) {
 }
 
 // ---------- recipe editor ----------
-function recipeEditor(id, draft) {
+function recipeEditor(id, draft, opts = {}) {
   const r = S.recipes.find(x => x.id === id) || { title: '', servings: 4, time_min: '', tags: [], ingredients: [], steps: [], notes: '', kind: 'meal', category: '', books: S.book ? [S.book] : [], ...(draft || {}) };
   const st = { kind: kindOf(r), books: [...(r.books || [])] };
   sheet(`<h2>${id ? 'Edit recipe' : 'New recipe'}</h2><form id="rform">
   <label for="rt">Name</label><input type="text" id="rt" value="${esc(r.title)}" required maxlength="120" placeholder="Grandma's cheese dip">
   <label>Where it goes</label><div class="switch" style="margin:0"><button type="button" data-rk="meal" aria-pressed="${st.kind === 'meal'}">🍽 Meal</button><button type="button" data-rk="component" aria-pressed="${st.kind === 'component'}">🫙 Sauce or staple</button></div>
-  <label for="rc">Type</label><select id="rc">${Object.entries(RCATS).map(([k, v]) => `<option value="${k}" ${catOf(r) === k ? 'selected' : ''}>${v[1]} ${v[0]}</option>`).join('')}</select>
-  ${S.books.length ? `<label>Cookbooks</label><div class="bchips">${S.books.map(b => `<button type="button" class="bchip" style="--c:${esc(b.color)}" data-eb="${b.id}" aria-pressed="${st.books.includes(b.id)}">${esc(b.emoji)} ${esc(b.name)}</button>`).join('')}</div>` : ''}
-  <div class="grid2"><div><label for="rsv">Serves</label><input type="number" id="rsv" min="1" max="60" value="${r.servings}"></div><div><label for="rtm">Minutes</label><input type="number" id="rtm" min="0" max="2880" value="${r.time_min ?? ''}"></div></div>
+  <label for="rc">Type</label><select id="rc" data-add="rcat">${Object.entries(RCATS).map(([k, v]) => `<option value="${k}" ${catOf(r) === k ? 'selected' : ''}>${v[1]} ${v[0]}</option>`).join('')}</select>
+  ${`<label>Cookbooks</label><div class="bchips" id="rbooks">${S.books.map(b => `<button type="button" class="bchip" style="--c:${esc(b.color)}" data-eb="${b.id}" aria-pressed="${st.books.includes(b.id)}">${esc(b.emoji)} ${esc(b.name)}</button>`).join('')}<button type="button" class="bchip pr-new" data-ebnew="1">＋ New book</button></div>`}
+  <div class="grid2"><div><label for="rsv">Serves</label><input type="number" id="rsv" min="1" max="50" value="${r.servings}"></div><div><label for="rtm">Minutes</label><input type="number" id="rtm" min="0" max="1440" value="${r.time_min ?? ''}"></div></div>
   <label for="rig">Ingredients, one per line</label><textarea id="rig" placeholder="2 cup rice&#10;1 lb chicken thighs&#10;3 clove garlic">${esc((r.ingredients || []).map(ingLine).join('\n'))}</textarea>
   <label for="rst">Steps, one per line</label><textarea id="rst">${esc((r.steps || []).join('\n'))}</textarea>
   <label for="rtg">Tags (comma separated)</label><input type="text" id="rtg" value="${esc((r.tags || []).join(', '))}" placeholder="weeknight, chicken, kid favorite">
@@ -1383,22 +1433,23 @@ function recipeEditor(id, draft) {
   <div class="row" style="margin-top:18px"><button class="btn" type="submit">Save recipe</button><button class="btn ghost" type="button" data-close>Cancel</button><span class="sp"></span>${id ? '<button class="btn line sm" type="button" id="rdel">Delete</button>' : ''}</div></form>`, (el, close) => {
     el.addEventListener('click', e => {
       const k = e.target.closest('[data-rk]'); if (k) { st.kind = k.dataset.rk; el.querySelectorAll('[data-rk]').forEach(b => b.setAttribute('aria-pressed', b === k)); if (st.kind === 'component' && !COMPONENT_CATS.includes(el.querySelector('#rc').value)) el.querySelector('#rc').value = 'sauce'; return; }
+      if (e.target.closest('[data-ebnew]')) { bookEditor(null, { onSaved: id => { st.books.push(id); const nb = S.books.find(x => x.id === id), btn = document.createElement('button'); btn.type = 'button'; btn.className = 'bchip'; btn.style.setProperty('--c', nb.color); btn.dataset.eb = id; btn.setAttribute('aria-pressed', 'true'); btn.textContent = `${nb.emoji} ${nb.name}`; el.querySelector('[data-ebnew]').before(btn); } }); return; }
       const b = e.target.closest('[data-eb]'); if (b) { const v = b.dataset.eb; st.books = st.books.includes(v) ? st.books.filter(x => x !== v) : [...st.books, v]; b.setAttribute('aria-pressed', st.books.includes(v)); }
     });
     el.querySelector('#rform').onsubmit = async e => {
       e.preventDefault(); const g = s => el.querySelector(s).value;
-      const row = { household_id: S.household.id, title: g('#rt').trim(), servings: Math.min(60, Math.max(1, Number(g('#rsv')) || 4)), time_min: g('#rtm') ? Number(g('#rtm')) : null, tags: g('#rtg').split(',').map(s => s.trim()).filter(Boolean),
+      const row = { household_id: S.household.id, title: g('#rt').trim(), servings: Math.min(50, Math.max(1, Number(g('#rsv')) || 4)), time_min: g('#rtm') ? Math.min(1440, Number(g('#rtm'))) : null, tags: g('#rtg').split(',').map(s => s.trim()).filter(Boolean),
         ingredients: relink(g('#rig').split('\n').map(parseIng).filter(Boolean), r.ingredients || []), steps: g('#rst').split('\n').map(s => s.replace(/^\s*\d+[.)]\s*/, '').trim()).filter(Boolean), notes: g('#rno').trim() || null,
         source_url: /^https?:\/\//i.test(g('#rsu').trim()) ? g('#rsu').trim() : null, kind: st.kind, category: g('#rc'), books: st.books };
       if (!id) { row.created_by = S.session.user.id; if (draft?.found_in) row.found_in = draft.found_in; }
       const q = id ? await sb.from('recipes').update(row).eq('id', id).select().single() : await sb.from('recipes').insert(row).select().single(); if (q.error) return fail(q.error);
-      await loadAll(); el.remove(); toast('Saved'); recipeView(q.data.id);
+      await loadAll(); el.remove(); toast('Saved'); if (opts.onSaved) opts.onSaved(q.data.id); else recipeView(q.data.id);
     };
     el.querySelector('#rdel')?.addEventListener('click', async () => { if (!confirmDel(el)) return; const q = await sb.from('recipes').delete().eq('id', id); if (q.error) return fail(q.error); await loadAll(); close(); toast('Recipe deleted'); });
   });
 }
 function confirmDel(el) { const b = el.querySelector('#rdel,#bdel'); if (b.dataset.sure) return true; b.dataset.sure = 1; b.textContent = 'Tap again to delete'; return false; }
-function bookEditor(id) {
+function bookEditor(id, opts = {}) {
   const b = S.books.find(x => x.id === id) || { name: '', emoji: '📖', color: BOOK_COLORS[S.books.length % BOOK_COLORS.length] };
   const EM = ['📖', '👪', '⚡', '🐗', '🦃', '🥧', '🎄', '🍗', '🥩', '🐟', '🌮', '🍝', '🥗', '🍳', '🔥', '🌶️', '🍰', '🍪', '🥘', '🧑‍🍳'];
   const st = { emoji: b.emoji, color: b.color };
@@ -1409,7 +1460,7 @@ function bookEditor(id) {
     el.addEventListener('click', e => { const em = e.target.closest('[data-em]'); if (em) { st.emoji = em.dataset.em; el.querySelectorAll('[data-em]').forEach(x => x.setAttribute('aria-pressed', x === em)); } const c = e.target.closest('[data-bc]'); if (c) { st.color = c.dataset.bc; el.querySelectorAll('[data-bc]').forEach(x => x.setAttribute('aria-pressed', x === c)); } });
     el.querySelector('#bform').onsubmit = async e => { e.preventDefault(); const row = { household_id: S.household.id, name: el.querySelector('#bn').value.trim(), emoji: st.emoji, color: st.color };
       const q = id ? await sb.from('recipe_books').update(row).eq('id', id).select().single() : await sb.from('recipe_books').insert({ ...row, sort: S.books.length }).select().single(); if (q.error) return fail(q.error.code === '23505' ? new Error('You already have a book with that name') : q.error);
-      S.book = q.data.id; await loadAll(); close(); };
+      if (opts.onSaved) { await loadAll(); el.remove(); opts.onSaved(q.data.id); return; } S.book = q.data.id; await loadAll(); close(); };
     el.querySelector('#bdel')?.addEventListener('click', async () => { if (!confirmDel(el)) return; const q = await sb.from('recipe_books').delete().eq('id', id); if (q.error) return fail(q.error);
       await Promise.all(S.recipes.filter(r => (r.books || []).includes(id)).map(r => sb.from('recipes').update({ books: r.books.filter(x => x !== id) }).eq('id', r.id))); S.book = null; await loadAll(); close(); toast('Book deleted — its recipes are still in All recipes'); });
   });
@@ -1731,6 +1782,7 @@ document.addEventListener('click', async e => {
     if (a === 'addrecipe') return addRecipeMenu();
     if (a === 'chef') return chefSheet();
     if (a === 'newbook') return bookEditor(null);
+    if (a === 'newspot') { const got = await ADDERS.location(); if (got) { render(); toast(`${LOCS[got.value][0]} added. Choose it under “Where it lives” on any item.`); } return; }
     if (a === 'importcsv') return importCSVSheet();
     if (a === 'editbook') return bookEditor(S.book);
     if (a === 'logspend') return receiptFlow({ spend: true });

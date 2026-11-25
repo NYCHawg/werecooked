@@ -135,7 +135,7 @@ async function calFn(body) {
 let calSyncing = false;
 async function autoSyncCalendar() {
   if (calSyncing) return; calSyncing = true;
-  try { const r = await calFn({ action: 'sync' }); if (r.synced) { await loadCalendar(); if (!$('.sheet')) render(); } } catch (_) { } finally { calSyncing = false; }
+  try { const r = await calFn({ action: 'sync' }); if (r.synced) { await loadCalendar(); softRender(); } } catch (_) { } finally { calSyncing = false; }
 }
 let sideBookDone = false;
 /** Make sure there's a Side Dishes cookbook holding every side and salad. */
@@ -149,7 +149,7 @@ async function ensureSideBook() {
   if (!b) { const r = await sb.from('recipe_books').insert({ household_id: S.household.id, name: 'Side Dishes', emoji: '🥔', color: '#5E7D2A', sort: S.books.length }).select().single(); if (r.error) return console.error(r.error); b = r.data; S.books.push(b); }
   quietUntil = Date.now() + 6000;
   for (const r of S.recipes) if (['side', 'salad'].includes(catOf(r)) && !(r.books || []).includes(b.id)) { r.books = [...(r.books || []), b.id]; await sb.from('recipes').update({ books: r.books }).eq('id', r.id); }
-  if (!$('.sheet')) render();
+  softRender();
   } finally { sideBookDone = false; }
 }
 async function ensureBooks() {
@@ -164,7 +164,7 @@ function subscribe() {
   const f = `household_id=eq.${S.household.id}`;
   S.channel = sb.channel('hh-' + S.household.id);
   for (const t of ['members', 'pantry_items', 'recipes', 'meal_plan', 'shopping_items', 'recipe_books', 'spending', 'calendar_busy', 'household_events', 'shopping_lists'])
-    S.channel.on('postgres_changes', { event: '*', schema: 'public', table: t, filter: f }, () => { if (Date.now() < quietUntil) return; clearTimeout(reloadT); reloadT = setTimeout(async () => { try { await loadAll(); if (!$('.sheet')) render(); } catch (e) { } }, 400); });
+    S.channel.on('postgres_changes', { event: '*', schema: 'public', table: t, filter: f }, () => { if (Date.now() < quietUntil) return; clearTimeout(reloadT); reloadT = setTimeout(async () => { try { await loadAll(); softRender(); } catch (e) { } }, 400); });
   S.channel.subscribe();
 }
 const fail = e => { console.error(e); toast(e?.message || 'Something went wrong. Try again.'); };
@@ -399,7 +399,7 @@ async function ensureLinks() {
     r.ingredients = next; quietUntil = Date.now() + 3000; await sb.from('recipes').update({ ingredients: next }).eq('id', r.id);
   }
   const measured = await measureRows();
-  if (add.length || measured) { const pr = await sb.from('pantry_items').select('*').eq('household_id', S.household.id).order('name'); if (!pr.error) S.pantry = pr.data; if (!$('.sheet')) render(); }
+  if (add.length || measured) { const pr = await sb.from('pantry_items').select('*').eq('household_id', S.household.id).order('name'); if (!pr.error) S.pantry = pr.data; softRender(); }
   } finally { linking = false; }
 }
 /** Re-link edited ingredient lines, keeping links you set by hand on lines that didn't change. */
@@ -496,7 +496,7 @@ async function syncList() {
     for (const [id, row] of upd) { const r = await sb.from('shopping_items').update(row).eq('id', id); if (r.error) throw r.error; }
     if (ins.length) { const r = await sb.from('shopping_items').insert(ins); if (r.error) throw r.error; }
     const li = await sb.from('shopping_items').select('*').eq('household_id', S.household.id).order('created_at');
-    if (!li.error) { S.list = li.data.filter(x => x.source !== 'skip'); S.skips = li.data.filter(x => x.source === 'skip'); if (!$('.sheet')) render(); }
+    if (!li.error) { S.list = li.data.filter(x => x.source !== 'skip'); S.skips = li.data.filter(x => x.source === 'skip'); softRender(); }
     return { added: ins.length, changed: upd.length, removed: del.length - skips.filter(l => del.includes(l.id)).length };
   } finally { listSyncing = false; if (listAgain) { listAgain = false; scheduleListSync(300); } }
 }
@@ -1120,6 +1120,34 @@ async function saveCalendar(form, sync = true) {
   Object.assign(S.calLink, row);
   if (sync) { const s = await calFn({ action: 'sync', force: true }); await loadCalendar(); render(); const e = (s.results || []).find(x => x.error); toast(e ? e.error : 'Saved · schedule synced'); }
 }
+// ---------- keep things where you left them: scroll rows and pages hold still across re-draws ----------
+const SCROLLERS = '.shelf,.ltabs,.chips.scroll,.pickrow,[data-sk]';
+const scrollMem = new Map(), restoredEls = new WeakSet();
+const scrollBase = el => el.dataset.sk || (el.id ? '#' + el.id : String(el.className).split(' ')[0] + '|' + (el.getAttribute('aria-label') || ''));
+function scrollKey(el) {
+  const base = scrollBase(el); if (el.dataset.sk || el.id) return base;
+  return base + '|' + [...document.querySelectorAll(SCROLLERS)].filter(x => scrollBase(x) === base).indexOf(el);
+}
+document.addEventListener('scroll', e => { const el = e.target; if (el instanceof Element && el.matches(SCROLLERS)) scrollMem.set(scrollKey(el), [el.scrollLeft, el.scrollTop, Date.now()]); }, { capture: true, passive: true });
+function restoreScroll(root = document) {
+  if (!root.querySelectorAll) return;
+  const els = [...(root.matches?.(SCROLLERS) ? [root] : []), ...root.querySelectorAll(SCROLLERS)];
+  for (const el of els) {
+    if (restoredEls.has(el)) continue; restoredEls.add(el);
+    const m = scrollMem.get(scrollKey(el)); if (!m || Date.now() - m[2] > 120000) continue;
+    el.dataset.kept = '1'; el.style.scrollSnapType = 'none'; el.scrollLeft = m[0]; el.scrollTop = m[1];
+    requestAnimationFrame(() => { el.scrollLeft = m[0]; el.style.scrollSnapType = ''; });
+  }
+}
+// background refreshes (another phone's change, a sync finishing) wait until you've stopped tapping or typing
+let lastInput = 0, softT;
+for (const ev of ['pointerdown', 'touchstart', 'keydown', 'wheel', 'scroll']) document.addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true });
+function softRender() {
+  clearTimeout(softT); if ($('.sheet')) return;     // closing the sheet re-draws anyway
+  const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && $('#app').contains(document.activeElement);
+  if (Date.now() - lastInput < 1500 || typing) { softT = setTimeout(softRender, 700); return; }
+  render();
+}
 function render() {
   const app = $('#app');
   if (!S.session) return authView();
@@ -1127,7 +1155,7 @@ function render() {
   const v = { home: homeView, week: weekView, pantry: pantryView, recipes: cookbooksView, list: listView, family: familyView }[S.tab]();
   const y = $('#main')?.scrollTop || 0;
   app.innerHTML = shell(v);
-  $('#main').scrollTop = y;
+  const main = $('#main'); main.scrollTop = y; restoreScroll(app);
   const live = (id, key) => { const el = $(id); if (el) el.oninput = e => { S[key] = e.target.value; const pos = e.target.selectionStart; render(); const n = $(id); n.focus(); n.setSelectionRange(pos, pos); }; };
   live('#rq', 'recipeQ'); live('#psearch', 'pantryQ');
   setTimeout(queuePhotos, 60);
@@ -1242,18 +1270,18 @@ function tameInputs(root = document) {
   root.querySelectorAll('input:not([type=checkbox]):not([type=radio]):not([type=file]):not([autocomplete]),textarea:not([autocomplete])').forEach(i => i.setAttribute('autocomplete', 'off'));
   root.querySelectorAll('select:not([data-enh])').forEach(sel => {
     sel.dataset.enh = '1'; sel.hidden = true;
-    const wrap = document.createElement('div'); wrap.className = 'pickrow'; wrap.setAttribute('role', 'radiogroup');
+    const wrap = document.createElement('div'); wrap.className = 'pickrow'; wrap.setAttribute('role', 'radiogroup'); if (sel.id) wrap.dataset.sk = 'pick:' + sel.id;
     const lab = sel.id && root.querySelector?.(`label[for="${sel.id}"]`); if (lab) { lab.removeAttribute('for'); wrap.setAttribute('aria-label', lab.textContent); } else if (sel.getAttribute('aria-label')) wrap.setAttribute('aria-label', sel.getAttribute('aria-label'));
     const build = () => { wrap.innerHTML = [...sel.options].map(o => `<button type="button" role="radio" aria-checked="${o.selected}" data-v="${esc(o.value)}">${esc(o.textContent)}</button>`).join('') + (sel.dataset.add && ADDERS[sel.dataset.add] ? `<button type="button" class="pr-new" data-new="1">＋ ${esc(ADD_LABEL[sel.dataset.add] || 'New')}</button>` : ''); };
     build();
     wrap.addEventListener('click', async e => {
       if (e.target.closest('[data-new]')) { try { const got = await ADDERS[sel.dataset.add](); if (!got) return; if (![...sel.options].some(o => o.value === got.value)) sel.add(new Option(got.label, got.value)); sel.value = got.value; build(); sel.dispatchEvent(new Event('change', { bubbles: true })); requestAnimationFrame(() => { wrap.scrollLeft = wrap.scrollWidth; }); } catch (er) { fail(er); } return; }
       const b = e.target.closest('[data-v]'); if (!b) return; sel.value = b.dataset.v; [...wrap.children].forEach(x => x.setAttribute('aria-checked', x === b)); sel.dispatchEvent(new Event('change', { bubbles: true })); });
-    sel.after(wrap);
-    requestAnimationFrame(() => { const on = wrap.querySelector('[aria-checked=true]'); if (on) wrap.scrollLeft = Math.max(0, on.offsetLeft - wrap.clientWidth / 2 + on.offsetWidth / 2); });
+    sel.after(wrap); restoreScroll(wrap);
+    requestAnimationFrame(() => { if (wrap.dataset.kept) return; const on = wrap.querySelector('[aria-checked=true]'); if (on) wrap.scrollLeft = Math.max(0, on.offsetLeft - wrap.clientWidth / 2 + on.offsetWidth / 2); });
   });
 }
-new MutationObserver(muts => { for (const m of muts) for (const n of m.addedNodes) if (n.nodeType === 1) tameInputs(n.parentNode || document); }).observe(document.documentElement, { childList: true, subtree: true });
+new MutationObserver(muts => { for (const m of muts) for (const n of m.addedNodes) if (n.nodeType === 1) { tameInputs(n.parentNode || document); restoreScroll(n); } }).observe(document.documentElement, { childList: true, subtree: true });
 function sheet(html, onReady, opts = {}) {
   const el = document.createElement('div'); el.className = 'sheet' + (opts.full ? ' full' : ''); el.innerHTML = `<div role="dialog" aria-modal="true">${html}</div>`;
   const close = () => { el.remove(); opts.onClose?.(); if (!$('.sheet')) render(); };
@@ -1951,7 +1979,7 @@ document.addEventListener('click', async e => {
     if (t.dataset.book != null) { S.book = t.dataset.book || null; return render(); }
     if (t.dataset.dq) { const p = S.pantry.find(x => x.id === t.dataset.dq); const q = Math.max(0, Math.round((Number(p.qty) + Number(t.dataset.d)) * 100) / 100); const wasLow = isLow(p); p.qty = q; render(); const r = await sb.from('pantry_items').update({ qty: q, updated_at: new Date().toISOString() }).eq('id', p.id); if (r.error) return fail(r.error);
       if (wasLow !== isLow(p)) toast(isLow(p) ? `${p.name} added to the shopping list` : `${p.name} is stocked — off the list`);
-      clearTimeout(pantryT); pantryT = setTimeout(async () => { try { await loadAll(); if (!$('.sheet')) render(); } catch (_) { } }, 900); return; }
+      clearTimeout(pantryT); pantryT = setTimeout(async () => { try { await loadAll(); softRender(); } catch (_) { } }, 900); return; }
     if (t.dataset.check) { const l = S.list.find(x => x.id === t.dataset.check); l.checked = t.checked; render(); const r = await sb.from('shopping_items').update({ checked: l.checked }).eq('id', l.id); if (r.error) fail(r.error); return; }
     if (t.dataset.delitem) { const it = S.list.find(x => x.id === t.dataset.delitem); S.list = S.list.filter(x => x.id !== t.dataset.delitem); render(); quietUntil = Date.now() + 2500;
       const r = it && !it.list_id && !it.checked && (it.source === 'plan' || it.source === 'par') ? await sb.from('shopping_items').update({ source: 'skip' }).eq('id', it.id).then(x => { if (!x.error) (S.skips = S.skips || []).push({ ...it, source: 'skip' }); return x; }) : await sb.from('shopping_items').delete().eq('id', t.dataset.delitem); if (r.error) fail(r.error); return; }

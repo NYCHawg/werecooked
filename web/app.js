@@ -413,7 +413,7 @@ async function checkedToPantry() {
   await addToPantry(done.map(l => ({ name: l.name, qty: l.qty, unit: l.unit, category: l.category })));
   const d = await sb.from('shopping_items').delete().in('id', done.map(x => x.id)); if (d.error) throw d.error;
   await loadAll(); render(); toast(`Put away ${done.length} item${done.length > 1 ? 's' : ''}`);
-  if (!S.listId) spendEditor('groceries');
+  if (!S.listId) receiptFlow({ spend: true, itemsOff: true });
 }
 
 // ---------- places (OpenStreetMap search) ----------
@@ -1586,19 +1586,54 @@ function openCamera({ title, hint, barcode, onFrame, onPick }) {
   }, { onClose: stop });
 }
 /** Receipts: sharp, full-resolution photos from the phone's camera; up to 3 for long receipts. */
-function receiptFlow() {
+/** After a receipt is read: confirm the total (logged as spending) and, for groceries, which items go in the pantry. */
+function receiptReview(el, out, opts = {}) {
+  const today = ymd(new Date()), d0 = /^\d{4}-\d{2}-\d{2}$/.test(out.date || '') && out.date <= today && out.date >= ymd(addDays(new Date(), -90)) ? out.date : today;
+  const st = { kind: ['groceries', 'out', 'takeout'].includes(out.kind) ? out.kind : 'groceries', total: out.total != null ? Number(out.total) : '', store: out.store || '', day: d0, add: !opts.itemsOff };
+  const items = (out.items || []).map(x => ({ ...x, on: true }));
+  const n = () => st.kind === 'groceries' && st.add ? items.filter(x => x.on).length : 0;
+  const label = () => { const amt = Number(st.total); return `${amt > 0 ? `Log ${money(amt)}` : 'Log it'}${n() ? ` + add ${n()} item${n() === 1 ? '' : 's'}` : ''}`; };
+  const draw = () => `<h2>${st.store ? esc(st.store) : 'Your receipt'}</h2><p class="lede">Check the total, then log it.${out.total == null ? ' We couldn’t read the total. Type it in.' : ''}</p>
+    <div class="seg">${[['groceries', 'Groceries'], ['out', 'Eating out'], ['takeout', 'Takeout']].map(([k, l]) => `<button type="button" data-rk="${k}" style="--k:var(--${k === 'groceries' ? 'leftovers' : k})" aria-pressed="${st.kind === k}">${l}</button>`).join('')}</div>
+    <div class="grid2"><div><label for="rtot">Total paid</label><input type="number" id="rtot" min="0" step="0.01" inputmode="decimal" value="${st.total}" placeholder="$0.00"></div><div><label for="rday">Date</label><input type="date" id="rday" value="${st.day}" max="${today}"></div></div>
+    <label for="rsto">Store</label><input type="text" id="rsto" value="${esc(st.store)}" maxlength="60" placeholder="e.g. Kroger">
+    ${st.kind === 'groceries' && items.length ? `<label class="tog" style="margin-top:16px"><input type="checkbox" id="radd" ${st.add ? 'checked' : ''}><span>Also add items to the pantry</span></label>
+      ${st.add ? `<div class="card flat" style="padding:4px 12px;margin-top:8px;max-height:36vh;overflow:auto">${items.map((x, i) => `<div class="chk"><input type="checkbox" data-on="${i}" ${x.on ? 'checked' : ''} aria-label="Add ${esc(x.name)}"><span><input type="text" data-nm="${i}" value="${esc(x.name)}" style="margin:0;padding:6px 8px;min-height:36px"></span><span class="imeta">${x.qty || 1}${x.unit ? ' ' + esc(x.unit) : ''}</span></div>`).join('')}</div>` : ''}` : ''}
+    <button class="btn wide" id="rsave" style="margin-top:14px">${label()}</button><button class="btn ghost wide" data-close style="margin-top:8px">Cancel</button>`;
+  const box = el.querySelector('[role=dialog]'), keep = () => { const g = q => el.querySelector(q); if (g('#rtot')) st.total = g('#rtot').value; if (g('#rday')) st.day = g('#rday').value; if (g('#rsto')) st.store = g('#rsto').value; };
+  const redraw = () => { keep(); box.innerHTML = draw(); };
+  box.innerHTML = draw();
+  el.addEventListener('input', e => { if (e.target.id === 'rtot') { st.total = e.target.value; el.querySelector('#rsave').textContent = label(); } if (e.target.dataset.nm != null) items[+e.target.dataset.nm].name = e.target.value; });
+  el.addEventListener('change', e => { const t = e.target; if (t.id === 'radd') { st.add = t.checked; return redraw(); } if (t.dataset.on != null) { items[+t.dataset.on].on = t.checked; el.querySelector('#rsave').textContent = label(); } });
+  el.addEventListener('click', async e => {
+    const k = e.target.closest('[data-rk]'); if (k) { st.kind = k.dataset.rk; return redraw(); }
+    if (!e.target.closest('#rsave')) return;
+    keep(); const amt = Number(st.total), pick = n() ? items.filter(x => x.on && x.name.trim()) : [];
+    if (!(amt > 0) && !pick.length) { el.querySelector('#rtot').focus(); return toast('Enter the total from the receipt'); }
+    busy(el, 'Saving…');
+    try {
+      let msg = '';
+      if (amt > 0) { const r = await sb.from('spending').insert({ household_id: S.household.id, kind: st.kind, amount: Math.round(amt * 100) / 100, day: st.day || today, note: st.store.trim() || null, added_by: S.session.user.id }); if (r.error) throw r.error; msg = `Logged ${money(amt)}${st.store ? ' at ' + st.store.trim() : ''}`; }
+      if (pick.length) { const a = await addToPantry(pick.map(x => ({ name: x.name.trim(), qty: x.qty, unit: x.unit, category: x.category, expires_on: x.expires_days ? ymd(addDays(new Date(), x.expires_days)) : null }))); msg += `${msg ? ' · ' : ''}${a.added + a.updated} items in the pantry`; }
+      await loadAll(); el.remove(); render(); toast(msg);
+    } catch (er) { el.remove(); fail(er); }
+  });
+}
+function receiptFlow(opts = {}) {
   const shots = [];
-  const draw = () => `<h2>Scan a receipt</h2><p class="lede">Lay it flat in good light and fill the frame. Long receipt? Take it in 2 or 3 photos, top to bottom.</p>
+  const draw = () => `<h2>${opts.spend ? 'Log a purchase' : 'Scan a receipt'}</h2><p class="lede">${opts.spend ? 'Snap the receipt and we’ll log the total. Grocery items can go straight into the pantry.' : 'We’ll log what you spent and add the items to your pantry.'} Lay it flat in good light. Long receipt? Take it in 2 or 3 photos, top to bottom.</p>
     ${shots.length ? `<div class="shots">${shots.map((x, i) => `<span class="shot" style="background-image:url('${x.url}')"><button type="button" data-unshot="${i}" aria-label="Remove photo ${i + 1}">×</button><b>${i + 1}</b></span>`).join('')}</div>` : ''}
     <div class="camopts" style="margin-top:12px">${shots.length < 3 ? `<label class="btn">${svg('camera')} ${shots.length ? 'Add the next part' : 'Take a photo'}<input type="file" accept="image/*" capture="environment" class="rpick" hidden></label><label class="btn ghost">Choose from photos<input type="file" accept="image/*" class="rpick" hidden></label>` : ''}</div>
-    ${shots.length ? `<button class="btn wide flame" id="rread" style="margin-top:14px">${svg('spark')} Read ${shots.length > 1 ? `${shots.length} photos` : 'the receipt'}</button>` : ''}`;
+    ${shots.length ? `<button class="btn wide flame" id="rread" style="margin-top:14px">${svg('spark')} Read ${shots.length > 1 ? `${shots.length} photos` : 'the receipt'}</button>` : ''}
+    <p style="text-align:center;margin:14px 0 0"><button type="button" class="linkbtn" id="rtype">No receipt? Type the amount</button></p>`;
   sheet(draw(), (el, close) => {
     const box = el.querySelector('[role=dialog]'), redraw = () => { box.innerHTML = draw(); };
     el.addEventListener('change', e => { if (!e.target.classList.contains('rpick')) return; const f = e.target.files[0]; if (f) { shots.push({ f, url: URL.createObjectURL(f) }); redraw(); } });
     el.addEventListener('click', async e => {
       const u = e.target.closest('[data-unshot]'); if (u) { shots.splice(+u.dataset.unshot, 1); return redraw(); }
+      if (e.target.closest('#rtype')) { el.remove(); return spendEditor('groceries'); }
       if (!e.target.closest('#rread')) return;
-      const files = shots.map(x => x.f); el.remove(); pantryPhoto({ files }, 'receipt_photo');
+      const files = shots.map(x => x.f); el.remove(); pantryPhoto({ files }, 'receipt_photo', opts);
     });
   });
 }
@@ -1612,12 +1647,13 @@ function scanBarcodeFlow() {
     if (!info) toast('Not in the product database — type the name once and it will be remembered');
   } });
 }
-async function pantryPhoto(src, mode) {
+async function pantryPhoto(src, mode, opts = {}) {
   const el = sheet('', null); busy(el, mode === 'receipt_photo' ? 'Reading the receipt…' : 'Spotting what\'s on the shelves…');
   try {
     const big = mode === 'receipt_photo' ? 2200 : 1600;
     const images = src.files ? await Promise.all(src.files.map(f => imageToBase64(f, big))) : [src.b64 || await imageToBase64(src, big)];
     const out = await ai(mode, { image: images[0], images, media_type: 'image/jpeg' });
+    if (mode === 'receipt_photo') return receiptReview(el, out, opts);
     const items = (out.items || []).map(x => ({ ...x, on: true }));
     if (!items.length) { el.remove(); return toast('Couldn\'t make out any items. Try a closer, brighter photo.'); }
     const draw = () => `<h2>${items.length} items found</h2><p class="lede">Uncheck anything that's wrong and fix amounts before adding.</p>
@@ -1697,7 +1733,7 @@ document.addEventListener('click', async e => {
     if (a === 'newbook') return bookEditor(null);
     if (a === 'importcsv') return importCSVSheet();
     if (a === 'editbook') return bookEditor(S.book);
-    if (a === 'logspend') return spendEditor(S.tab === 'list' ? 'groceries' : 'groceries');
+    if (a === 'logspend') return receiptFlow({ spend: true });
     if (a === 'buildlist') { t.disabled = true; await buildList(); return; }
     if (a === 'putaway') return checkedToPantry();
     if (a === 'newlist') return listEditor(null);
@@ -1938,9 +1974,6 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
     const g = spend(m0, tomorrow, G), o = spend(m0, tomorrow, O), tot = g + o;
     const lastSame = spend(lm0, lmSame, [...G, ...O]), lastFull = spend(lm0, m0, [...G, ...O]);
     const delta = lastSame ? Math.round((tot - lastSame) / lastSame * 100) : null;
-    const nights = S.plan.filter(p => p.day >= m0 && p.day <= t);
-    const homeN = nights.filter(p => p.kind === 'cook' || p.kind === 'leftovers').length, outN = nights.filter(p => p.kind === 'out' || p.kind === 'takeout').length;
-    const pct = homeN + outN ? Math.round(homeN / (homeN + outN) * 100) : 0;
     const lc = lastCooked();
     const miss = S.recipes.filter(r => isMeal(r) && (r.favorite || (r.rating || 0) >= 4)).map(r => ({ r, last: lc.get(r.id) })).filter(x => !x.last || daysUntil(x.last) < -30)
       .sort((a, b) => (b.r.rating || 0) - (a.r.rating || 0) || (a.last || '').localeCompare(b.last || '')).slice(0, 3);
@@ -1951,12 +1984,39 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
       <div class="mleg"><span><i class="g"></i>Groceries <b>${money(g)}</b></span><span><i class="o"></i>Eating out <b>${money(o)}</b></span></div>
       <button class="btn sm ghost" data-act="logspend" style="margin-top:12px">Log spending</button></div>`;
     const R = 34, C = 2 * Math.PI * R;
-    const habitCard = `<div class="mc"><p class="kc-l">Home-cooked nights</p>${homeN + outN ? `<div class="ring"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="${R}" class="rb"/><circle cx="42" cy="42" r="${R}" class="rf" stroke-dasharray="${C * pct / 100} ${C}"/></svg><b>${pct}%</b></div>
-      <p class="kc-s" style="text-align:center">${homeN} at home · ${outN} out or takeout this month</p>` : '<p class="kc-s">Plan a few nights and your habits show up here.</p>'}</div>`;
+    const mx = weekMix(), planned = mx.home + mx.out + mx.other, pct = planned ? Math.round(mx.home / planned * 100) : 0;
+    const habitCard = `<button class="mc mc-btn" data-h="mix" aria-label="This week's dinners: ${mx.home} of ${planned} planned nights home-cooked. Tap for details."><p class="kc-l">Home-cooked · this week</p>${planned ? `<div class="ring"><svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="${R}" class="rb"/><circle cx="42" cy="42" r="${R}" class="rf" stroke-dasharray="${C * pct / 100} ${C}"/></svg><b>${pct}%</b></div>
+      <p class="kc-s" style="text-align:center">${[`${mx.home} home`, mx.out ? `${mx.out} out` : '', mx.away ? `${mx.away} nobody home` : '', mx.none ? `${mx.none} not planned` : ''].filter(Boolean).join(' · ')}</p><p class="mc-more">See the week ›</p>` : '<p class="kc-s">Plan a few nights this week and your home-cooked share shows up here.</p>'}</button>`;
     const missCard = `<div class="mc mc-wide"><p class="kc-l">Haven’t made in a while</p>${miss.length ? miss.map(x => `<div class="hm"><button class="hm-m" data-recipe="${x.r.id}"><span class="hm-e">${emojiOf(x.r)}</span><span><b>${esc(x.r.title)}</b><i>${x.last ? 'Last made ' + parseYmd(x.last).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Not cooked yet'}${x.r.rating ? ' · ' + '★'.repeat(x.r.rating) : x.r.favorite ? ' · ★ favorite' : ''}</i></span></button><button class="btn sm ghost" data-h="plan" data-id="${x.r.id}">Plan it</button></div>`).join('') : '<p class="kc-s">Rate or favorite recipes and this reminds you of the ones you’ve been missing.</p>'}</div>`;
     return `<div class="mgrid">${spendCard}${habitCard}${missCard}</div>`;
   }
 
+  const MIX = [['cook', 'Cooked at home', 'home'], ['leftovers', 'Leftovers', 'home'], ['out', 'Eating out', 'out'], ['takeout', 'Takeout', 'out'], ['other', 'Other plans', 'other'], ['away', 'Nobody home', 'away'], ['none', 'Not planned', 'none']];
+  function weekMix(start = mondayOf(new Date())) {
+    const rows = [...Array(7)].map((_, i) => { const d = ymd(addDays(start, i)), p = S.plan.find(x => x.day === d), k = p?.kind || 'none'; return { d, p, k, grp: (MIX.find(m => m[0] === k) || MIX[6])[2] }; });
+    const c = g => rows.filter(r => r.grp === g).length;
+    return { rows, home: c('home'), out: c('out'), other: c('other'), away: c('away'), none: c('none') };
+  }
+  function mixSheet() {
+    const mon = mondayOf(new Date()), mx = weekMix(mon), planned = mx.home + mx.out + mx.other, tdy = todayStr();
+    const by = k => mx.rows.filter(r => r.k === k).length;
+    const seg = MIX.filter(([k]) => by(k)).map(([k, l]) => `<span style="flex:${by(k)};background:${k === 'none' ? 'var(--sunk)' : `var(--${k})`}" title="${l}: ${by(k)}"></span>`).join('');
+    const last = weekMix(addDays(mon, -7)), lp = last.home + last.out + last.other;
+    const m0 = ymd(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), mn = S.plan.filter(p => p.day >= m0 && p.day <= tdy);
+    const mh = mn.filter(p => p.kind === 'cook' || p.kind === 'leftovers').length, mo = mn.filter(p => ['out', 'takeout', 'other'].includes(p.kind)).length;
+    const dayRow = r => { const dt = parseYmd(r.d), p = r.p, ds = r.k === 'cook' ? dishesOf(p) : [];
+      const what = !p ? 'Nothing planned yet' : ds.length ? mealTitle(p) + (mealWith(p).length ? ` + ${mealWith(p).length} more` : '') : (p.place_name || p.title || KINDS[r.k]);
+      const aw = awayOn(p, r.d).map(memberById).filter(Boolean);
+      return `<button class="mixrow${r.d === tdy ? ' now' : ''}${r.d < tdy ? ' past' : ''}" data-day="${r.d}"><span class="mx-d"><b>${DOW[dt.getDay()]}</b><i>${dt.getDate()}</i></span><span class="mx-k" style="--k:${r.k === 'none' ? 'var(--line)' : `var(--${r.k})`}"></span><span class="mx-t"><b>${esc(what)}</b><i>${p ? esc(KINDS[r.k]) : 'Tap to plan'}${aw.length ? ' · ' + esc(aw.map(m => m.display_name.split(' ')[0]).join(' & ')) + ' away' : ''}</i></span><span class="mx-go">›</span></button>`; };
+    sheet(`<h2>This week’s dinners</h2><p class="lede">${parseYmd(mx.rows[0].d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${parseYmd(mx.rows[6].d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · as planned</p>
+      <div class="mixhead"><div><b>${planned ? Math.round(mx.home / planned * 100) : 0}%</b><span>home-cooked</span></div><div><b>${mx.home}</b><span>at home</span></div><div><b>${mx.out + mx.other}</b><span>out</span></div><div><b>${mx.none}</b><span>open</span></div></div>
+      <div class="mixbar" role="img" aria-label="${MIX.filter(([k]) => by(k)).map(([k, l]) => `${l} ${by(k)}`).join(', ')}">${seg}</div>
+      <div class="mixleg">${MIX.filter(([k]) => by(k)).map(([k, l]) => `<span><i style="background:${k === 'none' ? 'var(--sunk);border:1px solid var(--line)' : `var(--${k})`}"></i>${l} <b>${by(k)}</b></span>`).join('')}</div>
+      <div class="card flat" style="padding:2px 12px;margin-top:14px">${mx.rows.map(dayRow).join('')}</div>
+      <div class="mixcmp"><span>Last week <b>${lp ? Math.round(last.home / lp * 100) + '%' : '—'}</b></span><span>This month so far <b>${mh + mo ? Math.round(mh / (mh + mo) * 100) + '%' : '—'}</b> <i>(${mh} of ${mh + mo} nights)</i></span></div>
+      <p class="imeta" style="margin:10px 0 0">Home-cooked share = nights cooked or leftovers out of nights planned for dinner (nights nobody’s home aren’t counted).</p>`,
+      (el, close) => el.addEventListener('click', e => { const d = e.target.closest('[data-day]'); if (d) { el.remove(); } }));
+  }
   window.homeView = function () {
     return `<div class="home">${greeting()}${nudge()}${tonight()}
       ${section('This week', linkBtn('Full week', 'data-tab="week"'), weekStrip())}
@@ -2023,6 +2083,7 @@ if ('serviceWorker' in navigator && location.hostname.endsWith('github.io')) nav
       if (h === 'tonight-add') { t.disabled = true; await addDishToDay(todayStr(), t.dataset.id); await loadAll(); render(); return toast('Planned for tonight'); }
       if (h === 'plan') { const r = S.recipes.find(x => x.id === t.dataset.id); if (r) planRecipe(r); return; }
       if (h === 'fill') return fillWeek();
+      if (h === 'mix') return mixSheet();
       if (h === 'openlist') { S.listId = t.dataset.id; S.tab = 'list'; render(); $('#main').scrollTop = 0; return; }
       if (h === 'occ-new') return occasionEditor(null);
       if (h === 'occ') return occasionEditor(t.dataset.id);

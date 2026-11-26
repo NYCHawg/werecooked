@@ -343,27 +343,49 @@ const LIQ_BY_STYLE = { 'liq-green-chartreuse': '#8DBF3A', 'liq-chartreuse-alt': 
   'liq-melon': '#7ACB4B', 'liq-limoncello': '#F2E35A', 'amaro-aperol': '#F0682B', 'amaro-red-bitter': '#C2142B', 'amaro-gentian': '#E8D66A', 'verm-dry': '#EEE6C4', 'verm-dry-extra': '#EEE6C4', 'verm-blanc': '#F1E5BE', 'verm-americano': '#E9C978', 'verm-quinquina-blanc': '#ECD27A',
   'fort-fino': '#EADFA8', 'fort-manzanilla': '#EADFA8', 'anise-absinthe': '#9CC16A', 'rum-spanish-white': '#EEF0EC', 'rum-agricole-blanc': '#F0F0E8', 'rum-cachaca-branca': '#F0F0E8', 'rum-jamaican-overproof': '#F0F0E8', 'rum-overproof-white': '#F0F0E8', 'rum-clairin': '#F0F0E8',
   'tequila-blanco': '#F1EEDF', 'tequila-blanco-highland': '#F1EEDF', 'tequila-blanco-still': '#F1EEDF', 'mezcal-espadin': '#F1EEDF', 'mezcal-ensamble': '#F1EEDF', 'whiskey-corn': '#F1EDE0', 'brandy-kirsch': '#F1F1EC', 'brandy-poire': '#F1F1EC', 'brandy-grappa': '#F1F1EC' };
+// generic bottle silhouettes (52×120): body path, cap [x,y,w,h], label [x,y,w,h], top of the liquid
 const SHAPES = {
-  tall: 'M19 4h14v14c0 4 8 6 8 14v82a4 4 0 0 1-4 4H15a4 4 0 0 1-4-4V32c0-8 8-10 8-14z',
-  squat: 'M20 4h12v18c0 3 12 5 12 14v78a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V36c0-9 12-11 12-14z',
-  round: 'M21 4h10v24c10 3 14 10 14 20v66a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V48c0-10 4-17 14-20z',
-  slim: 'M22 4h8v30c0 3 9 6 9 14v66a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4V48c0-8 9-11 9-14z',
-  wine: 'M22 4h8v36c0 6 10 8 10 18v56a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V58c0-10 10-12 10-18z',
-  dasher: 'M23 44h6v10c0 2 7 4 7 10v50a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V64c0-6 7-8 7-10z',
+  tall: { name: 'Tall', d: 'M19 4h14v14c0 4 8 6 8 14v82a4 4 0 0 1-4 4H15a4 4 0 0 1-4-4V32c0-8 8-10 8-14z', cap: [19, 0, 14, 6], top: 30 },
+  tallsquare: { name: 'Tall square', d: 'M21 6h10v12h7a3 3 0 0 1 3 3v93a4 4 0 0 1-4 4H15a4 4 0 0 1-4-4V21a3 3 0 0 1 3-3h7z', cap: [20, 0, 12, 8], top: 20 },
+  square: { name: 'Square shoulder', d: 'M20 4h12v14c0 2 2 4 6 4h4a2 2 0 0 1 2 2v90a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V24a2 2 0 0 1 2-2h4c4 0 6-2 6-4z', cap: [19, 0, 14, 6], top: 24 },
+  apothecary: { name: 'Apothecary', d: 'M19 12h14v6c8 2 12 6 12 14v82a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V32c0-8 4-12 12-14z', cap: [15, 0, 22, 12], top: 30, round: true },
+  squat: { name: 'Squat', d: 'M20 4h12v18c0 3 12 5 12 14v78a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V36c0-9 12-11 12-14z', cap: [19, 0, 14, 6], top: 34 },
+  round: { name: 'Round', d: 'M21 4h10v24c10 3 14 10 14 20v66a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V48c0-10 4-17 14-20z', cap: [20, 0, 12, 6], top: 40 },
+  decanter: { name: 'Decanter', d: 'M22 6h8v26c12 4 16 14 16 30v52a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V62c0-16 4-26 16-30z', cap: [19, 0, 14, 8], top: 46, round: true },
+  flask: { name: 'Flask', d: 'M21 4h10v12c0 2 4 3 8 5 3 2 5 5 5 10v83a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V31c0-5 2-8 5-10 4-2 8-3 8-5z', cap: [20, 0, 12, 6], top: 30 },
+  stout: { name: 'Stout', d: 'M20 30h12v8c10 2 13 6 13 14v62a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V52c0-8 3-12 13-14z', cap: [19, 24, 14, 7], top: 50 },
+  jug: { name: 'Jug', d: 'M20 18h12v8c8 2 13 8 13 18v70a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V44c0-10 5-16 13-18z', cap: [19, 12, 14, 7], top: 44, handle: true },
+  bell: { name: 'Bell', d: 'M21 4h10v26c0 10 14 22 14 50v34a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V80c0-28 14-40 14-50z', cap: [20, 0, 12, 6], top: 46 },
+  cone: { name: 'Cone', d: 'M22 6h8v18l12 90a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4l12-90z', cap: [21, 0, 10, 7], top: 30 },
+  slim: { name: 'Slim', d: 'M22 4h8v30c0 3 9 6 9 14v66a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4V48c0-8 9-11 9-14z', cap: [21, 0, 10, 6], top: 46 },
+  longneck: { name: 'Long neck', d: 'M23 4h6v48c0 4 10 6 10 16v46a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4V68c0-10 10-12 10-16z', cap: [22, 0, 8, 6], top: 66 },
+  wine: { name: 'Wine', d: 'M22 4h8v36c0 6 10 8 10 18v56a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V58c0-10 10-12 10-18z', cap: [21, 0, 10, 8], top: 56 },
+  dasher: { name: 'Bitters dasher', d: 'M23 44h6v10c0 2 7 4 7 10v50a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V64c0-6 7-8 7-10z', cap: [22, 38, 8, 6], top: 62 },
 };
-function bottleShape(b) { const c = STY[b.style_id]?.cat; return c === 'Bitters' ? 'dasher' : c === 'Whiskey' || c === 'Brandy' ? (hashStr(b.name) % 3 ? 'squat' : 'round') : c === 'Gin' || c === 'Vodka' || c === 'Genever' ? 'tall' : c === 'Rum' || c === 'Tequila' || c === 'Mezcal' ? (hashStr(b.name) % 2 ? 'round' : 'squat') : c === 'Wine & beer' || c === 'Fortified wine' || c === 'Vermouth' ? 'wine' : 'slim'; }
+const SHAPE_BY_CAT = { Gin: ['tall', 'tallsquare', 'apothecary', 'square', 'longneck'], Genever: ['tallsquare', 'apothecary'], Vodka: ['tall', 'tallsquare', 'longneck', 'square'],
+  Whiskey: ['squat', 'square', 'decanter', 'flask', 'round', 'stout'], Brandy: ['decanter', 'round', 'bell', 'squat'], Rum: ['round', 'squat', 'stout', 'jug', 'tall'],
+  Tequila: ['round', 'bell', 'cone', 'stout', 'square'], Mezcal: ['stout', 'round', 'jug', 'cone'], Liqueur: ['slim', 'longneck', 'apothecary', 'cone', 'bell', 'square'], Anise: ['slim', 'tall', 'square'],
+  Amaro: ['slim', 'longneck', 'tall', 'apothecary'], Vermouth: ['wine', 'longneck'], 'Fortified wine': ['wine', 'decanter'], Bitters: ['dasher'], 'Wine & beer': ['wine'], Mixers: ['longneck', 'tall'], 'Other spirits': ['tall', 'round', 'slim'] };
+function bottleShape(b) { if (b.shape && SHAPES[b.shape]) return b.shape; const opts = SHAPE_BY_CAT[STY[b.style_id]?.cat] || ['slim', 'tall', 'round']; return opts[hashStr(b.name || '') % opts.length]; }
 function bottleSvg(b, cls = '') {
-  const shape = SHAPES[bottleShape(b)], col = LIQ_BY_STYLE[b.style_id] || LIQ[STY[b.style_id]?.cat] || '#C9853A', f = fillPct(b), id = 'c' + String(b.id || b.name).replace(/[^a-z0-9]/gi, '').slice(0, 16);
-  const topY = 28, botY = 118, y = botY - (botY - topY) * f;
+  const sh = SHAPES[bottleShape(b)], shape = sh.d, col = LIQ_BY_STYLE[b.style_id] || LIQ[STY[b.style_id]?.cat] || '#C9853A', f = fillPct(b), id = 'c' + String(b.id || b.name).replace(/[^a-z0-9]/gi, '').slice(0, 16);
+  const topY = sh.top, botY = 118, y = botY - (botY - topY) * f, [cx, cy, cw, ch] = sh.cap, ly = Math.max(topY + 12, 76);
   return `<svg viewBox="0 0 52 120" class="${cls}" aria-hidden="true"><defs><clipPath id="${id}"><path d="${shape}"/></clipPath></defs>
+    ${sh.handle ? `<path d="M45 52c6 0 6 22 0 22" fill="none" style="stroke:light-dark(rgba(60,45,25,.55),rgba(255,255,255,.35))" stroke-width="2.4"/>` : ''}
     <path d="${shape}" style="fill:light-dark(rgba(255,255,255,.55),rgba(255,255,255,.07))"/>
     <rect x="0" y="${y.toFixed(1)}" width="52" height="${(botY - y + 4).toFixed(1)}" fill="${col}" clip-path="url(#${id})" opacity=".92"/>
     <rect x="0" y="${y.toFixed(1)}" width="52" height="2" fill="rgba(255,255,255,.35)" clip-path="url(#${id})"/>
-    <rect x="13" y="72" width="26" height="22" rx="2" style="fill:light-dark(#F7F1E3,#E9DFC8)" opacity=".92" clip-path="url(#${id})"/>
-    <path d="M17 79h18M19 84h14" stroke="#7B6A4E" stroke-width="1.4" stroke-linecap="round" clip-path="url(#${id})"/>
+    <rect x="12" y="${ly}" width="28" height="20" rx="2" style="fill:light-dark(#F7F1E3,#E9DFC8)" opacity=".92" clip-path="url(#${id})"/>
+    <path d="M17 ${ly + 7}h18M19 ${ly + 12}h14" stroke="#7B6A4E" stroke-width="1.4" stroke-linecap="round" clip-path="url(#${id})"/>
     <path d="${shape}" fill="none" style="stroke:light-dark(rgba(60,45,25,.55),rgba(255,255,255,.35))" stroke-width="1.4"/>
-    <rect x="${bottleShape(b) === 'dasher' ? 22 : 19}" y="${bottleShape(b) === 'dasher' ? 38 : 0}" width="${bottleShape(b) === 'dasher' ? 8 : 14}" height="6" rx="1.5" style="fill:light-dark(#5B4A33,#8C7650)"/></svg>`;
+    ${sh.round ? `<ellipse cx="${cx + cw / 2}" cy="${cy + ch / 2}" rx="${cw / 2}" ry="${ch / 2}" style="fill:light-dark(#5B4A33,#8C7650)"/>` : `<rect x="${cx}" y="${cy}" width="${cw}" height="${ch}" rx="1.5" style="fill:light-dark(#5B4A33,#8C7650)"/>`}</svg>`;
 }
+/** Your own photo of the bottle when you've taken one, otherwise the drawn silhouette. */
+function bottleVisual(b, small = false) {
+  if (!b.photo_url) return bottleSvg(b);
+  return `<span class="bph${small ? ' sm' : ''}"><img src="${esc(b.photo_url)}" alt="" loading="lazy"><i style="height:${Math.round(fillPct(b) * 100)}%"></i></span>`;
+}
+const shapeChip = (k, on) => `<button type="button" class="shp" data-shape="${k}" aria-pressed="${on}" aria-label="${k ? SHAPES[k].name : 'Automatic'}">${k ? `<svg viewBox="0 0 52 120"><path d="${SHAPES[k].d}" fill="none" stroke="currentColor" stroke-width="3"/></svg>` : '<b>Auto</b>'}</button>`;
 function barView() {
   const q = S.barQ.trim().toLowerCase();
   const match = b => !q || b.name.toLowerCase().includes(q) || (STY[b.style_id]?.name || '').toLowerCase().includes(q);
@@ -380,12 +402,12 @@ function barView() {
   const filters = `<div class="search">${svg('search')}<input type="search" id="bq" placeholder="Search your bottles" value="${esc(S.barQ)}" aria-label="Search your bottles"></div>
   <div class="chips scroll" aria-label="Categories"><button class="chip" data-barcat="" aria-pressed="${!S.barCat}">All</button>${cats.map(c => `<button class="chip" data-barcat="${esc(c)}" aria-pressed="${S.barCat === c}">${esc(c)}</button>`).join('')}</div>`;
   if (S.barView === 'list') return head + filters + groups.map(([c, bs]) => `<h3>${esc(c)} <span class="imeta" style="font-family:var(--sans);font-weight:500">· ${bs.length}</span></h3><div class="card">${bs.map(b => `<button class="tap item" data-bottle="${b.id}">
-      <span style="width:26px;flex:none">${bottleSvg(b)}</span><span class="grow"><span class="iname">${esc(b.name)}</span><span class="imeta" style="display:block">${esc(STY[b.style_id]?.name || 'Unlisted style')}${b.abv ? ` · ${b.abv}%` : ''}</span>
+      <span style="width:26px;flex:none">${bottleVisual(b, true)}</span><span class="grow"><span class="iname">${esc(b.name)}</span><span class="imeta" style="display:block">${esc(STY[b.style_id]?.name || 'Unlisted style')}${b.abv ? ` · ${b.abv}%` : ''}</span>
       <span class="fillbar" style="margin-top:6px"><i style="width:${Math.round(fillPct(b) * 100)}%;${bottleLow(b) ? 'background:var(--ox)' : ''}"></i></span></span>
       <span class="imeta" style="text-align:right;white-space:nowrap">${Number(b.fill_ml) > 0 ? Math.round(fillPct(b) * 100) + '%' : 'Empty'}${Number(b.sealed) ? `<br>+${b.sealed} sealed` : ''}</span></button>`).join('')}</div>`).join('') || '<p class="imeta">Nothing matches.</p>';
   return head + filters + groups.map(([c, bs]) => `<div class="shelfset"><div class="shelfhead"><b>${esc(c)}</b><span class="imeta">${bs.length}</span></div>
-    <div class="shelf" data-sk="shelf:${esc(c)}" aria-label="${esc(c)} shelf">${bs.map(b => `<button class="btl${bottleLow(b) ? ' low' : ''}" data-bottle="${b.id}" aria-label="${esc(b.name)}, ${Math.round(fillPct(b) * 100)}% full">${bottleSvg(b)}${Number(b.sealed) ? `<span class="bx">+${b.sealed}</span>` : ''}<span class="bn">${esc(b.name)}</span></button>`).join('')}
-    <button class="btl add" data-act="addbottle" data-cat="${esc(c)}" aria-label="Add to ${esc(c)}"><svg viewBox="0 0 52 120"><path d="${SHAPES.slim}" fill="none" stroke="currentColor" stroke-dasharray="4 4" opacity=".5"/><path d="M26 68v16M18 76h16" stroke="currentColor" stroke-width="2"/></svg><span class="bn muted">Add</span></button></div></div>`).join('') || '<p class="imeta">Nothing matches.</p>';
+    <div class="shelf" data-sk="shelf:${esc(c)}" aria-label="${esc(c)} shelf">${bs.map(b => `<button class="btl${bottleLow(b) ? ' low' : ''}" data-bottle="${b.id}" aria-label="${esc(b.name)}, ${Math.round(fillPct(b) * 100)}% full">${bottleVisual(b)}${Number(b.sealed) ? `<span class="bx">+${b.sealed}</span>` : ''}<span class="bn">${esc(b.name)}</span></button>`).join('')}
+    <button class="btl add" data-act="addbottle" data-cat="${esc(c)}" aria-label="Add to ${esc(c)}"><svg viewBox="0 0 52 120"><path d="${SHAPES.slim.d}" fill="none" stroke="currentColor" stroke-dasharray="4 4" opacity=".5"/><path d="M26 68v16M18 76h16" stroke="currentColor" stroke-width="2"/></svg><span class="bn muted">Add</span></button></div></div>`).join('') || '<p class="imeta">Nothing matches.</p>';
 }
 function freshView() {
   const groups = {}; for (const f of C.fresh) (groups[f.group] = groups[f.group] || []).push(f);
@@ -574,13 +596,16 @@ function addBottleSheet(preCat = '') {
 function bottleEditor(id, preset = {}) {
   const b = S.bottles.find(x => x.id === id) || { name: '', style_id: '', abv: null, size_ml: 750, fill_ml: 750, sealed: 0, par: 0, price: null, location: 'backbar', notes: '', barcode: id ? null : pendingBarcode, ...preset };
   if (!id && preset.size_ml && preset.fill_ml == null) b.fill_ml = preset.size_ml;
+  let shape = b.shape || '', photoB64 = null, photoUrl = b.photo_url || null;
   let style = b.style_id || '', size = Number(b.size_ml) || 750, fill = clamp(Number(b.fill_ml) / size, 0, 1), sealed = Number(b.sealed) || 0, par = Number(b.par) || 0, cat = STY[style]?.cat || C.cats[0];
   const fills = [[1, 'Full'], [0.75, '¾'], [0.5, '½'], [0.25, '¼'], [0.1, 'Low'], [0, 'Empty']];
-  const draw = () => `<div class="row" style="flex-wrap:nowrap;gap:14px"><span style="width:44px;flex:none">${bottleSvg({ ...b, style_id: style, size_ml: size, fill_ml: fill * size, id: 'ed' })}</span><h2 class="sp" style="font-size:24px">${id ? esc(b.name) : 'New bottle'}</h2></div>
+  const draw = () => `<div class="row" style="flex-wrap:nowrap;gap:14px"><span style="width:52px;flex:none">${bottleVisual({ ...b, style_id: style, size_ml: size, fill_ml: fill * size, id: 'ed', shape, photo_url: photoB64 ? 'data:image/jpeg;base64,' + photoB64 : photoUrl })}</span><h2 class="sp" style="font-size:24px">${id ? esc(b.name) : 'New bottle'}</h2></div>
     <form id="bf"><label for="bn">Bottle</label><input type="text" id="bn" value="${esc(b.name)}" required maxlength="120" placeholder="e.g. Rittenhouse Rye">
     <label>Category</label><div class="chips scroll" data-sk="bcat">${C.cats.map(c => `<button type="button" class="chip" data-bcat="${esc(c)}" aria-pressed="${cat === c}">${esc(c)}</button>`).join('')}</div>
     <label for="bs">Style (sets what it can stand in for)</label><select id="bs"><option value="">Not sure</option>${C.styles.filter(s => s.cat === cat).map(s => `<option value="${s.id}" ${s.id === style ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>
     ${STY[style] ? `<p class="imeta" style="margin:6px 0 0">${esc(STY[style].notes)}</p>` : ''}
+    <label>Look on the shelf</label><div class="row" style="gap:8px"><button type="button" class="btn sm ghost" data-photo="1">${svg('camera')} ${photoUrl || photoB64 ? 'Retake photo' : 'Use my photo'}</button>${photoUrl || photoB64 ? '<button type="button" class="btn sm line" data-nophoto="1">Use a drawing</button>' : ''}</div>
+    ${photoUrl || photoB64 ? '' : `<div class="shapes" data-sk="shapes">${shapeChip('', !shape)}${Object.keys(SHAPES).map(k => shapeChip(k, shape === k)).join('')}</div>`}
     <label>How full is the open bottle?</label><div class="fillpick">${fills.map(([v, l]) => `<button type="button" data-fill="${v}" aria-pressed="${Math.abs(fill - v) < 0.06}">${l}</button>`).join('')}</div>
     <div class="grid2" style="margin-top:4px"><div><label>Sealed backups</label><span class="stepper"><button type="button" data-sealed="-1" aria-label="Fewer">−</button><span>${sealed}</span><button type="button" data-sealed="1" aria-label="More">+</button></span></div>
       <div><label>Always keep (bottles)</label><span class="stepper"><button type="button" data-par="-1" aria-label="Lower">−</button><span>${par}</span><button type="button" data-par="1" aria-label="Higher">+</button></span></div></div>
@@ -597,7 +622,8 @@ function bottleEditor(id, preset = {}) {
     const bind = () => {
       el.querySelector('#bs').onchange = () => { keep(); re(); };
       el.querySelector('#bf').onsubmit = async e => { e.preventDefault(); keep(); if (!b.name.trim()) return;
-        const row = { household_id: S.household.id, name: b.name.trim(), style_id: style || null, category: STY[style]?.cat || cat, abv: b.abv ?? (STY[style]?.abv ? Math.round((STY[style].abv[0] + STY[style].abv[1]) / 2 * 10) / 10 : null), size_ml: size, fill_ml: Math.round(fill * size), sealed, par, price: b.price, location: b.location || 'backbar', notes: b.notes || null, barcode: b.barcode || null, updated_at: new Date().toISOString() };
+        if (photoB64) { try { toast('Uploading photo…'); photoUrl = await uploadPhoto(photoB64); } catch (er) { return fail(er); } }
+        const row = { household_id: S.household.id, name: b.name.trim(), shape: shape || null, photo_url: photoUrl, style_id: style || null, category: STY[style]?.cat || cat, abv: b.abv ?? (STY[style]?.abv ? Math.round((STY[style].abv[0] + STY[style].abv[1]) / 2 * 10) / 10 : null), size_ml: size, fill_ml: Math.round(fill * size), sealed, par, price: b.price, location: b.location || 'backbar', notes: b.notes || null, barcode: b.barcode || null, updated_at: new Date().toISOString() };
         quietUntil = Date.now() + 2500;
         const r = id ? await sb.from('bar_bottles').update(row).eq('id', id) : await sb.from('bar_bottles').insert({ ...row, opened_on: fill < 1 ? today() : null });
         if (r.error) return fail(r.error); if (!id) pendingBarcode = null; await loadAll(); close(); toast(id ? 'Saved' : `${row.name} is on the back bar`); };
@@ -611,6 +637,9 @@ function bottleEditor(id, preset = {}) {
       if (t.dataset.par) { par = clamp(par + Number(t.dataset.par), 0, 24); return re(); }
       if (t.dataset.size) { size = Number(t.dataset.size); return re(); }
       if (t.dataset.loc) { b.location = t.dataset.loc; return re(); }
+      if (t.dataset.shape != null) { shape = t.dataset.shape; return re(); }
+      if (t.dataset.nophoto) { photoB64 = null; photoUrl = null; return re(); }
+      if (t.dataset.photo) { keep(); pickPhotos(false).then(async ([f]) => { if (!f) return; photoB64 = await fileToB64(f, 900); redraw(el, draw()); bind(); }).catch(fail); return; }
     });
     bind();
   });
@@ -619,6 +648,12 @@ async function fileToB64(file, max = 1600) {
   const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); });
   const s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.85).split(',')[1];
+}
+async function uploadPhoto(b64) {
+  const bin = atob(b64), arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  const path = `${S.household.id}/${crypto.randomUUID()}.jpg`;
+  const up = await sb.storage.from('photos').upload(path, new Blob([arr], { type: 'image/jpeg' }), { contentType: 'image/jpeg', upsert: false });
+  if (up.error) throw up.error; return sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
 }
 async function ai(mode, body) {
   const { data, error } = await sb.functions.invoke('ai', { body: { mode, ...body } });

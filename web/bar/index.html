@@ -203,6 +203,46 @@ table.batch th{text-align:left;font-size:11px;letter-spacing:.12em;text-transfor
 table.batch td{padding:8px 4px;border-bottom:1px dashed var(--line)}
 table.batch td.n{text-align:right;font-weight:700;white-space:nowrap}
 table.batch tr.tot td{border-bottom:0;font-weight:800}
+/* camera */
+.cam{position:relative;background:#000;border-radius:18px;overflow:hidden;aspect-ratio:3/4;max-height:58vh;margin:0 auto}
+.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.cam .reticle{position:absolute;left:12%;right:12%;top:38%;height:24%;border:3px solid rgba(255,255,255,.9);border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+.cam .hint{position:absolute;left:0;right:0;bottom:12px;text-align:center;color:#fff;font-weight:600;font-size:14px;text-shadow:0 1px 3px #000;padding:0 12px}
+.camopts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.camopts .btn{cursor:pointer}
+/* dashboard */
+.pour{position:relative;overflow:hidden;border-radius:24px;padding:20px 18px 18px;background:radial-gradient(120% 90% at 85% 10%,rgba(214,174,87,.28),transparent 55%),linear-gradient(165deg,#241C14,#100D0A);color:#F1E9D8;box-shadow:var(--shadow)}
+.pour .eyebrow{color:#D6AE57}
+.pour h2{color:#F7EFDD;font-size:34px;margin:6px 0 2px}
+.pour .why{color:#D9CDB6;margin:4px 0 12px;font-size:15px}
+.pour .gl{position:absolute;right:14px;top:16px;width:74px;height:88px;color:#D6AE57;opacity:.9}
+.pour .specline{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.pour .specline span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px 10px;font-size:13px;color:#EADFC8}
+.pour .tip{border-top:1px solid rgba(214,174,87,.25);padding-top:10px;margin-top:4px;font-size:14px;color:#CFC3AC}
+.pour .tip b{color:#E8C77E}
+.pour .btn{background:#D6AE57;color:#16130C}.pour .btn.ghost{background:rgba(255,255,255,.1);color:#F1E9D8}
+.ask{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:14px;border-radius:18px;background:var(--paper);border:1px solid var(--brass)}
+.ask>svg{width:22px;height:22px;flex:none;color:var(--brass)}
+.ask .av{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--brassbg);color:var(--brassd);font:800 18px var(--serif)}
+.ask b{display:block;font:700 17px var(--serif)}
+.prompts{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px 4px}
+.prompts::-webkit-scrollbar{display:none}
+.prompts button{all:unset;cursor:pointer;flex:none;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:var(--sunk);color:var(--ink)}
+.stick{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+.stick .eyebrow{display:flex;justify-content:space-between;align-items:center}
+.stick b.t{display:block;font:700 20px/1.2 var(--serif);margin:6px 0 4px}
+.stick p{margin:0;color:var(--mute);font-size:15px}
+.canon{display:flex;gap:14px;align-items:center}
+.ring{width:68px;height:68px;flex:none}
+.ring text{font:800 17px var(--serif);fill:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font:800 22px var(--serif)}
+.stat span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);font-weight:700}
+.chat{display:flex;flex-direction:column;gap:10px;margin:10px 0}
+.msg{padding:11px 13px;border-radius:16px;max-width:92%;white-space:pre-wrap;font-size:15px;line-height:1.5}
+.msg.me{align-self:flex-end;background:var(--brassbg);color:var(--ink);border-bottom-right-radius:5px}
+.msg.bt{align-self:flex-start;background:var(--paper);border:1px solid var(--line);border-bottom-left-radius:5px}
 /* auth */
 .auth{max-width:420px;margin:7vh auto 0;display:flex;flex-direction:column;gap:12px}
 .auth h1{font-size:34px;text-align:center}

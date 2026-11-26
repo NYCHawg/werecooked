@@ -153,7 +153,9 @@ const specByKey = k => k?.startsWith('c:') ? mySpecs().find(s => s.id === k) : L
 const metaOf = k => S.meta[k] || {};
 function specStatus(sp) {
   const rows = sp.ings.filter(i => i.ref?.length).map(i => ({ i, st: ingState(i) }));
-  const missing = rows.filter(r => !r.st.ok);
+  const isBitters = r => r.i.ref.some(a => (a.style || a.fam || '').startsWith('bitters'));
+  // a second dash of bitters is a grace note: if another bitters in the spec is covered, pour without it
+  const missing = rows.filter(r => !r.st.ok && !(isBitters(r) && /^dash/.test(r.i.u) && rows.some(o => o !== r && isBitters(o) && o.st.ok)));
   return { ok: !missing.length, missing, quick: rows.filter(r => r.st.how === 'quick'), subs: rows.filter(r => r.st.how === 'sub'), rows };
 }
 const baseCache = new Map();
@@ -306,34 +308,128 @@ function render() {
   for (const [id, key] of [['#bq', 'barQ'], ['#sq', 'specQ'], ['#pq', 'prepQ']]) { const el = $(id); if (el) el.oninput = e => { S[key] = e.target.value; const pos = e.target.selectionStart; render(); const n = $(id); n.focus(); n.setSelectionRange(pos, pos); }; }
 }
 
-// ---------- home ----------
-function homeView() {
-  const h = new Date().getHours(), hi = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-  const specs = allSpecs(), st = specs.map(sp => ({ sp, s: specStatus(sp) })), can = st.filter(x => x.s.ok);
-  // one bottle away: what single purchase unlocks the most drinks
+// ---------- home: your bartender ----------
+/** Technique, the way a head bartender would teach it on a slow Tuesday. */
+const TIPS = [
+  ['Shake like you mean it', 'Ten to twelve hard seconds, tins full of ice. You\'re chilling, diluting and aerating all at once. When the tin frosts over and hurts to hold, you\'re there.'],
+  ['Stir until it sings', 'Stirred drinks want 20 to 30 seconds with a barspoon riding the inside of the glass. Taste it off the spoon: it should be cold and silky, never watery.'],
+  ['Shake citrus, stir spirits', 'Juice, cream or egg in the drink? Shake it. All spirits, vermouth and bitters? Stir it, so it stays clear and heavy on the tongue.'],
+  ['The dry shake', 'For egg white sours, shake everything without ice first to whip the foam, then add ice and shake again. Some bars reverse it: shake with ice, strain, dump the ice, shake again. Both work.'],
+  ['Express, don\'t just garnish', 'Hold the peel skin-side down over the drink and pinch. That mist of oil is the first thing your guest smells. Rub the rim, then decide if it goes in.'],
+  ['Juice it fresh, every time', 'Bottled lime juice is the fastest way to ruin a Daiquiri. Lime is best 4 to 8 hours after squeezing and falls off a cliff after a day.'],
+  ['Build in the small tin', 'Pour the cheapest ingredients first: citrus, syrup, then the spirit. If you mess up the measure, you lose lime juice, not your good rye.'],
+  ['Ice is an ingredient', 'Wet, cloudy freezer ice melts fast and waters a drink. Use big, dry cubes for shaking and stirring, and a fresh cube in the glass. Never reuse shaking ice.'],
+  ['Chill the glass', 'A drink served up starts warming the second it\'s poured. Park coupes in the freezer, or fill them with ice and water while you build.'],
+  ['Balance is a seesaw', 'Most sours are 2 parts spirit, ¾ part sour, ¾ part sweet. If it\'s too tart, add a quarter ounce of syrup; too sweet, a quarter of citrus. Adjust in quarters.'],
+  ['Salt is the secret', 'Two drops of 20% saline in a sour or a Margarita makes the fruit brighter and the bitterness rounder. Nobody tastes salt; they taste a better drink.'],
+  ['Measure. Always.', 'The best bartenders in New York still jigger every pour. Free-pouring is a party trick; consistency is the craft.'],
+  ['Rich syrup for stirred drinks', '2:1 syrup sweetens with less water, which matters in an Old Fashioned. Swap ¾ oz simple for ½ oz rich and keep the same sweetness.'],
+  ['Vermouth is wine', 'Once it\'s open, it oxidizes. Keep vermouth in the fridge and finish it in about a month. Flat, brown vermouth is why people think they hate Manhattans.'],
+  ['Taste before you pour', 'Dip a straw and taste every drink before it leaves your hands. It takes three seconds and catches the missing syrup, the extra lime, the wrong bottle.'],
+  ['The rinse', 'For a Sazerac, pour a little absinthe in a chilled glass, swirl to coat, dump the rest. You want the aroma, not the flavor.'],
+  ['Strain twice for up drinks', 'Hawthorne strainer over the tin, fine strainer over the glass. No ice shards, no mint bits, just a clean, velvety pour.'],
+  ['Long drinks: build in the glass', 'Highballs are built over ice with cold soda poured down a barspoon. One gentle lift to mix: stirring kills the bubbles.'],
+  ['Know your proof', 'A 100-proof spirit stands up to citrus and dilution better than an 80. That\'s why bartenders love bottled-in-bond whiskey for sours.'],
+  ['Bitters are the salt and pepper', 'A dash or two ties sweet and strong together. An Old Fashioned without bitters is just sweet whiskey.'],
+  ['Muddle gently', 'Mint wants to be pressed, not shredded. Bruise it and you get bitter chlorophyll. Citrus and cucumber can take more muscle.'],
+  ['Batch the night before', 'For parties, batch spirits, syrups and bitters ahead. Add citrus within 4 hours and shake to order. Stirred drinks can be fully batched with water and frozen.'],
+  ['The swizzle', 'Pack the glass with crushed ice, then spin a swizzle stick between your palms until the outside frosts. Top with more ice and a dash of bitters.'],
+  ['Read the drink\'s family', 'Learn the templates, not 500 recipes. A Sidecar, a Margarita and a Cosmo are the same drink: spirit, orange liqueur, citrus.'],
+  ['Split the base', 'Half rye, half cognac. Half mezcal, half tequila. Splitting the spirit adds depth without a single new ingredient. It\'s how the Vieux Carré was born.'],
+  ['Garnish with purpose', 'Every garnish should add aroma or flavor. An orange peel on a Negroni: yes. A sad maraschino skewer on a Martini: no.'],
+  ['Temperature beats everything', 'A perfectly balanced drink served lukewarm tastes worse than a sloppy one served ice cold. Cold is the first rule.'],
+  ['Egg whites, not eggs', 'One white (about ¾ oz) foams two sours. Keep a carton of pasteurized whites in the fridge, or use aquafaba for a vegan foam.'],
+  ['Sherry is your friend', 'A quarter ounce of fino or amontillado makes a Martini or Old Fashioned taste expensive. Low-proof, high-flavor, cheap.'],
+  ['Clean as you go', 'Rinse your tins and spoon between drinks. Lime in your Manhattan is how you lose regulars.'],
+];
+/** Every NYC bartender worth their bitters can make these blindfolded. */
+const CANON = ['old-fashioned', 'manhattan', 'martini', 'negroni', 'daiquiri', 'margarita', 'whiskey-sour', 'sidecar', 'mojito', 'tom-collins', 'gimlet', 'french-75', 'sazerac', 'mai-tai', 'last-word',
+  'paper-plane', 'penicillin', 'bees-knees', 'boulevardier', 'moscow-mule', 'mint-julep', 'espresso-martini', 'aviation', 'pisco-sour', 'clover-club', 'corpse-reviver-2', 'vieux-carre', 'ramos-gin-fizz', 'jungle-bird', 'paloma'];
+const METHOD_TIP = { shaken: 'Hard shake, 10–12 seconds, then fine-strain.', stirred: 'Stir 25–30 seconds in a chilled mixing glass, strain over clean ice or up.', built: 'Build in the glass over good ice, one gentle lift.', swizzled: 'Swizzle in crushed ice until the glass frosts.', 'flash-blended': 'Flash-blend 5 seconds, or shake hard with crushed ice and dump.', blended: 'Blend until smooth, serve immediately.', rolled: 'Roll between two tins to mix without foaming.' };
+/** The moment: time of day and season shape what a good bartender would pour you. */
+function moment() {
+  const h = new Date().getHours(), mo = new Date().getMonth(), dow = new Date().getDay();
+  const season = [11, 0, 1].includes(mo) ? 'winter' : [5, 6, 7].includes(mo) ? 'summer' : [2, 3, 4].includes(mo) ? 'spring' : 'fall';
+  if (h < 11) return { key: 'brunch', label: dow === 0 || dow === 6 ? 'Weekend brunch' : 'Morning', fams: ['Highball', 'Champagne', 'Fizz', 'Spritz'], names: ['bloody-mary', 'mimosa', 'bellini', 'ramos-gin-fizz', 'espresso-martini', 'red-snapper', 'garibaldi', 'irish-coffee'], why: 'Something bright and easy to start the day.' };
+  if (h < 16) return { key: 'day', label: 'Afternoon', fams: ['Highball', 'Spritz', 'Sour', 'Julep', 'Cobbler'], why: season === 'summer' ? 'It\'s hot out: tall, cold and refreshing.' : 'Daytime drinking calls for something light.' };
+  if (h < 19) return { key: 'aperitivo', label: 'Aperitivo hour', fams: ['Martini', 'Spritz', 'Highball'], names: ['negroni', 'americano', 'aperol-spritz', 'bamboo', 'martini', 'adonis', 'white-negroni', 'campari-spritz'], why: 'Before dinner: bitter, dry and appetite-waking.' };
+  if (h < 22) return { key: 'evening', label: 'Tonight', fams: season === 'summer' ? ['Tiki', 'Sour', 'Highball', 'Swizzle'] : season === 'winter' ? ['Old Fashioned', 'Manhattan', 'Flip', 'Hot', 'Sour'] : ['Sour', 'Old Fashioned', 'Manhattan', 'Martini', 'Tiki'], why: season === 'winter' ? 'A cold night wants something brown and stirred, or a warm one.' : season === 'summer' ? 'Summer night: break out the tiki mugs.' : 'Prime time. Make the good stuff.' };
+  return { key: 'nightcap', label: 'Nightcap', fams: ['Old Fashioned', 'Manhattan', 'Flip', 'Duo'], names: ['old-fashioned', 'vieux-carre', 'sazerac', 'black-manhattan', 'stinger', 'brandy-alexander', 'toronto', 'rusty-nail', 'godfather'], why: 'Last call at home: slow, strong and stirred.' };
+}
+const dayKey = () => Math.floor(Date.now() / 864e5);
+function tonightsPour(can, skip = 0) {
+  const m = moment();
+  const scored = can.map(sp => { const me = metaOf(sp.id); let s = 0;
+    if (m.names?.includes(sp.id)) s += 40; if (m.fams.includes(sp.family)) s += 25; if (me.favorite) s += 15; s += (me.rating || 0) * 4;
+    if (me.last_made && daysUntil(me.last_made) > -2) s -= 30; if (!me.made_count && CANON.includes(sp.id)) s += 8;   // nudge toward learning the canon
+    s += (hashStr(sp.id + dayKey() + m.key) % 20); return { sp, s }; }).sort((a, b) => b.s - a.s);
+  return { pick: scored.length ? scored[skip % scored.length].sp : null, m };
+}
+function ringSvg(n, total) { const r = 28, c = 2 * Math.PI * r, f = total ? n / total : 0;
+  return `<svg class="ring" viewBox="0 0 68 68" aria-hidden="true"><circle cx="34" cy="34" r="${r}" fill="none" stroke="var(--sunk)" stroke-width="7"/><circle cx="34" cy="34" r="${r}" fill="none" stroke="var(--brass)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 34 34)"/><text x="34" y="40" text-anchor="middle">${n}</text></svg>`; }
+const greet = () => { const h = new Date().getHours(), n = first(S.me);
+  return h < 11 ? `Morning, ${n}. Coffee first, then the bar.` : h < 16 ? `Afternoon, ${n}. Too early? Never too early to prep.` : h < 19 ? `Evening, ${n}. Aperitivo hour.` : h < 22 ? `Evening, ${n}. The bar is open.` : `Late one, ${n}. Something stirred?`; };
+function unlocks(st) {
   const unlock = new Map();
-  for (const x of st) if (x.s.missing.length === 1) { const m = x.s.missing[0], a = m.i.ref[0], key = a.prep ? 'prep:' + a.prep : a.style ? 'fam:' + (STY[a.style]?.fam || a.style) : a.fam ? 'fam:' + a.fam : 'fresh:' + a.fresh;
-    const cur = unlock.get(key) || { key, a, n: 0, names: [] }; cur.n++; cur.names.push(x.sp.name); unlock.set(key, cur); }
-  const top = [...unlock.values()].sort((a, b) => b.n - a.n).slice(0, 4);
-  const favs = can.filter(x => metaOf(x.sp.id).favorite).map(x => x.sp), picks = [...favs, ...can.map(x => x.sp).filter(s => !favs.includes(s)).sort((a, b) => (metaOf(b.id).rating || 0) - (metaOf(a.id).rating || 0) || hashStr(a.id + today()) % 7 - hashStr(b.id + today()) % 7)].slice(0, 8);
-  const low = S.bottles.filter(b => bottleLow(b) || bottleRunningLow(b));
-  const exp = S.preps.filter(p => Number(p.qty_ml) > 0 && p.expires_on && daysUntil(p.expires_on) <= 2);
+  for (const x of st) if (x.s.missing.length === 1) { const a = x.s.missing[0].i.ref[0], key = a.prep ? 'prep:' + a.prep : a.style ? 'fam:' + (STY[a.style]?.fam || a.style) : a.fam ? 'fam:' + a.fam : 'fresh:' + a.fresh;
+    const cur = unlock.get(key) || { key, a: a.style ? { fam: STY[a.style]?.fam } : a, n: 0, names: [] }; cur.n++; cur.names.push(x.sp.name); unlock.set(key, cur); }
+  return [...unlock.values()].sort((a, b) => b.n - a.n);
+}
+function homeView() {
+  const specs = allSpecs(), st = specs.map(sp => ({ sp, s: specStatus(sp) })), can = st.filter(x => x.s.ok).map(x => x.sp);
+  const { pick, m } = tonightsPour(can, S.pourSkip || 0);
+  const tip = TIPS[(dayKey() + (S.tipSkip || 0)) % TIPS.length];
+  const made = CANON.filter(k => metaOf(k).made_count > 0), canonNext = CANON.filter(k => !metaOf(k).made_count && LSPEC[k] && specStatus(LSPEC[k]).ok).slice(0, 3);
+  const top = unlocks(st).filter(u => !u.a.fresh).slice(0, 3);
+  const eighty6 = S.bottles.filter(b => bottleLow(b) || bottleRunningLow(b) || (!bottleOn(b) && Number(b.par) > 0));
+  const mise = S.preps.filter(p => Number(p.qty_ml) > 0 && p.expires_on && daysUntil(p.expires_on) <= 2), toMake = prepsToMake().slice(0, 3);
   const next = S.events.filter(e => e.day && daysUntil(e.day) >= 0).sort((a, b) => a.day.localeCompare(b.day))[0];
-  const fills = S.bottles.filter(b => bottleOn(b)).length;
-  return `<div class="hello"><div class="eyebrow">${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</div><h2>${hi}, ${first(S.me)}.</h2></div>
-  <div class="hero"><div class="eyebrow">Tonight you can make</div><b class="big">${can.length}</b><p>of ${specs.length} specs, from ${fills} bottle${fills === 1 ? '' : 's'} on the back bar${S.preps.filter(prepLive).length ? ` and ${S.preps.filter(prepLive).length} house preps` : ''}.</p>
-    <div class="row" style="margin-top:14px"><button class="btn sm" data-act="cannow">See them</button>${can.length ? '<button class="btn sm ghost" data-act="surprise">Surprise me</button>' : ''}</div></div>
+  const empty = !S.bottles.length;
+  const pourCard = pick ? `<div class="pour">${glassSvg(pick.glass)}<div class="eyebrow">${esc(m.label)} · Tonight's pour</div><h2>${esc(pick.name)}</h2><p class="why">${esc(m.why)}${metaOf(pick.id).favorite ? ' One of your favorites.' : !metaOf(pick.id).made_count && CANON.includes(pick.id) ? ' A classic every bartender should own.' : ''}</p>
+      <div class="specline">${pick.ings.filter(i => i.ref?.length || i.t).slice(0, 5).map(i => `<span>${esc(amtText(i))} ${esc(ingLabel(i))}</span>`).join('')}</div>
+      <div class="row"><button class="btn sm" data-spec="${esc(pick.id)}">Make it</button><button class="btn sm ghost" data-act="pournext">Something else</button></div>
+      <div class="tip"><b>Behind the stick:</b> ${esc(METHOD_TIP[pick.method] || 'Taste before you pour.')}</div></div>`
+    : `<div class="pour"><div class="eyebrow">Let's open the bar</div><h2>Stock the back bar</h2><p class="why">Show me what's on your shelf and I'll tell you exactly what you can pour tonight, from 229 specs.</p>
+      <div class="row"><button class="btn sm" data-act="scanshelf">${svg('camera')} Snap your shelf</button><button class="btn sm ghost" data-act="addbottle">Add by name</button></div></div>`;
+  return `<div class="hello"><div class="eyebrow">${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</div><h2>${greet()}</h2></div>
+  ${pourCard}
+  <button class="ask" data-act="ask"><span class="av">B</span><span style="flex:1"><b>Ask your bartender</b><span class="imeta">Subs, fixes, ideas, party menus. I know what's on your shelf.</span></span>${svg('spark')}</button>
+  <div class="prompts" aria-label="Ask about">${['What can I make with what I have?', 'My drink is too sweet. Fix it?', 'Sub for Cocchi Americano?', 'Build me a 3-drink party menu', 'Teach me to make a Martini right'].map(q => `<button data-askq="${esc(q)}">${esc(q)}</button>`).join('')}</div>
   <div class="qgrid">
     <button class="q" data-act="addbottle">${svg('plus')}Add bottle</button>
-    <button class="q" data-act="scanshelf">${svg('camera')}Scan shelf</button>
-    <button class="q" data-act="batchcalc">${svg('calc')}Batch</button>
-    <button class="q" data-act="tools">${svg('spark')}Tools</button></div>
-  ${picks.length ? `<h3>Pour tonight</h3><div class="mini" aria-label="Suggestions">${picks.map(sp => `<button class="mcard" data-spec="${esc(sp.id)}">${glassSvg(sp.glass, 'gl')}<b>${esc(sp.name)}</b><span class="imeta">${esc(sp.family)}${metaOf(sp.id).favorite ? ' · ★' : ''}</span></button>`).join('')}</div>` : ''}
-  ${top.length ? `<h3>One bottle away</h3><div class="card">${top.map(u => `<div class="alert"><span class="dot olive"></span><span class="grow" style="flex:1"><span class="iname">${esc(altName(u.a.prep ? u.a : u.a.style ? { fam: STY[u.a.style]?.fam } : u.a))}</span><span class="imeta" style="display:block">Unlocks ${u.n}: ${esc(u.names.slice(0, 3).join(', '))}${u.n > 3 ? '…' : ''}</span></span>${u.a.prep ? `<button class="btn sm ghost" data-prep-lib="${esc(u.a.prep)}">Make it</button>` : `<button class="btn sm ghost" data-buy="${esc(altName(u.a.style ? { fam: STY[u.a.style]?.fam } : u.a))}">Add to list</button>`}</div>`).join('')}</div>` : ''}
-  ${low.length || exp.length ? `<h3>Needs attention</h3><div class="card">${low.map(b => `<div class="alert"><span class="dot ox"></span><button class="tap" data-bottle="${b.id}" style="flex:1"><span class="iname">${esc(b.name)}</span><span class="imeta" style="display:block">${Number(b.fill_ml) > 0 ? `${Math.round(fillPct(b) * 100)}% left` : 'Empty'}${Number(b.sealed) ? ` · ${b.sealed} sealed` : ''}${bottleLow(b) ? ' · on the Bar list' : ''}</span></button></div>`).join('')}
-    ${exp.map(p => `<div class="alert"><span class="dot"></span><button class="tap" data-prep="${p.id}" style="flex:1"><span class="iname">${esc(p.name)}</span><span class="imeta" style="display:block">${daysUntil(p.expires_on) < 0 ? 'Past its date' : daysUntil(p.expires_on) === 0 ? 'Use today' : `Use within ${daysUntil(p.expires_on)} day${daysUntil(p.expires_on) === 1 ? '' : 's'}`}</span></button></div>`).join('')}</div>` : ''}
-  ${next ? `<h3>Next up</h3><button class="tap card" data-event="${next.id}"><div class="row"><span class="grow" style="flex:1"><span class="eyebrow">${daysUntil(next.day) === 0 ? 'Tonight' : daysUntil(next.day) === 1 ? 'Tomorrow' : `In ${daysUntil(next.day)} days`}</span><b style="display:block;font:700 20px var(--serif)">${esc(next.name)}</b><span class="imeta">${next.guests ? `${next.guests} guests · ` : ''}${(next.drinks || []).length} drinks on the menu</span></span>${svg('clock')}</div></button>` : ''}
-  ${!S.bottles.length ? `<div class="card flat" style="margin-top:16px"><b style="font:700 18px var(--serif)">Stock the back bar</b><p class="imeta" style="margin:4px 0 12px">Add the bottles you own and every spec lights up with what you can pour. Snap a photo of your shelf to add them in one go.</p><div class="row"><button class="btn sm" data-act="scanshelf">${svg('camera')} Scan my shelf</button><button class="btn sm ghost" data-act="addbottle">Add one at a time</button></div></div>` : ''}`;
+    <button class="q" data-act="scanshelf">${svg('camera')}Snap shelf</button>
+    <button class="q" data-act="barcode">${svg('scan')}Barcode</button>
+    <button class="q" data-act="tools">${svg('calc')}Tools</button></div>
+  ${!empty ? `<div class="stats"><div class="stat"><b>${can.length}</b><span>Can pour</span></div><div class="stat"><b>${S.bottles.filter(bottleOn).length}</b><span>Bottles</span></div><div class="stat"><b>${S.preps.filter(prepLive).length}</b><span>House preps</span></div></div>` : ''}
+  <h3>Behind the stick</h3><div class="stick"><div class="eyebrow"><span>Technique of the day</span><button class="lnk" data-act="nexttip">Next tip</button></div><b class="t">${esc(tip[0])}</b><p>${esc(tip[1])}</p></div>
+  <h3>The canon</h3><div class="card"><div class="canon">${ringSvg(made.length, CANON.length)}<div style="flex:1"><b style="font:700 18px var(--serif)">${made.length} of ${CANON.length} classics made</b><p class="imeta" style="margin:2px 0 0">${made.length === 0 ? 'The 30 drinks every NYC bartender can make blindfolded. Tap “Made it” on a spec to check one off.' : made.length < 10 ? 'Good start. Keep working the list.' : made.length < 30 ? 'You\'re getting dangerous.' : 'You could work a Saturday at any bar in the city.'}</p></div></div>
+    ${canonNext.length ? `<div style="margin-top:10px">${canonNext.map(k => `<button class="tap item" data-spec="${k}"><span class="grow"><span class="iname">${esc(LSPEC[k].name)}</span><span class="imeta" style="display:block">You have everything for it</span></span><span class="pill ok">Ready</span></button>`).join('')}</div>` : ''}</div>
+  ${top.length ? `<h3>The next bottle I'd buy</h3><div class="card">${top.map((u, k) => `<div class="alert"><span class="dot olive"></span><span style="flex:1"><span class="iname">${esc(altName(u.a))}</span><span class="imeta" style="display:block">${k === 0 ? 'Best bang for your buck: ' : ''}unlocks ${u.n} drink${u.n === 1 ? '' : 's'}: ${esc(u.names.slice(0, 3).join(', '))}${u.n > 3 ? '…' : ''}</span></span>${u.a.prep ? `<button class="btn sm ghost" data-prep-lib="${esc(u.a.prep)}">Make it</button>` : `<button class="btn sm ghost" data-buy="${esc(altName(u.a))}">+ List</button>`}</div>`).join('')}</div>` : ''}
+  ${mise.length || toMake.length ? `<h3>Mise en place</h3><div class="card">${mise.map(p => `<div class="alert"><span class="dot"></span><button class="tap" data-prep="${p.id}" style="flex:1"><span class="iname">${esc(p.name)}</span><span class="imeta" style="display:block">${daysUntil(p.expires_on) < 0 ? 'Past its date: toss it and make fresh' : daysUntil(p.expires_on) === 0 ? 'Use it tonight' : `Use within ${daysUntil(p.expires_on)} day${daysUntil(p.expires_on) === 1 ? '' : 's'}`}</span></button></div>`).join('')}
+    ${toMake.map(w => `<div class="alert"><span class="dot ice"></span><span style="flex:1"><span class="iname">Make ${esc(PREP[w.pid].name.toLowerCase())}</span><span class="imeta" style="display:block">For ${esc([...w.why].slice(0, 2).join(', '))}</span></span><button class="btn sm ghost" data-prep-lib="${esc(w.pid)}">Recipe</button></div>`).join('')}</div>` : ''}
+  ${eighty6.length ? `<h3>86 list</h3><div class="card">${eighty6.map(b => `<div class="alert"><span class="dot ox"></span><button class="tap" data-bottle="${b.id}" style="flex:1"><span class="iname">${esc(b.name)}</span><span class="imeta" style="display:block">${bottleOn(b) ? `${Math.round(fillPct(b) * 100)}% left` : '86\'d: out'}${Number(b.sealed) ? ` · ${b.sealed} sealed` : ''}${S.list.some(x => !x.checked && x.name === b.name) ? ' · on the Bar list' : ''}</span></button></div>`).join('')}</div>` : ''}
+  ${next ? `<h3>Next up</h3><button class="tap card" data-event="${next.id}"><span class="eyebrow">${daysUntil(next.day) === 0 ? 'Tonight' : daysUntil(next.day) === 1 ? 'Tomorrow' : `In ${daysUntil(next.day)} days`}</span><b style="display:block;font:700 20px var(--serif)">${esc(next.name)}</b><span class="imeta">${next.guests ? `${next.guests} guests · ` : ''}${(next.drinks || []).length} drinks on the menu</span></button>` : ''}`;
+}
+
+// ---------- ask your bartender ----------
+const chat = [];
+function askSheet(q0 = '') {
+  const draw = () => `<div class="row" style="flex-wrap:nowrap"><span class="av" style="width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--brassbg);color:var(--brassd);font:800 18px var(--serif);flex:none">B</span><div><h2 style="font-size:24px">Your bartender</h2><p class="imeta" style="margin:0">25 years behind NYC bars. Knows your shelf.</p></div></div>
+    <div class="chat">${chat.length ? chat.map(c => `<div class="msg ${c.who}">${esc(c.text)}</div>${c.drinks?.length ? `<div class="chips">${c.drinks.map(d => `<button class="chip" data-spec="${esc(d.id)}">${esc(d.name)} ›</button>`).join('')}</div>` : ''}`).join('') : `<div class="msg bt">What are we drinking? Ask me anything: what to make with what you've got, how to fix a drink, a substitute, a technique, a menu for Saturday.</div>`}</div>
+    <form id="askf" class="row" style="flex-wrap:nowrap;gap:8px"><input type="text" id="askq" placeholder="Ask your bartender…" value="${esc(q0)}" autocomplete="off" aria-label="Your question"><button class="btn" type="submit" aria-label="Send">${svg('spark')}</button></form>`;
+  sheet(draw(), (el) => {
+    const go = async q => { q = q.trim(); if (!q) return; chat.push({ who: 'me', text: q }); chat.push({ who: 'bt', text: '…' }); redraw(el, draw()); bind();
+      try {
+        const bar = S.bottles.filter(bottleOn).map(b => `${b.name}${STY[b.style_id] ? ` (${STY[b.style_id].name})` : ''}`);
+        const out = await ai('bartender', { question: q, history: chat.slice(0, -2).slice(-8).map(c => ({ role: c.who === 'me' ? 'user' : 'assistant', text: c.text })), bar, preps: S.preps.filter(prepLive).map(p => p.name), units: S.units, can_make: allSpecs().filter(sp => specStatus(sp).ok).map(sp => sp.name).slice(0, 120) });
+        const drinks = (out.drinks || []).map(n => allSpecs().find(sp => fold(sp.name) === fold(n))).filter(Boolean);
+        chat[chat.length - 1] = { who: 'bt', text: out.answer || 'Hm. Ask me that another way?', drinks };
+      } catch (er) { chat[chat.length - 1] = { who: 'bt', text: `Couldn't reach the back right now (${er.message}). Try again in a minute.` }; }
+      redraw(el, draw()); bind(); const box = el.querySelector('[role=dialog]'); box.scrollTop = box.scrollHeight; };
+    const bind = () => { el.querySelector('#askf').onsubmit = e => { e.preventDefault(); const v = el.querySelector('#askq').value; el.querySelector('#askq').value = ''; go(v); }; };
+    el.addEventListener('click', e => { const t = e.target.closest('[data-spec]'); if (t) { el.remove(); specSheet(t.dataset.spec); } });
+    bind(); if (q0) { el.querySelector('#askq').value = ''; go(q0); }
+  });
 }
 
 // ---------- back bar ----------
@@ -661,42 +757,118 @@ async function ai(mode, body) {
   if (data?.error) throw new Error(data.error); return data;
 }
 function pickPhotos(multiple = true) { return new Promise(res => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = multiple; i.onchange = () => res([...i.files]); i.click(); }); }
-/** Match an AI-read bottle name to the catalog. */
-function bestCatalog(name, cat) {
-  const n = name.toLowerCase().replace(/[^a-z0-9 &']/g, ' '), words = n.split(/\s+/).filter(w => w.length > 1 && !['the', 'and', 'de', 'of'].includes(w));
-  let best = null, bs = 0;
-  for (const [bn, sid, abv] of C.bottles) { const l = bn.toLowerCase(); const hit = words.filter(w => l.includes(w)).length / Math.max(words.length, 1); const score = hit - Math.abs(l.length - n.length) / 200; if (score > bs) { bs = score; best = { name: bn, sid, abv }; } }
-  if (bs >= 0.6) return best;
-  const style = C.styles.find(s => s.cat.toLowerCase() === String(cat || '').toLowerCase());
-  return { name, sid: style?.id || '', abv: null };
+/** Match a bottle name read off a label to the catalog without ever swapping a specific bottle for a generic one.
+    Returns {name, sid, abv, hit} — hit is the catalog entry when the label clearly is that bottle. */
+const toks = s => fold(s).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(w => w && !['the', 'and', 'de', 'of', 'la', 'le', 'el'].includes(w));
+function bestCatalog(name, brand = '') {
+  const at = new Set(toks(`${brand} ${name}`)); let best = null, bs = 0;
+  if (!at.size) return { name, sid: '', abv: null, hit: null };
+  for (const c of C.bottles) { const ct = toks(c[0]); if (!ct.length || !at.has(ct[0])) continue;   // the brand has to match
+    const inter = ct.filter(w => at.has(w)).length, cover = inter / ct.length, prec = inter / at.size, score = cover * 0.75 + prec * 0.25;
+    if (cover >= 0.75 && score > bs) { bs = score; best = c; } }
+  if (!best) return { name, sid: '', abv: null, hit: null };
+  const precise = toks(best[0]).length >= at.size - 1;   // the catalog name is as specific as the label: use its spelling
+  return { name: precise ? best[0] : name, sid: best[1], abv: best[2], hit: best };
+}
+/** Closest style for a description like "bottled-in-bond bourbon" (used when the AI's style is missing). */
+function styleFromHint(hint, cat) {
+  const t = toks(hint); if (!t.length) return '';
+  let best = '', bs = 0;
+  for (const st of C.styles) { if (cat && st.cat.toLowerCase() !== String(cat).toLowerCase()) continue; const w = toks(st.name + ' ' + st.notes); const sc = t.filter(x => w.includes(x)).length / t.length; if (sc > bs) { bs = sc; best = st.id; } }
+  return bs >= 0.5 ? best : '';
 }
 async function scanShelf() {
   const files = await pickPhotos(true); if (!files.length) return;
-  const el = sheet(`<div class="spin"></div><p class="lede" style="text-align:center">Reading labels…</p>`);
+  const el = sheet(`<div class="spin"></div><p class="lede" style="text-align:center">Reading labels like a bar-back on inventory night…</p>`);
   try {
-    const images = await Promise.all(files.slice(0, 4).map(f => fileToB64(f)));
-    const out = await ai('bar_photo', { images, media_type: 'image/jpeg' });
-    const found = (out.bottles || []).map(x => { const m = bestCatalog(x.name || '', x.category); return { ...x, name: m.name || x.name, sid: m.sid, abv: x.abv || m.abv, fill: clamp(Number(x.fill ?? 1), 0, 1), on: !S.bottles.some(b => b.name.toLowerCase() === (m.name || x.name).toLowerCase()) }; });
-    if (!found.length) { el.remove(); return toast("Couldn't read any bottles. Try a closer, brighter photo."); }
-    redraw(el, `<h2>Found ${found.length} bottle${found.length === 1 ? '' : 's'}</h2><p class="lede">Untick anything that's wrong; fill levels are the AI's best guess.</p>
-      <div class="card flat" style="padding:2px 12px">${found.map((x, k) => `<label class="item" style="margin:0;color:var(--ink);font-size:15px;cursor:pointer"><input type="checkbox" data-k="${k}" ${x.on ? 'checked' : ''} style="width:22px;height:22px;accent-color:var(--brass)"><span class="grow"><span class="iname">${esc(x.name)}</span><span class="imeta" style="display:block">${esc(STY[x.sid]?.name || x.category || 'Style unknown')} · about ${Math.round(x.fill * 100)}% full${x.on ? '' : ' · already on the back bar'}</span></span></label>`).join('')}</div>
-      <div class="row" style="margin-top:14px"><button class="btn" id="addall">Add to the back bar</button><button class="btn ghost" data-close>Cancel</button></div>`);
+    const images = await Promise.all(files.slice(0, 4).map(f => fileToB64(f, 2000)));
+    const out = await ai('bar_photo', { images, media_type: 'image/jpeg', styles: C.styles.map(st => `${st.id}|${st.cat}|${st.name}`) });
+    const found = (out.bottles || []).filter(x => x.name).map(x => {
+      const m = bestCatalog(x.name, x.brand), sid = STY[x.style_id] ? x.style_id : m.sid || styleFromHint(x.style_hint || x.name, x.category);
+      const name = m.hit ? m.name : x.name;
+      return { name, sid, abv: x.abv || m.abv || null, size_ml: x.size_ml || null, fill: clamp(Number(x.fill ?? 1), 0, 1), dupe: S.bottles.some(b => fold(b.name) === fold(name)) }; });
+    if (!found.length) { el.remove(); return toast("Couldn't make out any labels. Get closer, face the labels to the camera, good light."); }
+    const draw = () => `<h2>Found ${found.length} bottle${found.length === 1 ? '' : 's'}</h2><p class="lede">Check the names (tap to fix), untick anything wrong. Fill levels are the AI's best eyeball.</p>
+      <div class="card flat" style="padding:2px 12px">${found.map((x, k) => `<div class="item"><input type="checkbox" data-k="${k}" ${x.dupe ? '' : 'checked'} aria-label="Add ${esc(x.name)}" style="width:22px;height:22px;accent-color:var(--brass)"><span class="grow"><input type="text" data-nm="${k}" value="${esc(x.name)}" style="min-height:38px;padding:6px 10px;font-weight:600" aria-label="Bottle name">
+        <span class="imeta" style="display:block;margin-top:3px">${esc(STY[x.sid]?.name || 'Style unknown: set it after adding')} · about ${Math.round(x.fill * 100)}% full${x.dupe ? ' · already on your back bar' : ''}</span></span></div>`).join('')}</div>
+      <div class="row" style="margin-top:14px"><button class="btn" id="addall">Add to the back bar</button><button class="btn ghost" data-close>Cancel</button></div>`;
+    redraw(el, draw());
     el.querySelector('#addall').onclick = async () => {
-      const pick = found.filter((x, k) => el.querySelector(`[data-k="${k}"]`).checked);
-      const rows = pick.map(x => ({ household_id: S.household.id, name: x.name.slice(0, 120), style_id: x.sid || null, category: STY[x.sid]?.cat || x.category || null, abv: x.abv || (STY[x.sid]?.abv ? Math.round((STY[x.sid].abv[0] + STY[x.sid].abv[1]) / 2) : null), size_ml: x.size_ml || 750, fill_ml: Math.round((x.size_ml || 750) * x.fill), location: 'backbar' }));
+      const pick = found.map((x, k) => ({ ...x, name: (el.querySelector(`[data-nm="${k}"]`).value || x.name).trim() })).filter((x, k) => el.querySelector(`[data-k="${k}"]`).checked);
+      for (const x of pick) if (!STY[x.sid]) { const m = bestCatalog(x.name); if (m.hit) x.sid = m.sid; }
+      const rows = pick.map(x => ({ household_id: S.household.id, name: x.name.slice(0, 120), style_id: x.sid || null, category: STY[x.sid]?.cat || null, abv: x.abv || (STY[x.sid]?.abv ? Math.round((STY[x.sid].abv[0] + STY[x.sid].abv[1]) / 2) : null), size_ml: x.size_ml || 750, fill_ml: Math.round((x.size_ml || 750) * x.fill), location: 'backbar' }));
       if (rows.length) { const r = await sb.from('bar_bottles').insert(rows); if (r.error) return fail(r.error); }
-      await loadAll(); el.remove(); render(); toast(`Added ${rows.length} bottle${rows.length === 1 ? '' : 's'}`);
+      await loadAll(); el.remove(); render(); toast(`${rows.length} bottle${rows.length === 1 ? '' : 's'} on the back bar`);
     };
   } catch (e) { el.remove(); fail(e); }
 }
-async function scanBarcode() {
-  const [file] = await pickPhotos(false); if (!file) return;
-  let code = null;
-  try { if (window.ZXing) { const r = new ZXing.BrowserMultiFormatReader(); const res = await r.decodeFromImageUrl(URL.createObjectURL(file)); code = res?.getText?.() || res?.text; } } catch (_) { }
-  if (!code) return toast("Couldn't read that barcode. Try again, or search by name.");
-  const have = S.bottles.find(b => b.barcode === code);
-  if (have) { const sealed = (Number(have.sealed) || 0) + 1; const r = await sb.from('bar_bottles').update({ sealed, updated_at: new Date().toISOString() }).eq('id', have.id); if (r.error) return fail(r.error); await loadAll(); render(); return toast(`Another ${have.name}: ${sealed} sealed`); }
-  pendingBarcode = code; toast('New barcode: find the bottle once and it will be remembered'); addBottleSheet();
+const BC_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'];
+let nativeBcOK = null, zxingP = null;
+const loadZxing = () => zxingP || (zxingP = new Promise((res, rej) => { if (window.ZXing) return res(window.ZXing); const sc = document.createElement('script'); sc.src = '../vendor/zxing.min.js'; sc.onload = () => res(window.ZXing); sc.onerror = () => { zxingP = null; rej(new Error('The barcode reader failed to load')); }; document.head.appendChild(sc); }));
+async function makeReader() {
+  if (nativeBcOK !== false && 'BarcodeDetector' in window) {
+    try { const f = await BarcodeDetector.getSupportedFormats(); const want = BC_FORMATS.filter(x => f.includes(x)); if (want.length) return { kind: 'native', d: new BarcodeDetector({ formats: want }) }; } catch (_) { }
+    nativeBcOK = false;
+  }
+  const Z = await loadZxing(); const hints = new Map();
+  hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E, Z.BarcodeFormat.CODE_128]); hints.set(Z.DecodeHintType.TRY_HARDER, true);
+  const reader = new Z.MultiFormatReader(); reader.setHints(hints); return { kind: 'zx', Z, reader };
+}
+function zxDecode(r, canvas) { const { Z, reader } = r;
+  for (const Bin of [Z.HybridBinarizer, Z.GlobalHistogramBinarizer]) { try { const res = reader.decode(new Z.BinaryBitmap(new Bin(new Z.HTMLCanvasElementLuminanceSource(canvas)))); if (res) return res.getText(); } catch (_) { } }
+  return null; }
+async function readCode(r, canvas) {
+  if (r.kind === 'native') { try { const out = await r.d.detect(canvas); nativeBcOK = true; return out[0]?.rawValue || null; } catch (_) { nativeBcOK = false; Object.assign(r, await makeReader()); return zxDecode(r, canvas); } }
+  return zxDecode(r, canvas);
+}
+const drawTo = (src, w, h, sx = 0, sy = 0, sw, sh, rot = 0) => { const c = document.createElement('canvas'); c.width = rot ? h : w; c.height = rot ? w : h; const g = c.getContext('2d'); if (rot) { g.translate(c.width / 2, c.height / 2); g.rotate(rot * Math.PI / 180); g.translate(-w / 2, -h / 2); } g.drawImage(src, sx, sy, sw ?? (src.videoWidth || src.naturalWidth || src.width), sh ?? (src.videoHeight || src.naturalHeight || src.height), 0, 0, w, h); return c; };
+async function readCodeFromFile(file) {
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not open that photo')); i.src = URL.createObjectURL(file); });
+  const r = await makeReader(), W = img.naturalWidth, H = img.naturalHeight;
+  for (const max of [1600, 1100, 800]) for (const rot of [0, 90]) { const sc = Math.min(1, max / Math.max(W, H)), code = await readCode(r, drawTo(img, Math.round(W * sc), Math.round(H * sc), 0, 0, W, H, rot)); if (code) { URL.revokeObjectURL(img.src); return code; } }
+  URL.revokeObjectURL(img.src); return null;
+}
+/** Live camera with a reticle, plus photo and type-it-in fallbacks. */
+function barcodeCamera(onCode) {
+  let stream = null, timer = null, stopped = false;
+  const stop = () => { stopped = true; clearInterval(timer); stream?.getTracks().forEach(t => t.stop()); };
+  sheet(`<h2>Scan a barcode</h2><div class="cam"><video playsinline muted autoplay></video><div class="reticle"></div><div class="hint">Line the barcode up in the box</div></div>
+    <div class="camopts"><label class="btn sm">${svg('camera')} Photo of the barcode<input type="file" accept="image/*" capture="environment" class="campick" hidden></label><label class="btn sm ghost">From photos<input type="file" accept="image/*" class="campick" hidden></label><button class="btn sm ghost" id="typec" type="button">Type the number</button></div>
+    <form id="typeform" class="row" style="flex-wrap:nowrap;margin-top:10px" hidden><input type="text" id="typenum" inputmode="numeric" placeholder="Numbers under the barcode" autocomplete="off"><button class="btn" type="submit">Look up</button></form>`, async el => {
+    const video = el.querySelector('video'), hint = el.querySelector('.hint');
+    el.querySelectorAll('.campick').forEach(inp => inp.onchange = async e => { const f = e.target.files[0]; if (!f) return; hint.textContent = 'Reading the barcode…';
+      try { const code = await readCodeFromFile(f); if (code) { stop(); el.remove(); return onCode(code); } hint.textContent = "Couldn't find it. Get closer, flat and in good light, or type the number."; } catch (er) { hint.textContent = er.message; } e.target.value = ''; });
+    el.querySelector('#typec').onclick = () => { const f = el.querySelector('#typeform'); f.hidden = false; f.querySelector('input').focus(); };
+    el.querySelector('#typeform').onsubmit = e => { e.preventDefault(); const c = el.querySelector('#typenum').value.replace(/\D/g, ''); if (c.length < 6 || c.length > 14) { hint.textContent = 'Barcodes are 8 to 13 digits.'; return; } stop(); el.remove(); onCode(c); };
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false }); if (stopped) return stop(); video.srcObject = stream; await video.play().catch(() => { }); }
+    catch (_) { hint.textContent = 'Live camera unavailable: use “Photo of the barcode” below.'; return; }
+    let r; try { r = await makeReader(); } catch (er) { hint.textContent = er.message; return; }
+    let busy = false, tick = 0;
+    timer = setInterval(async () => { if (busy || stopped || !(video.videoWidth > 0 && video.readyState >= 2)) return; busy = true; tick++;
+      try { const w = video.videoWidth, h = video.videoHeight; let c;
+        if (tick % 2) { const cw = Math.round(w * .8), ch = Math.round(h * .45), sc = Math.min(1, 1280 / cw); c = drawTo(video, Math.round(cw * sc), Math.round(ch * sc), (w - cw) / 2, (h - ch) / 2, cw, ch); }
+        else { const sc = Math.min(1, 1280 / w); c = drawTo(video, Math.round(w * sc), Math.round(h * sc)); }
+        const code = await readCode(r, c); if (code && /^\d{6,14}$/.test(code)) { navigator.vibrate?.(60); stop(); el.remove(); onCode(code); }
+      } catch (_) { } finally { busy = false; } }, 350);
+  }, { onClose: stop });
+}
+async function lookupBarcode(code) {
+  try { const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=product_name,brands,quantity,alcohol_by_volume_value,nutriments`);
+    if (!r.ok) return null; const j = await r.json(); if (j.status !== 1 || !j.product) return null; const p = j.product;
+    const ml = (() => { const m = String(p.quantity || '').toLowerCase().match(/([\d.,]+)\s*(ml|cl|l)\b/); if (!m) return null; const v = parseFloat(m[1].replace(',', '.')); return m[2] === 'l' ? v * 1000 : m[2] === 'cl' ? v * 10 : v; })();
+    const name = [p.brands?.split(',')[0], p.product_name].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+    return name ? { name, brand: p.brands?.split(',')[0] || '', size_ml: ml, abv: Number(p.alcohol_by_volume_value || p.nutriments?.alcohol_100g || p.nutriments?.alcohol) || null } : null;
+  } catch (_) { return null; }
+}
+function scanBarcode() {
+  barcodeCamera(async code => {
+    const have = S.bottles.find(b => b.barcode === code);
+    if (have) { const sealed = (Number(have.sealed) || 0) + 1; const r = await sb.from('bar_bottles').update({ sealed, updated_at: new Date().toISOString() }).eq('id', have.id); if (r.error) return fail(r.error); await loadAll(); render(); return toast(`Another ${have.name}: ${sealed} sealed`); }
+    toast('Looking it up…');
+    const p = await lookupBarcode(code);
+    if (p) { const m = bestCatalog(p.name, p.brand); return bottleEditor(null, { name: m.hit ? m.name : p.name, style_id: m.sid || styleFromHint(p.name), abv: p.abv || m.abv, size_ml: SIZES.includes(Math.round(p.size_ml)) ? Math.round(p.size_ml) : 750, barcode: code }); }
+    pendingBarcode = code; toast("Not in the barcode database. Find it by name once and it'll be remembered."); addBottleSheet();
+  });
 }
 let pendingBarcode = null;
 
@@ -1060,6 +1232,11 @@ document.addEventListener('click', async e => {
     if (a === 'scanshelf') return scanShelf();
     if (a === 'batchcalc') return batchSheet();
     if (a === 'tools') return toolsSheet();
+    if (a === 'ask') return askSheet();
+    if (t.dataset.askq) return askSheet(t.dataset.askq);
+    if (a === 'barcode') return scanBarcode();
+    if (a === 'pournext') { S.pourSkip = (S.pourSkip || 0) + 1; return render(); }
+    if (a === 'nexttip') { S.tipSkip = (S.tipSkip || 0) + 1; return render(); }
     if (a === 'cannow') { S.tab = 'specs'; S.specView = 'can'; render(); $('#main').scrollTop = 0; return; }
     if (a === 'surprise') { const can = allSpecs().filter(s => specStatus(s).ok); const favs = can.filter(s => metaOf(s.id).favorite); const pool = favs.length && Math.random() < 0.6 ? favs : can; return specSheet(pool[Math.floor(Math.random() * pool.length)].id); }
     if (a === 'newspec') return specEditor(null);

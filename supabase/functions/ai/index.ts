@@ -9,6 +9,7 @@
 //   bar_photo     {image|images[], media_type}   -> {bottles:[{name,category,abv,size_ml,fill}]}  (Back Home Bar)
 //   spec_voice    {transcript}                   -> {spec:{...}}  (Back Home Bar)
 //   spec_photo    {image, media_type}            -> {spec:{...}}  (Back Home Bar)
+//   bartender     {question, history, bar, preps, can_make, units} -> {answer, drinks:[string]}  (Back Home Bar)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const MODEL = "claude-sonnet-5-5";
@@ -100,9 +101,43 @@ Deno.serve(async (req) => {
     if (mode === "bar_photo") {
       const pics: string[] = (Array.isArray(b.images) && b.images.length ? b.images : [b.image]).filter(Boolean).slice(0, 4);
       if (!pics.length) return json({ error: "No photo came through. Try again." }, 400);
+      const styles = (Array.isArray(b.styles) ? b.styles : []).slice(0, 400).join("\n");
       const multi = pics.length > 1 ? `These ${pics.length} photos show different parts of the same home bar; list each bottle once.\n` : "";
-      const out = await claude([...pics.map(p => img(p, b.media_type)), { type: "text", text: `${multi}This is a home bar shelf, a liquor cabinet or bottle labels. List every bottle of spirits, liqueur, amaro, vermouth, bitters, wine or mixer you can identify. Use the brand and expression exactly as printed (e.g. "Smith & Cross Traditional Jamaica Rum", "Carpano Antica Formula", "Angostura Aromatic Bitters"). Estimate how full each bottle is from the liquid line (1 = full, 0.5 = half). Skip anything you can't read with reasonable confidence; don't guess brands.\nReturn only JSON: {"bottles":[{"name":string,"category":one of ${BAR_CATS},"abv":number|null (from the label if visible),"size_ml":number|null,"fill":number}]}` }],
-        "You are an experienced bartender cataloging a home bar. Be precise about brands and expressions and never invent bottles you can't see.", 6000);
+      const out = await claude([...pics.map(p => img(p, b.media_type)), { type: "text", text: `${multi}This is a home bar shelf, a liquor cabinet or bottle labels. List every bottle of spirits, liqueur, amaro, vermouth, bitters, wine or mixer you can identify.
+
+For each bottle, read the label like an inventory clerk:
+- "brand": the producer exactly as printed (e.g. "Smith & Cross", "Rittenhouse", "Carpano").
+- "name": the full specific product: brand + expression + age or proof statement as printed (e.g. "Rittenhouse Rye Bottled in Bond", "Appleton Estate 12 Rare Casks", "Hennessy VSOP", "Del Maguey Vida"). Never return just a category like "rum", "bourbon" or "gin"; if you can't read the brand, skip that bottle.
+- "style_id": the closest style id from the list below (use the label's details: bottled-in-bond, cask strength, añejo, VSOP, peated Islay, agricole, etc.). Leave it empty only if nothing fits.
+- "style_hint": a few words describing the style in your own words (e.g. "bottled-in-bond rye", "high-ester Jamaican pot still rum").
+- "abv" from the label if visible, "size_ml" if printed, and "fill": how full it looks from the liquid line (1 = full, 0.5 = half).
+Skip anything you can't read with reasonable confidence; don't guess brands.
+
+STYLES (id|category|name):
+${styles}
+
+Return only JSON: {"bottles":[{"brand":string,"name":string,"style_id":string,"style_hint":string,"category":one of ${BAR_CATS},"abv":number|null,"size_ml":number|null,"fill":number}]}` }],
+        "You are a veteran bartender doing inventory on a home bar. You read labels precisely, down to the expression and proof, and never invent bottles you can't see.", 8000);
+      return json(out);
+    }
+
+    if (mode === "bartender") {
+      const q = String(b.question || "").trim().slice(0, 2000);
+      if (!q) return json({ error: "Ask me something." }, 400);
+      const hist = (Array.isArray(b.history) ? b.history : []).slice(-8).map((h: { role: string; text: string }) => `${h.role === "user" ? "Guest" : "You"}: ${String(h.text).slice(0, 1500)}`).join("\n");
+      const bar = (Array.isArray(b.bar) ? b.bar : []).slice(0, 250).join("; ");
+      const can = (Array.isArray(b.can_make) ? b.can_make : []).slice(0, 150).join(", ");
+      const out = await claude([{ type: "text", text: `THEIR BACK BAR: ${bar || "(empty so far)"}
+HOUSE PREPS ON HAND: ${(b.preps || []).join(", ") || "none"}
+SPECS THEY CAN MAKE RIGHT NOW (from their app): ${can || "none yet"}
+UNITS: ${b.units === "ml" ? "milliliters" : "ounces"}
+${hist ? `CONVERSATION SO FAR:\n${hist}\n` : ""}
+GUEST ASKS: ${q}
+
+Answer like you're talking across the bar: warm, direct, a little dry, generous with the why. Keep it tight (under 170 words) unless they ask for a full menu or a lesson. Use what's on their shelf first and name their actual bottles. When you give a spec, put each ingredient on its own line with amounts in their units, then the method in one line. Fixes are specific ("add a quarter ounce of lime"). If they lack something, give the best substitute from their shelf, then what to buy. Plain text only: no markdown headers, no asterisks.
+Also list in "drinks" the exact names of any classic cocktails you recommend (e.g. "Last Word", "Paper Plane"), so the app can link them.
+Return only JSON: {"answer":string,"drinks":[string]}` }],
+        "You are a head bartender with 25 years behind the stick in New York City craft cocktail bars. You teach home bartenders to drink and mix like pros: precise specs, classic technique, honest opinions, no snobbery. You never invent cocktail history.", 1500);
       return json(out);
     }
 

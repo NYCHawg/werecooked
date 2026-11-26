@@ -155,7 +155,9 @@ function specStatus(sp) {
   const rows = sp.ings.filter(i => i.ref?.length).map(i => ({ i, st: ingState(i) }));
   const isBitters = r => r.i.ref.some(a => (a.style || a.fam || '').startsWith('bitters'));
   // a second dash of bitters is a grace note: if another bitters in the spec is covered, pour without it
-  const missing = rows.filter(r => !r.st.ok && !(isBitters(r) && /^dash/.test(r.i.u) && rows.some(o => o !== r && isBitters(o) && o.st.ok)));
+  const coreBitters = r => r.i.ref.some(a => /^bitters-(aromatic|peychaud|boker|creole)$/.test(a.style || '') || /^bitters-(aromatic|peychaud)$/.test(a.fam || ''));
+  const optional = r => isBitters(r) && /^dash/.test(r.i.u) && (r.i.q || 1) <= 2 && (!coreBitters(r) || rows.some(o => o !== r && isBitters(o) && o.st.ok));
+  const missing = rows.filter(r => !r.st.ok && !optional(r));
   return { ok: !missing.length, missing, quick: rows.filter(r => r.st.how === 'quick'), subs: rows.filter(r => r.st.how === 'sub'), rows };
 }
 const baseCache = new Map();
@@ -305,7 +307,7 @@ function render() {
   app.innerHTML = shell(v);
   const main = $('#main'); main.scrollTop = y; restoreScroll(app);
   if (top0 != null) { const t1 = anchorTop(); if (t1 != null) main.scrollTop += t1 - top0; }
-  for (const [id, key] of [['#bq', 'barQ'], ['#sq', 'specQ'], ['#pq', 'prepQ']]) { const el = $(id); if (el) el.oninput = e => { S[key] = e.target.value; const pos = e.target.selectionStart; render(); const n = $(id); n.focus(); n.setSelectionRange(pos, pos); }; }
+  for (const [id, key] of [['#bq', 'barQ'], ['#sq', 'specQ'], ['#pq', 'prepQ'], ['#hq', 'homeQ']]) { const el = $(id); if (el) el.oninput = e => { S[key] = e.target.value; const pos = e.target.selectionStart; render(); const n = $(id); n.focus(); n.setSelectionRange(pos, pos); }; }
 }
 
 // ---------- home: your bartender ----------
@@ -375,42 +377,40 @@ function unlocks(st) {
     const cur = unlock.get(key) || { key, a: a.style ? { fam: STY[a.style]?.fam } : a, n: 0, names: [] }; cur.n++; cur.names.push(x.sp.name); unlock.set(key, cur); }
   return [...unlock.values()].sort((a, b) => b.n - a.n);
 }
+const COMMON = ['old-fashioned', 'manhattan', 'martini', 'negroni', 'margarita', 'daiquiri', 'whiskey-sour', 'mojito', 'moscow-mule', 'gin-and-tonic', 'paloma', 'espresso-martini',
+  'aperol-spritz', 'cosmopolitan', 'french-75', 'tom-collins', 'gimlet', 'sidecar', 'boulevardier', 'mai-tai', 'last-word', 'penicillin', 'bloody-mary', 'dark-and-stormy'];
 function homeView() {
-  const specs = allSpecs(), st = specs.map(sp => ({ sp, s: specStatus(sp) })), can = st.filter(x => x.s.ok).map(x => x.sp);
-  const { pick, m } = tonightsPour(can, S.pourSkip || 0);
-  const tip = TIPS[(dayKey() + (S.tipSkip || 0)) % TIPS.length];
-  const made = CANON.filter(k => metaOf(k).made_count > 0), canonNext = CANON.filter(k => !metaOf(k).made_count && LSPEC[k] && specStatus(LSPEC[k]).ok).slice(0, 3);
-  const top = unlocks(st).filter(u => !u.a.fresh).slice(0, 3);
-  const eighty6 = S.bottles.filter(b => bottleLow(b) || bottleRunningLow(b) || (!bottleOn(b) && Number(b.par) > 0));
-  const mise = S.preps.filter(p => Number(p.qty_ml) > 0 && p.expires_on && daysUntil(p.expires_on) <= 2), toMake = prepsToMake().slice(0, 3);
+  const h = new Date().getHours(), hi = h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening';
+  const specs = allSpecs(), can = specs.filter(sp => specStatus(sp).ok);
+  const live = S.bottles.filter(bottleOn), low = S.bottles.filter(b => bottleLow(b) || bottleRunningLow(b) || (!bottleOn(b) && Number(b.par) > 0));
+  const soon = S.preps.filter(p => Number(p.qty_ml) > 0 && p.expires_on && daysUntil(p.expires_on) <= 3).sort((a, b) => a.expires_on.localeCompare(b.expires_on));
+  const q = fold(S.homeQ || '').trim();
+  const found = q.length >= 2 ? specs.filter(sp => fold(sp.name).includes(q) || sp.ings.some(i => fold(ingLabel(i)).includes(q))).sort((a, b) => fold(b.name).startsWith(q) - fold(a.name).startsWith(q) || specStatus(b).ok - specStatus(a).ok).slice(0, 8) : [];
+  const common = COMMON.map(k => LSPEC[k]).filter(Boolean).map(sp => ({ sp, ok: specStatus(sp).ok }));
+  const shown = S.homeReady ? common.filter(x => x.ok) : common;
+  const cats = C.cats.map(c => [c, S.bottles.filter(b => STY[b.style_id]?.cat === c)]).filter(x => x[1].length);
+  const ordered = cats.flatMap(([, bs]) => bs);
   const next = S.events.filter(e => e.day && daysUntil(e.day) >= 0).sort((a, b) => a.day.localeCompare(b.day))[0];
-  const empty = !S.bottles.length;
-  const pourCard = pick ? `<div class="pour">${glassSvg(pick.glass)}<div class="eyebrow">${esc(m.label)} · Tonight's pour</div><h2>${esc(pick.name)}</h2><p class="why">${esc(m.why)}${metaOf(pick.id).favorite ? ' One of your favorites.' : !metaOf(pick.id).made_count && CANON.includes(pick.id) ? ' A classic every bartender should own.' : ''}</p>
-      <div class="specline">${pick.ings.filter(i => i.ref?.length || i.t).slice(0, 5).map(i => `<span>${esc(amtText(i))} ${esc(ingLabel(i))}</span>`).join('')}</div>
-      <div class="row"><button class="btn sm" data-spec="${esc(pick.id)}">Make it</button><button class="btn sm ghost" data-act="pournext">Something else</button></div>
-      <div class="tip"><b>Behind the stick:</b> ${esc(METHOD_TIP[pick.method] || 'Taste before you pour.')}</div></div>`
-    : `<div class="pour"><div class="eyebrow">Let's open the bar</div><h2>Stock the back bar</h2><p class="why">Show me what's on your shelf and I'll tell you exactly what you can pour tonight, from 229 specs.</p>
-      <div class="row"><button class="btn sm" data-act="scanshelf">${svg('camera')} Snap your shelf</button><button class="btn sm ghost" data-act="addbottle">Add by name</button></div></div>`;
-  return `<div class="hello"><div class="eyebrow">${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</div><h2>${greet()}</h2></div>
-  ${pourCard}
-  <button class="ask" data-act="ask"><span class="av">B</span><span style="flex:1"><b>Ask your bartender</b><span class="imeta">Subs, fixes, ideas, party menus. I know what's on your shelf.</span></span>${svg('spark')}</button>
-  <div class="prompts" aria-label="Ask about">${['What can I make with what I have?', 'My drink is too sweet. Fix it?', 'Sub for Cocchi Americano?', 'Build me a 3-drink party menu', 'Teach me to make a Martini right'].map(q => `<button data-askq="${esc(q)}">${esc(q)}</button>`).join('')}</div>
-  <div class="qgrid">
+  return `<div class="hello"><div class="eyebrow">${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</div><h2 style="font-size:28px">${hi}, ${first(S.me)}</h2></div>
+  <div class="search">${svg('search')}<input type="search" id="hq" placeholder="Find a cocktail or ingredient" value="${esc(S.homeQ || '')}" aria-label="Find a cocktail" autocomplete="off"></div>
+  ${q.length >= 2 ? `<div class="card" style="margin-bottom:6px">${found.length ? found.map(sp => `<button class="tap item" data-spec="${esc(sp.id)}"><span style="width:28px;flex:none;color:var(--brass)">${glassSvg(sp.glass, 'gl')}</span><span class="grow"><span class="iname">${esc(sp.name)}</span><span class="imeta" style="display:block">${esc(sp.family)}</span></span>${specStatus(sp).ok ? '<span class="pill ok">Ready</span>' : ''}</button>`).join('') : '<p class="imeta" style="margin:4px 0">No cocktails match.</p>'}</div>` : ''}
+  <div class="stats" style="margin-top:4px"><button class="stat tap" data-act="cannow"><b>${can.length}</b><span>Ready to pour</span></button><button class="stat tap" data-tab="bar"><b>${live.length}</b><span>Bottles</span></button><button class="stat tap" data-act="lowlist"><b style="${low.length ? 'color:var(--ox)' : ''}">${low.length}</b><span>Running low</span></button></div>
+  <div class="row" style="margin:20px 0 6px"><h3 style="margin:0" class="sp">Your shelves</h3><button class="lnk" data-tab="bar">Back bar ›</button></div>
+  ${S.bottles.length ? `<div class="ministrip" data-sk="homeshelf" aria-label="Your bottles">${ordered.map(b => `<button class="mb${bottleLow(b) ? ' low' : ''}" data-bottle="${b.id}" aria-label="${esc(b.name)}, ${Math.round(fillPct(b) * 100)}% full">${bottleVisual(b, true)}<span>${esc(b.name.split(' ').slice(0, 2).join(' '))}</span></button>`).join('')}<button class="mb add" data-act="addbottle" aria-label="Add a bottle"><span class="plus">+</span><span>Add</span></button></div>
+    <div class="chips" style="margin-top:10px">${cats.map(([c, bs]) => `<button class="chip" data-gocat="${esc(c)}">${esc(c)} <span class="muted">${bs.length}</span></button>`).join('')}</div>`
+  : `<div class="card flat"><p class="imeta" style="margin:0 0 10px">Add your bottles to see what you can pour.</p><div class="row"><button class="btn sm" data-act="scanshelf">${svg('camera')} Snap your shelf</button><button class="btn sm ghost" data-act="addbottle">Add by name</button><button class="btn sm ghost" data-act="barcode">${svg('scan')} Barcode</button></div></div>`}
+  <div class="row" style="margin:22px 0 8px"><h3 style="margin:0" class="sp">Classics</h3><div class="seg" style="width:150px" role="group" aria-label="Show"><button data-homeready="0" aria-pressed="${!S.homeReady}">All</button><button data-homeready="1" aria-pressed="${!!S.homeReady}">Ready</button></div></div>
+  ${shown.length ? `<div class="cgrid">${shown.map(({ sp, ok }) => `<button class="ctile${ok ? '' : ' off'}" data-spec="${esc(sp.id)}">${glassSvg(sp.glass, 'gl')}<b>${esc(sp.name)}</b><span>${ok ? '<i class="dot olive"></i>Ready' : `Need ${esc(altName(specStatus(sp).missing[0]?.i.ref[0]))}`}</span></button>`).join('')}</div>` : '<p class="imeta">None of the classics are ready yet. Tap All to see what each one needs.</p>'}
+  <button class="lnk" data-tab="specs" style="display:block;margin-top:10px">All ${specs.length} specs ›</button>
+  ${low.length ? `<h3>Running low</h3><div class="card">${low.slice(0, 6).map(b => `<button class="tap item" data-bottle="${b.id}"><span style="width:20px;flex:none">${bottleVisual(b, true)}</span><span class="grow"><span class="iname">${esc(b.name)}</span><span class="fillbar" style="margin-top:6px"><i style="width:${Math.round(fillPct(b) * 100)}%;background:var(--ox)"></i></span></span><span class="imeta">${bottleOn(b) ? Math.round(fillPct(b) * 100) + '%' : 'Out'}</span></button>`).join('')}${low.length > 6 ? `<button class="lnk" data-act="lowlist" style="margin-top:8px">${low.length - 6} more ›</button>` : ''}</div>` : ''}
+  ${soon.length ? `<h3>Use soon</h3><div class="card">${soon.map(p => `<button class="tap item" data-prep="${p.id}"><span class="grow"><span class="iname">${esc(p.name)}</span><span class="imeta" style="display:block">${volText(Number(p.qty_ml))} left</span></span><span class="pill ${daysUntil(p.expires_on) < 0 ? 'bad' : 'warn'}">${daysUntil(p.expires_on) < 0 ? 'Past date' : daysUntil(p.expires_on) === 0 ? 'Today' : daysUntil(p.expires_on) + 'd'}</span></button>`).join('')}</div>` : ''}
+  ${next ? `<h3>Next up</h3><button class="tap card" data-event="${next.id}"><span class="eyebrow">${daysUntil(next.day) === 0 ? 'Tonight' : daysUntil(next.day) === 1 ? 'Tomorrow' : `In ${daysUntil(next.day)} days`}</span><b style="display:block;font:700 19px var(--serif)">${esc(next.name)}</b><span class="imeta">${next.guests ? `${next.guests} guests · ` : ''}${(next.drinks || []).length} drinks</span></button>` : ''}
+  <div class="qgrid" style="margin-top:22px">
     <button class="q" data-act="addbottle">${svg('plus')}Add bottle</button>
-    <button class="q" data-act="scanshelf">${svg('camera')}Snap shelf</button>
     <button class="q" data-act="barcode">${svg('scan')}Barcode</button>
-    <button class="q" data-act="tools">${svg('calc')}Tools</button></div>
-  ${!empty ? `<div class="stats"><div class="stat"><b>${can.length}</b><span>Can pour</span></div><div class="stat"><b>${S.bottles.filter(bottleOn).length}</b><span>Bottles</span></div><div class="stat"><b>${S.preps.filter(prepLive).length}</b><span>House preps</span></div></div>` : ''}
-  <h3>Behind the stick</h3><div class="stick"><div class="eyebrow"><span>Technique of the day</span><button class="lnk" data-act="nexttip">Next tip</button></div><b class="t">${esc(tip[0])}</b><p>${esc(tip[1])}</p></div>
-  <h3>The canon</h3><div class="card"><div class="canon">${ringSvg(made.length, CANON.length)}<div style="flex:1"><b style="font:700 18px var(--serif)">${made.length} of ${CANON.length} classics made</b><p class="imeta" style="margin:2px 0 0">${made.length === 0 ? 'The 30 drinks every NYC bartender can make blindfolded. Tap “Made it” on a spec to check one off.' : made.length < 10 ? 'Good start. Keep working the list.' : made.length < 30 ? 'You\'re getting dangerous.' : 'You could work a Saturday at any bar in the city.'}</p></div></div>
-    ${canonNext.length ? `<div style="margin-top:10px">${canonNext.map(k => `<button class="tap item" data-spec="${k}"><span class="grow"><span class="iname">${esc(LSPEC[k].name)}</span><span class="imeta" style="display:block">You have everything for it</span></span><span class="pill ok">Ready</span></button>`).join('')}</div>` : ''}</div>
-  ${top.length ? `<h3>The next bottle I'd buy</h3><div class="card">${top.map((u, k) => `<div class="alert"><span class="dot olive"></span><span style="flex:1"><span class="iname">${esc(altName(u.a))}</span><span class="imeta" style="display:block">${k === 0 ? 'Best bang for your buck: ' : ''}unlocks ${u.n} drink${u.n === 1 ? '' : 's'}: ${esc(u.names.slice(0, 3).join(', '))}${u.n > 3 ? '…' : ''}</span></span>${u.a.prep ? `<button class="btn sm ghost" data-prep-lib="${esc(u.a.prep)}">Make it</button>` : `<button class="btn sm ghost" data-buy="${esc(altName(u.a))}">+ List</button>`}</div>`).join('')}</div>` : ''}
-  ${mise.length || toMake.length ? `<h3>Mise en place</h3><div class="card">${mise.map(p => `<div class="alert"><span class="dot"></span><button class="tap" data-prep="${p.id}" style="flex:1"><span class="iname">${esc(p.name)}</span><span class="imeta" style="display:block">${daysUntil(p.expires_on) < 0 ? 'Past its date: toss it and make fresh' : daysUntil(p.expires_on) === 0 ? 'Use it tonight' : `Use within ${daysUntil(p.expires_on)} day${daysUntil(p.expires_on) === 1 ? '' : 's'}`}</span></button></div>`).join('')}
-    ${toMake.map(w => `<div class="alert"><span class="dot ice"></span><span style="flex:1"><span class="iname">Make ${esc(PREP[w.pid].name.toLowerCase())}</span><span class="imeta" style="display:block">For ${esc([...w.why].slice(0, 2).join(', '))}</span></span><button class="btn sm ghost" data-prep-lib="${esc(w.pid)}">Recipe</button></div>`).join('')}</div>` : ''}
-  ${eighty6.length ? `<h3>86 list</h3><div class="card">${eighty6.map(b => `<div class="alert"><span class="dot ox"></span><button class="tap" data-bottle="${b.id}" style="flex:1"><span class="iname">${esc(b.name)}</span><span class="imeta" style="display:block">${bottleOn(b) ? `${Math.round(fillPct(b) * 100)}% left` : '86\'d: out'}${Number(b.sealed) ? ` · ${b.sealed} sealed` : ''}${S.list.some(x => !x.checked && x.name === b.name) ? ' · on the Bar list' : ''}</span></button></div>`).join('')}</div>` : ''}
-  ${next ? `<h3>Next up</h3><button class="tap card" data-event="${next.id}"><span class="eyebrow">${daysUntil(next.day) === 0 ? 'Tonight' : daysUntil(next.day) === 1 ? 'Tomorrow' : `In ${daysUntil(next.day)} days`}</span><b style="display:block;font:700 20px var(--serif)">${esc(next.name)}</b><span class="imeta">${next.guests ? `${next.guests} guests · ` : ''}${(next.drinks || []).length} drinks on the menu</span></button>` : ''}`;
+    <button class="q" data-act="batchcalc">${svg('calc')}Batch</button>
+    <button class="q" data-act="ask">${svg('spark')}Ask</button></div>`;
 }
-
 // ---------- ask your bartender ----------
 const chat = [];
 function askSheet(q0 = '') {
@@ -1233,6 +1233,9 @@ document.addEventListener('click', async e => {
     if (a === 'batchcalc') return batchSheet();
     if (a === 'tools') return toolsSheet();
     if (a === 'ask') return askSheet();
+    if (t.dataset.homeready != null) { S.homeReady = t.dataset.homeready === '1'; return render(); }
+    if (t.dataset.gocat) { S.tab = 'bar'; S.barCat = t.dataset.gocat; S.barView = S.barView === 'fresh' ? 'shelf' : S.barView; render(); $('#main').scrollTop = 0; return; }
+    if (a === 'lowlist') { S.tab = 'bar'; S.barView = 'list'; S.barCat = ''; render(); $('#main').scrollTop = 0; return; }
     if (t.dataset.askq) return askSheet(t.dataset.askq);
     if (a === 'barcode') return scanBarcode();
     if (a === 'pournext') { S.pourSkip = (S.pourSkip || 0) + 1; return render(); }
